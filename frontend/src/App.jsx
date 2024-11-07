@@ -2,6 +2,7 @@ import React from "react";
 import Navigation from "./components/Navigation/Navigation";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GoalList from "./components/GoalList/GoalList";
+import AddGoal from "./components/AddGoal/AddGoal";
 
 const App = () => {
   return (
@@ -9,6 +10,7 @@ const App = () => {
       <Navigation />
       <main className="main-content">
         <Routes>
+          <Route path="/goals/add" Component={AddGoal} />
           <Route path="/goals" Component={GoalList} />
         </Routes>
       </main>
