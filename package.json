@@ -1,0 +1,24 @@
+{
+  "name": "stride",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend server for Stride",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manoj633/stride.git"
+  },
+  "author": "Manoj M",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/manoj633/stride/issues"
+  },
+  "homepage": "https://github.com/manoj633/stride#readme",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
