@@ -10,6 +10,7 @@ import TaskDescription from "./components/TaskDescription/TaskDescription";
 import SubtaskList from "./components/SubtaskList/SubtaskList";
 import AddSubTask from "./components/AddSubTask/AddSubTask";
 import SubtaskDescription from "./components/SubtaskDescription/SubtaskDescription";
+import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
       <Navigation />
       <main className="main-content">
         <Routes>
+          <Route path="/" Component={TaskCalendar} />
           <Route path="/goals/:goalId" Component={GoalDescription} />
           <Route path="/goals/add" Component={AddGoal} />
           <Route path="/goals" Component={GoalList} />
