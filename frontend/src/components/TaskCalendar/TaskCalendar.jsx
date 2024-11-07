@@ -34,7 +34,9 @@ const TaskCalendar = () => {
     const itemsByDate = {};
 
     goals.forEach((goal) => {
-      const dateStr = new Date(goal.dueDate).toISOString().split("T")[0];
+      const dateStr = new Date(goal.duration.startDate)
+        .toISOString()
+        .split("T")[0];
       if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
       itemsByDate[dateStr].push({
         id: `goal-${goal.id}`,
@@ -48,7 +50,7 @@ const TaskCalendar = () => {
     });
 
     tasks.forEach((task) => {
-      const dateStr = new Date(task.dueDate).toISOString().split("T")[0];
+      const dateStr = new Date(task.startDate).toISOString().split("T")[0];
       if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
       itemsByDate[dateStr].push({
         id: `task-${task.id}`,
