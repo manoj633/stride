@@ -7,6 +7,7 @@ import GoalDescription from "./components/GoalDescription/GoalDescription";
 import TaskList from "./components/TaskList/TaskList";
 import AddTask from "./components/AddTask/AddTask";
 import TaskDescription from "./components/TaskDescription/TaskDescription";
+import SubtaskList from "./components/SubtaskList/SubtaskList";
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route path="/tasks/:taskId" Component={TaskDescription} />
           <Route path="/tasks/add" Component={AddTask} />
           <Route path="/tasks" Component={TaskList} />
+          <Route path="/subtasks" Component={SubtaskList} />
         </Routes>
       </main>
     </BrowserRouter>
