@@ -1,7 +1,8 @@
 import React from "react";
+import Navigation from "./components/Navigation/Navigation";
 
 const App = () => {
-  return <div>App</div>;
+  return <Navigation />;
 };
 
 export default App;

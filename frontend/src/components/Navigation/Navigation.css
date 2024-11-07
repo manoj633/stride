@@ -1,0 +1,61 @@
+/* src/components/Navigation/Navigation.css */
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.nav__container {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav__logo {
+    flex-shrink: 0;
+}
+
+.nav__logo-link {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #000000;
+    text-decoration: none;
+}
+
+.nav__menu {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+}
+
+.nav__link {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666666;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav__link:hover {
+    color: #000000;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.nav__link--active {
+    color: #000000;
+    background: rgba(0, 0, 0, 0.05);
+}
