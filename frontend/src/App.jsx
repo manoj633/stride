@@ -5,6 +5,7 @@ import GoalList from "./components/GoalList/GoalList";
 import AddGoal from "./components/AddGoal/AddGoal";
 import GoalDescription from "./components/GoalDescription/GoalDescription";
 import TaskList from "./components/TaskList/TaskList";
+import AddTask from "./components/AddTask/AddTask";
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
           <Route path="/goals/:goalId" Component={GoalDescription} />
           <Route path="/goals/add" Component={AddGoal} />
           <Route path="/goals" Component={GoalList} />
+          <Route path="/tasks/add" Component={AddTask} />
           <Route path="/tasks" Component={TaskList} />
         </Routes>
       </main>
