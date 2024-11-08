@@ -1,9 +1,14 @@
 import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
+
 import goals from "./data/goals.js";
 import tasks from "./data/tasks.js";
 import subtasks from "./data/subtasks.js";
 
-const port = 5000;
+console.log(process.env.PORT);
+const port = process.env.PORT || 5000;
+
 const app = express();
 app.get("/", (req, res) => {
   res.send("API is running");
