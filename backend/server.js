@@ -5,9 +5,12 @@ dotenv.config();
 import goals from "./data/goals.js";
 import tasks from "./data/tasks.js";
 import subtasks from "./data/subtasks.js";
+import connectDB from "./config/db.js";
 
 console.log(process.env.PORT);
 const port = process.env.PORT || 5000;
+
+connectDB();
 
 const app = express();
 app.get("/", (req, res) => {
