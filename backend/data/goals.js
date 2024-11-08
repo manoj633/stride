@@ -1,6 +1,5 @@
 const goals = [
   {
-    _id: "1",
     title: "Learn React",
     description: "Complete React course and build projects.",
     category: "Education",
@@ -16,7 +15,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "2",
     title: "Fitness Goals",
     description: "Lose 10 kg and maintain a healthy diet.",
     category: "Health",
@@ -32,7 +30,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "3",
     title: "Travel to Japan",
     description: "Visit Tokyo and Kyoto with family.",
     category: "Leisure",
@@ -48,7 +45,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "4",
     title: "Complete a Marathon",
     description: "Train and participate in a marathon event.",
     category: "Fitness",
@@ -64,7 +60,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "5",
     title: "Learn Spanish",
     description: "Complete Spanish language course by 2026.",
     category: "Education",
@@ -80,7 +75,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "6",
     title: "Start a Blog",
     description: "Create a personal blog and post regularly.",
     category: "Career",
@@ -96,7 +90,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "7",
     title: "Complete a Data Science Course",
     description: "Learn data analysis and visualization techniques.",
     category: "Education",
@@ -112,7 +105,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "8",
     title: "Improve Public Speaking Skills",
     description: "Join a local Toastmasters club and practice weekly.",
     category: "Education",
@@ -128,7 +120,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "9",
     title: "Master Python Programming",
     description: "Complete online Python courses and build a portfolio.",
     category: "Education",
@@ -144,7 +135,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "10",
     title: "Study for Certification in Cloud Computing",
     description: "Prepare for the AWS Certified Solutions Architect exam.",
     category: "Education",
@@ -160,7 +150,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "11",
     title: "Attend a Workshop on UX Design",
     description:
       "Enhance design skills by participating in practical workshops.",
@@ -177,7 +166,6 @@ const goals = [
     comments: [],
   },
   {
-    _id: "12",
     title: "Read 12 Books This Year",
     description: "One book per month for personal development.",
     category: "Education",

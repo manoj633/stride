@@ -1,7 +1,6 @@
 const tasks = [
   // Tasks for Goal ID 1 (Learn React)
   {
-    id: "1",
     name: "Complete React Module",
     description: "Finish the React basics module.",
     priority: "High",
@@ -12,7 +11,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "2",
     name: "Build a Simple React App",
     description: "Create a basic To-Do list app using React.",
     priority: "Medium",
@@ -23,7 +21,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "3",
     name: "Practice React Hooks",
     description: "Complete exercises on React hooks and their applications.",
     priority: "Medium",
@@ -36,7 +33,6 @@ const tasks = [
 
   // Tasks for Goal ID 5 (Learn Spanish)
   {
-    id: "4",
     name: "Enroll in Spanish Course",
     description: "Sign up for an online Spanish language course.",
     priority: "High",
@@ -47,7 +43,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "5",
     name: "Complete Spanish Vocabulary Module",
     description: "Finish the first vocabulary module in the Spanish course.",
     priority: "Medium",
@@ -60,7 +55,6 @@ const tasks = [
 
   // Tasks for Goal ID 7 (Complete a Data Science Course)
   {
-    id: "6",
     name: "Complete Data Analysis Project",
     description: "Work on a project involving data cleaning and analysis.",
     priority: "High",
@@ -71,7 +65,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "7",
     name: "Attend Data Science Webinar",
     description: "Join a webinar on the latest trends in data science.",
     priority: "Medium",
@@ -84,7 +77,6 @@ const tasks = [
 
   // Tasks for Goal ID 8 (Improve Public Speaking Skills)
   {
-    id: "8",
     name: "Practice Public Speaking",
     description: "Prepare a 5-minute speech for Toastmasters.",
     priority: "High",
@@ -97,7 +89,6 @@ const tasks = [
 
   // Tasks for Goal ID 9 (Master Python Programming)
   {
-    id: "9",
     name: "Complete Python Basics Course",
     description: "Finish the introductory Python course online.",
     priority: "High",
@@ -108,7 +99,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "10",
     name: "Build a Portfolio Project in Python",
     description: "Develop a project to showcase Python skills.",
     priority: "Medium",
@@ -121,7 +111,6 @@ const tasks = [
 
   // Tasks for Goal ID 10 (Study for Certification in Cloud Computing)
   {
-    id: "11",
     name: "Study AWS Solutions Architect Guide",
     description:
       "Read and summarize the AWS Certified Solutions Architect study guide.",
@@ -133,7 +122,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "12",
     name: "Take Practice AWS Exam",
     description:
       "Complete a practice exam for AWS Certified Solutions Architect.",
@@ -147,7 +135,6 @@ const tasks = [
 
   // Tasks for Goal ID 11 (Attend a Workshop on UX Design)
   {
-    id: "13",
     name: "Attend UX Design Workshop",
     description: "Participate in a hands-on UX design workshop.",
     priority: "Medium",
@@ -158,7 +145,6 @@ const tasks = [
     completionPercentage: 0,
   },
   {
-    id: "14",
     name: "Read 'Designing for the User Experience'",
     description: "Finish reading a recommended book on UX design principles.",
     priority: "Low",
@@ -171,7 +157,6 @@ const tasks = [
 
   // Tasks for Goal ID 12 (Read 12 Books This Year)
   {
-    id: "15",
     name: "Track Reading Progress",
     description: "Maintain a list of books read throughout the year.",
     priority: "Low",
