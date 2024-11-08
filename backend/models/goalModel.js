@@ -2,10 +2,6 @@ import mongoose from "mongoose";
 
 const GoalSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-      required: true,
-    },
     title: {
       type: String,
       required: true,
@@ -17,7 +13,16 @@ const GoalSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Education", "Work", "Personal", "Other"],
+      enum: [
+        "Education",
+        "Health",
+        "Leisure",
+        "Fitness",
+        "Career",
+        "Work",
+        "Personal",
+        "Other",
+      ],
       default: "Other",
     },
     priority: {
