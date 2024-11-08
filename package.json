@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/manoj633/stride#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.21.1",
     "mongoose": "^8.8.0"
   },
