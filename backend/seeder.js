@@ -62,7 +62,23 @@ const importData = async () => {
       ...task,
       goalId: goalMap[task.goalId], // Replace `goalId` with MongoDB _id
     }));
-    await Task.insertMany(sampleTasks);
+    const createdTasks = await Task.insertMany(sampleTasks);
+
+    // Map task IDs for easy access in subtasks
+    const taskMap = {};
+    createdTasks.forEach((task) => {
+      taskMap[task.id] = task._id;
+    });
+
+    // Prepare subtasks with task and goal references
+    const sampleSubtasks = subtasks.map((subtask) => {
+      return {
+        ...subtask,
+        taskId: taskMap[subtask.taskId],
+        goalId: goalMap[subtask.goalId],
+      };
+    });
+    await Subtask.insertMany(sampleSubtasks);
 
     console.log("Data Imported!".green.inverse);
     process.exit();
