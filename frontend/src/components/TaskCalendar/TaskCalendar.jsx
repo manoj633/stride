@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 import {
   goalsProvider,
   tasksProvider,
@@ -25,9 +27,13 @@ const TaskCalendar = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalDate, setModalDate] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
-
+  const [goals, setGoals] = useState([]);
   useEffect(() => {
-    const goals = goalsProvider();
+    const fetchGoals = async () => {
+      const { inputGoals } = await axios.get("/api/goals");
+      setGoals(inputGoals);
+    };
+    fetchGoals();
     const tasks = tasksProvider();
     const subtasks = subtasksProvider();
 
