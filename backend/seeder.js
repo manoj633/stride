@@ -53,8 +53,8 @@ const importData = async () => {
 
     // Map goal IDs to MongoDB _ids for tasks
     const goalMap = {};
-    createdGoals.forEach((goal) => {
-      goalMap[goal.id] = goal._id;
+    createdGoals.forEach((goal, i) => {
+      goalMap[i] = goal._id;
     });
 
     // Update tasks with MongoDB goal _ids
@@ -66,8 +66,8 @@ const importData = async () => {
 
     // Map task IDs for easy access in subtasks
     const taskMap = {};
-    createdTasks.forEach((task) => {
-      taskMap[task.id] = task._id;
+    createdTasks.forEach((task, i) => {
+      taskMap[i] = task._id;
     });
 
     // Prepare subtasks with task and goal references
