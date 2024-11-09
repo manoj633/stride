@@ -16,7 +16,7 @@ import {
 
 const router = express.Router();
 
-// Get all goals
+// Get all goals and create a new goal
 router.route("/").get(getGoals).post(createGoal);
 
 // Get, update, or delete goal by id
@@ -38,3 +38,9 @@ router
   .delete(removeTag); // To remove a tag
 
 // Add or remove comment
+router
+  .route("/:id/comments")
+  .put(addComment) // To add a comment
+  .delete(removeComment); // To remove a comment
+
+export default router;
