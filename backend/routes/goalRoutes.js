@@ -20,7 +20,8 @@ router.get(
       return res.json(goal);
     }
 
-    res.status(400).json({ message: "Goal not found" });
+    res.status(404);
+    throw new Error("Resource not found");
   })
 );
 
