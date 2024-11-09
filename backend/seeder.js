@@ -38,14 +38,14 @@ const importData = async () => {
 
     // Map tags by their original `id` field for easy access
     const tagMap = {};
-    createdTags.forEach((tag) => {
-      tagMap[tag.id] = tag._id;
+    createdTags.forEach((tag, i) => {
+      tagMap[i] = tag._id;
     });
 
     const adminUser = createdUsers[0]._id;
 
     const sampleGoals = goals.map((goal) => {
-      const goalTags = goal.tags.map((tagId) => tagMap[tagId]); // Map goal tag IDs to MongoDB _ids
+      const goalTags = goal.tags.map((tagId) => tagMap[tagId - 1]);
       return {
         ...goal,
         collaborators: [adminUser],
