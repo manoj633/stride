@@ -8,6 +8,7 @@ import goals from "./data/goals.js";
 import tasks from "./data/tasks.js";
 import subtasks from "./data/subtasks.js";
 import tags from "./data/tag.js";
+import comments from "./data/comments.js";
 
 //models import
 import User from "./models/userModel.js";
@@ -15,6 +16,7 @@ import Goal from "./models/goalModel.js";
 import Task from "./models/taskModel.js";
 import Subtask from "./models/subtaskModel.js";
 import Tag from "./models/tagModel.js";
+import Comment from "./models/commentModel.js";
 
 import connectDB from "./config/db.js";
 
@@ -29,6 +31,7 @@ const importData = async () => {
     await Subtask.deleteMany();
     await User.deleteMany();
     await Tag.deleteMany();
+    await Comment.deleteMany();
 
     const createdUsers = await User.insertMany(users);
     const createdTags = await Tag.insertMany(tags);
@@ -60,7 +63,7 @@ const importData = async () => {
     // Update tasks with MongoDB goal _ids
     const sampleTasks = tasks.map((task) => ({
       ...task,
-      goalId: goalMap[task.goalId], // Replace `goalId` with MongoDB _id
+      goalId: goalMap[task.goalId - 1], // Replace `goalId` with MongoDB _id
     }));
     const createdTasks = await Task.insertMany(sampleTasks);
 
@@ -74,11 +77,20 @@ const importData = async () => {
     const sampleSubtasks = subtasks.map((subtask) => {
       return {
         ...subtask,
-        taskId: taskMap[subtask.taskId],
-        goalId: goalMap[subtask.goalId],
+        taskId: taskMap[subtask.taskId - 1],
+        goalId: goalMap[subtask.goalId - 1],
       };
     });
     await Subtask.insertMany(sampleSubtasks);
+
+    const sampleComments = comments.map((comment) => {
+      return {
+        ...comment,
+        goalId: goalMap[comment.goalId - 1],
+        authorId: adminUser,
+      };
+    });
+    await Comment.insertMany(sampleComments);
 
     console.log("Data Imported!".green.inverse);
     process.exit();
@@ -98,6 +110,7 @@ const destroyData = async () => {
     await User.deleteMany();
     await mongoose.connection.collection("tags").dropIndexes();
     await Tag.deleteMany();
+    await Comment.deleteMany();
 
     console.log("Data Destroyed!".red.inverse);
     process.exit();
