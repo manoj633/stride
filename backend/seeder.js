@@ -49,7 +49,20 @@ const importData = async () => {
         tags: goalTags,
       };
     });
-    await Goal.insertMany(sampleGoals);
+    const createdGoals = await Goal.insertMany(sampleGoals);
+
+    // Map goal IDs to MongoDB _ids for tasks
+    const goalMap = {};
+    createdGoals.forEach((goal) => {
+      goalMap[goal.id] = goal._id;
+    });
+
+    // Update tasks with MongoDB goal _ids
+    const sampleTasks = tasks.map((task) => ({
+      ...task,
+      goalId: goalMap[task.goalId], // Replace `goalId` with MongoDB _id
+    }));
+    await Task.insertMany(sampleTasks);
 
     console.log("Data Imported!".green.inverse);
     process.exit();
@@ -62,9 +75,12 @@ const importData = async () => {
 const destroyData = async () => {
   try {
     await Goal.deleteMany();
+    await mongoose.connection.collection("task").dropIndexes();
+
     await Task.deleteMany();
     await Subtask.deleteMany();
     await User.deleteMany();
+    await mongoose.connection.collection("tags").dropIndexes();
     await Tag.deleteMany();
 
     console.log("Data Destroyed!".red.inverse);
