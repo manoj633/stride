@@ -64,7 +64,7 @@ export const deleteTag = asyncHandler(async (req, res) => {
   const tag = await Tag.findById(req.params.id);
 
   if (tag) {
-    await tag.remove();
+    await tag.deleteOne(); // Use deleteOne instead of remove
     res.status(200).json({ message: "Tag removed" });
   } else {
     res.status(404).json({ message: "Tag not found" });
