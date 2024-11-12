@@ -1,0 +1,157 @@
+/* components/tags/TagManager.css */
+.tag-manager {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.tag-manager__form {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.tag-manager__input-group {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+}
+
+.tag-manager__input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #ffffff;
+    transition: border-color 0.2s ease;
+}
+
+.tag-manager__input:focus {
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+}
+
+.tag-manager__color-picker {
+    width: 42px;
+    height: 42px;
+    padding: 4px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #ffffff;
+}
+
+.tag-manager__button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tag-manager__button--create {
+    background-color: #339af0;
+    color: white;
+}
+
+.tag-manager__button--create:hover {
+    background-color: #228be6;
+}
+
+.tag-manager__button--create:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.tag-manager__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tag-manager__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.tag-manager__item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tag-manager__edit-group {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+}
+
+.tag-manager__edit-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #ffffff;
+}
+
+.tag-manager__name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.tag-manager__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.tag-manager__button--edit {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #e9ecef;
+}
+
+.tag-manager__button--edit:hover {
+    background-color: #e9ecef;
+}
+
+.tag-manager__button--delete {
+    background-color: #fff0f0;
+    color: #e03131;
+    border: 1px solid #ffe3e3;
+}
+
+.tag-manager__button--delete:hover {
+    background-color: #ffe3e3;
+}
+
+.tag-manager__loading {
+    text-align: center;
+    padding: 24px;
+    color: #868e96;
+    font-size: 14px;
+}
+
+.tag-manager__error {
+    text-align: center;
+    padding: 20px;
+    color: #e03131;
+    background: #fff0f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
