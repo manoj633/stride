@@ -8,3 +8,20 @@ export const tagAPI = {
   update: (id, tagData) => axiosInstance.put(`/tags/${id}`, tagData),
   delete: (id) => axiosInstance.delete(`/tags/${id}`),
 };
+
+export const goalAPI = {
+  fetchAll: () => axiosInstance.get("/goals"),
+  fetchByTag: (tagId) => axiosInstance.get(`/goals/bytag/${tagId}`),
+  //endpoint not defined in backend
+  create: (goalData) => axiosInstance.post("/goals", goalData),
+  update: (id, goalData) => axiosInstance.put(`/goals/${id}`, goalData),
+  delete: (id) => axiosInstance.delete(`/goals/${id}`),
+  deleteMultiple: (ids) =>
+    axiosInstance.delete("/goals/bulk", { data: { ids } }),
+  updateMultipleStatus: (ids, status) =>
+    axiosInstance.put("/goals/bulk/status", { ids, status }),
+  archiveMultiple: (ids) => axiosInstance.put("/goals/bulk/archive", { ids }),
+
+  updateStatus: (id, data) => axiosInstance.patch(`/goals/${id}/status`, data),
+  archive: (id) => axiosInstance.post(`/goals/${id}/archive`),
+};
