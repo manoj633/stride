@@ -198,7 +198,6 @@ const GoalList = () => {
     dispatch(fetchGoals());
   }, [dispatch]);
 
-  console.log(goals);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("dueDate");
