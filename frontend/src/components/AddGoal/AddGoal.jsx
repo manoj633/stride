@@ -1,31 +1,46 @@
 // AddGoal.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./AddGoal.css";
 import { useNavigate } from "react-router-dom";
-import { tagsProvider, addGoal } from "../../services/dataService";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { createGoal } from "../../store/features/goals/goalSlice";
+import { fetchTags } from "../../store/features/tags/tagSlice";
 
-const AddGoal = ({ tags = tagsProvider() }) => {
+const AddGoal = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const tags = useAppSelector((state) => state.tags.items);
+  const loading = useAppSelector((state) => state.tags.loading);
+
+  // Fetch tags when component mounts
+  useEffect(() => {
+    dispatch(fetchTags());
+  }, [dispatch]);
+  console.log(tags);
   const [goal, setGoal] = useState({
     title: "",
     description: "",
     category: "Education",
     priority: "Medium",
-    dueDate: "",
+    duration: {
+      startDate: "",
+      endDate: "",
+    },
     completed: false,
+    archived: false,
     completionPercentage: 0,
     collaborators: [],
     tags: [],
     comments: [],
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Create new goal with all required fields
     const newGoal = {
       ...goal,
-      id: Math.random().toString(36).substr(2, 9), // temporary ID generation
       completed: false,
       completionPercentage: 0,
       collaborators: [],
@@ -34,26 +49,32 @@ const AddGoal = ({ tags = tagsProvider() }) => {
       tags: Array.isArray(goal.tags) ? goal.tags : [],
     };
 
-    // Add the new goal
-    addGoal(newGoal);
+    try {
+      // Add the new goal
+      await dispatch(createGoal(goal)).unwrap();
 
-    // Reset form
-    setGoal({
-      title: "",
-      description: "",
-      category: "Education",
-      priority: "Medium",
-      dueDate: "",
-      completed: false,
-      completionPercentage: 0,
-      collaborators: [],
-      tags: [],
-      comments: [],
-    });
+      // Reset form
+      setGoal({
+        title: "",
+        description: "",
+        category: "Education",
+        priority: "Medium",
+        dueDate: "",
+        completed: false,
+        completionPercentage: 0,
+        collaborators: [],
+        tags: [],
+        comments: [],
+      });
 
-    // Navigate to goals list or goal detail page
-    navigate("/goals"); // Adjust this path according to your routing setup
+      // Navigate to goals list
+      navigate("/goals");
+    } catch (error) {
+      console.error("Failed to create goal:", error);
+    }
   };
+
+  if (loading) return <div>Loading tags...</div>;
 
   return (
     <div className="add-goal">
@@ -158,7 +179,7 @@ const AddGoal = ({ tags = tagsProvider() }) => {
             }
           >
             {tags.map((tag) => (
-              <option key={tag.id} value={tag.id}>
+              <option key={tag._id} value={tag._id}>
                 {tag.name}
               </option>
             ))}
