@@ -40,6 +40,10 @@ const GoalSchema = new mongoose.Schema(
         required: true,
       },
     },
+    archived: {
+      type: Boolean,
+      default: false,
+    },
     completed: {
       type: Boolean,
       default: false,
