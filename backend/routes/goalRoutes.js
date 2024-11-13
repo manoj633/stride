@@ -12,6 +12,8 @@ import {
   removeTag,
   addComment,
   removeComment,
+  updateGoalStatus,
+  archiveGoal,
 } from "../controllers/goalController.js";
 
 const router = express.Router();
@@ -42,5 +44,9 @@ router
   .route("/:id/comments")
   .put(addComment) // To add a comment
   .delete(removeComment); // To remove a comment
+
+router.route("/:id/status").patch(updateGoalStatus);
+
+router.route("/:id/archive").post(archiveGoal);
 
 export default router;
