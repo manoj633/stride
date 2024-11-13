@@ -264,6 +264,56 @@ const removeComment = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * * Description: Update a goal status to complete
+ * * route: /api/goals/:id/status
+ * * access: Public
+ */
+const updateGoalStatus = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { completed, completionPercentage } = req.body;
+
+    const updatedGoal = await Goal.findByIdAndUpdate(
+      id,
+      {
+        completed: completed || false,
+        completionPercentage: completionPercentage || 0,
+      },
+      { new: true }
+    );
+
+    if (!updatedGoal) {
+      return res.status(404).json({ message: "Goal not found" });
+    }
+
+    res.json(updatedGoal);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error updating goal status",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * * Description: Archive a goal
+ * * route: /api/goals//:id/archive
+ * * access: Public
+ */
+const archiveGoal = asyncHandler(async (req, res) => {
+  const goal = await Goal.findById(req.params.id);
+
+  if (goal) {
+    goal.archived = true;
+    const updatedGoal = await goal.save();
+    res.json(updatedGoal);
+  } else {
+    res.status(404);
+    throw new Error("Goal not found");
+  }
+});
+
 export {
   getGoals,
   getGoalById,
@@ -277,4 +327,6 @@ export {
   removeTag,
   addComment,
   removeComment,
+  updateGoalStatus,
+  archiveGoal,
 };
