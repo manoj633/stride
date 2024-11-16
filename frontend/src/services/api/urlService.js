@@ -1,5 +1,3 @@
-// services/api/index.js
-
 import { axiosInstance } from "../../utils/apiService";
 
 export const tagAPI = {
@@ -26,7 +24,6 @@ export const goalAPI = {
   archive: (id) => axiosInstance.post(`/goals/${id}/archive`),
 };
 
-// services/api/urlService.js
 export const taskAPI = {
   fetchAll: () => axiosInstance.get("/tasks"),
   fetchById: (id) => axiosInstance.get(`/tasks/${id}`),
@@ -35,4 +32,14 @@ export const taskAPI = {
   delete: (id) => axiosInstance.delete(`/tasks/${id}`),
   updateCompletion: (id, completionData) =>
     axiosInstance.put(`/tasks/${id}/completion`, completionData),
+};
+
+export const subtaskAPI = {
+  fetchAll: () => axiosInstance.get("/subtasks"),
+  fetchById: (id) => axiosInstance.get(`/subtasks/${id}`),
+  create: (subtaskData) => axiosInstance.post("/subtasks", subtaskData),
+  update: (id, subtaskData) =>
+    axiosInstance.put(`/subtasks/${id}`, subtaskData),
+  delete: (id) => axiosInstance.delete(`/subtasks/${id}`),
+  markComplete: (id) => axiosInstance.patch(`/subtasks/${id}/complete`),
 };
