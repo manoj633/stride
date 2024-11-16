@@ -25,3 +25,14 @@ export const goalAPI = {
   updateStatus: (id, data) => axiosInstance.patch(`/goals/${id}/status`, data),
   archive: (id) => axiosInstance.post(`/goals/${id}/archive`),
 };
+
+// services/api/urlService.js
+export const taskAPI = {
+  fetchAll: () => axiosInstance.get("/tasks"),
+  fetchById: (id) => axiosInstance.get(`/tasks/${id}`),
+  create: (taskData) => axiosInstance.post("/tasks", taskData),
+  update: (id, taskData) => axiosInstance.put(`/tasks/${id}`, taskData),
+  delete: (id) => axiosInstance.delete(`/tasks/${id}`),
+  updateCompletion: (id, completionData) =>
+    axiosInstance.put(`/tasks/${id}/completion`, completionData),
+};
