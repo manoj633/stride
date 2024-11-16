@@ -77,7 +77,7 @@ const deleteSubtask = asyncHandler(async (req, res) => {
   const subtask = await Subtask.findById(req.params.id);
 
   if (subtask) {
-    await subtask.remove();
+    await Subtask.deleteOne({ _id: req.params.id });
     res.json({ message: "Subtask removed" });
   } else {
     res.status(404);
