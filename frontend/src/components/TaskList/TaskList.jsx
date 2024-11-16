@@ -1,17 +1,30 @@
 // TaskList.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { tasksProvider } from "../../services/dataService";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchTasks } from "../../store/features/tasks/taskSlice";
 import "./TaskList.css";
 
 const TaskList = ({ tasks: propTasks }) => {
-  // If tasks are passed as props (from GoalDescription), use those
-  // Otherwise, fetch all tasks and filter for current month
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Get tasks from Redux store
+  const allTasks = useSelector((state) => state.tasks.items);
+  const loading = useSelector((state) => state.tasks.loading);
+  const error = useSelector((state) => state.tasks.error);
+
+  useEffect(() => {
+    if (!propTasks) {
+      dispatch(fetchTasks());
+    }
+  }, [dispatch, propTasks]);
+
+  // If tasks are passed as props (from GoalDescription), use those
+  // Otherwise, filter tasks from Redux store for current month
   const tasks =
     propTasks ||
     (() => {
-      const allTasks = tasksProvider();
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -30,7 +43,15 @@ const TaskList = ({ tasks: propTasks }) => {
       });
     })();
 
-  // Component code
+  if (loading && !propTasks) {
+    return <div className="task-list">Loading tasks...</div>;
+  }
+
+  if (error && !propTasks) {
+    return <div className="task-list">Error loading tasks: {error}</div>;
+  }
+
+  // Empty state handling
   if (tasks.length === 0) {
     const handleNavigateToAdd = () => {
       navigate("/tasks/add");
@@ -56,8 +77,8 @@ const TaskList = ({ tasks: propTasks }) => {
   return (
     <div className="task-list">
       {tasks.map((task) => (
-        <div key={task.id} className="task-list__item">
-          <Link to={`/tasks/${task.id}`} className="task-list__link">
+        <div key={task._id} className="task-list__item">
+          <Link to={`/tasks/${task._id}`} className="task-list__link">
             <div className="task-list__content">
               <h3 className="task-list__title">{task.name}</h3>
               {task.description && (
