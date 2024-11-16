@@ -43,3 +43,11 @@ export const subtaskAPI = {
   delete: (id) => axiosInstance.delete(`/subtasks/${id}`),
   markComplete: (id) => axiosInstance.patch(`/subtasks/${id}/complete`),
 };
+
+export const commentAPI = {
+  create: (commentData) => axiosInstance.post("/comments", commentData),
+  fetchByGoal: (goalId) => axiosInstance.get(`/comments/goal/${goalId}`),
+  update: (id, commentData) =>
+    axiosInstance.put(`/comments/${id}`, commentData),
+  delete: (id) => axiosInstance.delete(`/comments/${id}`),
+};
