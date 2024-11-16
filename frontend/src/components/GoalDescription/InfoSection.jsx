@@ -9,17 +9,17 @@ const InfoSection = ({ goal, tags, onRemoveTag, onAddTag }) => (
         {tags.map((tag, index) => (
           <span
             className="tag"
-            key={`${tag.id}-${index}`} // Combine id with index for uniqueness
+            key={`${tag._id}-${index}`}
             style={{ backgroundColor: tag.color }}
           >
             {tag.name}
-            <button className="remove-tag" onClick={() => onRemoveTag(tag.id)}>
+            <button className="remove-tag" onClick={() => onRemoveTag(tag._id)}>
               ×
             </button>
           </span>
         ))}
       </div>
-      <button className="add-tag" onClick={onAddTag}>
+      <button className="add-tag" onClick={onAddTag} type="button">
         + Add Tag
       </button>
     </div>

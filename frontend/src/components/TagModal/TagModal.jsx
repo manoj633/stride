@@ -26,12 +26,14 @@ const TagModal = ({ isOpen, onClose, onSave, availableTags }) => {
             <select
               id="tagSelect"
               value={selectedTagId}
-              onChange={(e) => setSelectedTagId(e.target.value)}
+              onChange={(e) => {
+                setSelectedTagId(e.target.value);
+              }}
               required
             >
               <option value="">Select a tag</option>
               {availableTags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
+                <option key={tag._id} value={tag._id}>
                   {tag.name}
                 </option>
               ))}
@@ -43,11 +45,11 @@ const TagModal = ({ isOpen, onClose, onSave, availableTags }) => {
                 className="tag-sample"
                 style={{
                   backgroundColor: availableTags.find(
-                    (t) => t.id === selectedTagId
+                    (t) => t._id === selectedTagId
                   )?.color,
                 }}
               >
-                {availableTags.find((t) => t.id === selectedTagId)?.name}
+                {availableTags.find((t) => t._id === selectedTagId)?.name}
               </div>
             )}
           </div>
