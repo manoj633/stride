@@ -103,7 +103,7 @@ const deleteTask = asyncHandler(async (req, res) => {
   const task = await Task.findById(req.params.id);
 
   if (task) {
-    await task.remove();
+    await Task.deleteOne({ _id: req.params.id });
     res.json({ message: "Task removed" });
   } else {
     res.status(404);
