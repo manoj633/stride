@@ -1,5 +1,6 @@
 import Tag from "../models/tagModel.js";
 import asyncHandler from "../middleware/asyncHandler.js";
+import logger from "../utils/logger.js";
 
 // @desc    Create a new tag
 // @route   POST /api/tags
@@ -7,35 +8,58 @@ import asyncHandler from "../middleware/asyncHandler.js";
 export const createTag = asyncHandler(async (req, res) => {
   const { name, color } = req.body;
 
-  const existingTag = await Tag.findOne({ name });
-  if (existingTag) {
-    res.status(400).json({ message: "Tag with this name already exists" });
-    return;
-  }
+  try {
+    const existingTag = await Tag.findOne({ name });
+    if (existingTag) {
+      logger.warn(
+        `Tag creation failed: Tag with name "${name}" already exists`
+      );
+      return res
+        .status(400)
+        .json({ message: "Tag with this name already exists" });
+    }
 
-  const tag = new Tag({ name, color });
-  const createdTag = await tag.save();
-  res.status(201).json(createdTag);
+    const tag = new Tag({ name, color });
+    const createdTag = await tag.save();
+    logger.info(`Created new tag with ID: ${createdTag._id}`);
+    res.status(201).json(createdTag);
+  } catch (error) {
+    logger.error("Error creating tag:", error);
+    res.status(500).json({ message: "Error creating tag" });
+  }
 });
 
 // @desc    Get all tags
 // @route   GET /api/tags
 // @access  Public or Protected as needed
 export const getTags = asyncHandler(async (req, res) => {
-  const tags = await Tag.find();
-  res.status(200).json(tags);
+  try {
+    const tags = await Tag.find();
+    logger.info("Fetched all tags");
+    res.status(200).json(tags);
+  } catch (error) {
+    logger.error("Error fetching tags:", error);
+    res.status(500).json({ message: "Error fetching tags" });
+  }
 });
 
 // @desc    Get a tag by ID
 // @route   GET /api/tags/:id
 // @access  Public or Protected as needed
 export const getTagById = asyncHandler(async (req, res) => {
-  const tag = await Tag.findById(req.params.id);
+  try {
+    const tag = await Tag.findById(req.params.id);
 
-  if (tag) {
-    res.status(200).json(tag);
-  } else {
-    res.status(404).json({ message: "Tag not found" });
+    if (tag) {
+      logger.info(`Fetched tag with ID: ${req.params.id}`);
+      res.status(200).json(tag);
+    } else {
+      logger.warn(`Tag not found with ID: ${req.params.id}`);
+      res.status(404).json({ message: "Tag not found" });
+    }
+  } catch (error) {
+    logger.error("Error fetching tag by ID:", error);
+    res.status(500).json({ message: "Error fetching tag" });
   }
 });
 
@@ -44,16 +68,23 @@ export const getTagById = asyncHandler(async (req, res) => {
 // @access  Public or Protected as needed
 export const updateTag = asyncHandler(async (req, res) => {
   const { name, color } = req.body;
-  const tag = await Tag.findById(req.params.id);
+  try {
+    const tag = await Tag.findById(req.params.id);
 
-  if (tag) {
-    tag.name = name || tag.name;
-    tag.color = color || tag.color;
+    if (tag) {
+      tag.name = name || tag.name;
+      tag.color = color || tag.color;
 
-    const updatedTag = await tag.save();
-    res.status(200).json(updatedTag);
-  } else {
-    res.status(404).json({ message: "Tag not found" });
+      const updatedTag = await tag.save();
+      logger.info(`Updated tag with ID: ${req.params.id}`);
+      res.status(200).json(updatedTag);
+    } else {
+      logger.warn(`Tag not found with ID: ${req.params.id}`);
+      res.status(404).json({ message: "Tag not found" });
+    }
+  } catch (error) {
+    logger.error("Error updating tag:", error);
+    res.status(500).json({ message: "Error updating tag" });
   }
 });
 
@@ -61,12 +92,19 @@ export const updateTag = asyncHandler(async (req, res) => {
 // @route   DELETE /api/tags/:id
 // @access  Public or Protected as needed
 export const deleteTag = asyncHandler(async (req, res) => {
-  const tag = await Tag.findById(req.params.id);
+  try {
+    const tag = await Tag.findById(req.params.id);
 
-  if (tag) {
-    await tag.deleteOne(); // Use deleteOne instead of remove
-    res.status(200).json({ message: "Tag removed" });
-  } else {
-    res.status(404).json({ message: "Tag not found" });
+    if (tag) {
+      await tag.deleteOne();
+      logger.info(`Deleted tag with ID: ${req.params.id}`);
+      res.status(200).json({ message: "Tag removed" });
+    } else {
+      logger.warn(`Tag not found with ID: ${req.params.id}`);
+      res.status(404).json({ message: "Tag not found" });
+    }
+  } catch (error) {
+    logger.error("Error deleting tag:", error);
+    res.status(500).json({ message: "Error deleting tag" });
   }
 });
