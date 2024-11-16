@@ -1,42 +1,56 @@
 // SubtaskList/SubtaskList.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { subtasksProvider } from "../../services/dataService";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import "./SubtaskList.css";
 
 const SubtaskList = ({ subtasks: propSubtasks }) => {
-  // If subtasks are passed as props (from TaskDescription), use those
-  // Otherwise, fetch all subtasks and filter for current day
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Redux selectors
+  const allSubtasks = useSelector((state) => state.subtasks.items);
+  const loading = useSelector((state) => state.subtasks.loading);
+  const error = useSelector((state) => state.subtasks.error);
+
+  useEffect(() => {
+    if (!propSubtasks) {
+      dispatch(fetchSubtasks());
+    }
+  }, [dispatch, propSubtasks]);
+
+  // Use propSubtasks if provided, otherwise filter today's subtasks from Redux store
   const subtasks =
     propSubtasks ||
     (() => {
-      const allSubtasks = subtasksProvider();
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to start of day
+      today.setHours(0, 0, 0, 0);
 
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
       return allSubtasks.filter((subtask) => {
         const subtaskDate = new Date(subtask.dueDate);
-        subtaskDate.setHours(0, 0, 0, 0); // Reset time to start of day
+        subtaskDate.setHours(0, 0, 0, 0);
         return subtaskDate.getTime() === today.getTime();
       });
     })();
 
-  // SubtaskList.jsx
-  // Component code
-  if (subtasks.length === 0) {
-    const handleNavigateToAdd = () => {
-      navigate("/subtasks/add");
-    };
+  if (loading && !propSubtasks) {
+    return <div className="subtask-list">Loading...</div>;
+  }
 
+  if (error && !propSubtasks) {
+    return <div className="subtask-list">Error: {error}</div>;
+  }
+
+  if (subtasks.length === 0) {
     return (
       <div className="subtask-list">
         <div
           className="subtask-list__empty subtask-list__empty--clickable"
-          onClick={handleNavigateToAdd}
+          onClick={() => navigate("/subtasks/add")}
         >
           <div className="subtask-list__empty-content">
             <div className="subtask-list__empty-text">
@@ -54,8 +68,8 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
   return (
     <div className="subtask-list">
       {subtasks.map((subtask) => (
-        <div key={subtask.id} className="subtask-list__item">
-          <Link to={`/subtasks/${subtask.id}`} className="subtask-list__link">
+        <div key={subtask._id} className="subtask-list__item">
+          <Link to={`/subtasks/${subtask._id}`} className="subtask-list__link">
             <div className="subtask-list__content">
               <span className="subtask-list__name">{subtask.name}</span>
               {subtask.status && (
@@ -66,7 +80,9 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
                 </span>
               )}
               {subtask.dueDate && (
-                <span className="subtask-list__date">{subtask.dueDate}</span>
+                <span className="subtask-list__date">
+                  {new Date(subtask.dueDate).toLocaleDateString()}
+                </span>
               )}
             </div>
           </Link>
