@@ -9,6 +9,7 @@ import goalRoutes from "./routes/goalRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import subtaskRoutes from "./routes/subtaskRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -51,6 +52,7 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/subtasks", subtaskRoutes);
 app.use("/api/tags", tagRoutes);
+app.use("/api/comments", commentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
