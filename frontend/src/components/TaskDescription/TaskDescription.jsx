@@ -1,21 +1,81 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { tasksProvider, subtasksProvider } from "../../services/dataService";
-import SubtaskList from "../SubtaskList/SubtaskList";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
+
+import SubtaskList from "../SubtaskList/SubtaskList";
+import { fetchTasks } from "../../store/features/tasks/taskSlice";
+import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
+
 import "./TaskDescription.css";
 
 const TaskDescription = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
-  const tasks = tasksProvider();
-  const task = tasks.find((t) => t.id === taskId);
+  const dispatch = useDispatch();
 
-  const subtasks = subtasksProvider().filter(
-    (subtask) => subtask.taskId === taskId
+  // Redux selectors
+  const task = useSelector((state) =>
+    state.tasks.items.find((t) => t._id === taskId)
+  );
+  const subtasks = useSelector((state) =>
+    state.subtasks.items.filter((subtask) => subtask.taskId === taskId)
+  );
+  const loading = useSelector(
+    (state) => state.tasks.loading || state.subtasks.loading
+  );
+  const error = useSelector(
+    (state) => state.tasks.error || state.subtasks.error
   );
 
+  // Fetch data
+  useEffect(() => {
+    dispatch(fetchTasks());
+    dispatch(fetchSubtasks());
+  }, [dispatch]);
+
+  // Chart effect
+  useEffect(() => {
+    if (!task) return;
+    const chart = am4core.create("task-chart", am4charts.PieChart3D);
+    chart.data = [
+      { category: "Completed", value: task.completionPercentage },
+      { category: "Remaining", value: 100 - task.completionPercentage },
+    ];
+
+    const pieSeries = chart.series.push(new am4charts.PieSeries3D());
+    pieSeries.dataFields.value = "value";
+    pieSeries.dataFields.category = "category";
+    pieSeries.innerRadius = am4core.percent(40);
+    pieSeries.slices.template.cornerRadius = 10;
+    pieSeries.slices.template.innerCornerRadius = 7;
+    pieSeries.slices.template.draggable = false;
+
+    pieSeries.colors.list = [
+      am4core.color("#4caf50"),
+      am4core.color("#f44336"),
+    ];
+
+    pieSeries.labels.template.text = "{category}: {value}%";
+    pieSeries.ticks.template.disabled = true;
+
+    return () => {
+      chart.dispose();
+    };
+  }, [task]);
+
+  // Render loading state
+  if (loading) {
+    return <div className="task-description">Loading...</div>;
+  }
+
+  // Render error state
+  if (error) {
+    return <div className="task-description">Error: {error}</div>;
+  }
+
+  // Render not found state
   if (!task) {
     return (
       <div className="task-empty">
@@ -27,66 +87,31 @@ const TaskDescription = () => {
     );
   }
 
-  const { id, name, description, dueDate, completionPercentage } = task;
-
-  useEffect(() => {
-    // Create chart
-    const chart = am4core.create("task-chart", am4charts.PieChart3D);
-
-    // Add data
-    chart.data = [
-      { category: "Completed", value: completionPercentage },
-      { category: "Remaining", value: 100 - completionPercentage },
-    ];
-
-    // Create pie series
-    const pieSeries = chart.series.push(new am4charts.PieSeries3D());
-    pieSeries.dataFields.value = "value";
-    pieSeries.dataFields.category = "category";
-
-    // Set inner radius to create a donut effect
-    pieSeries.innerRadius = am4core.percent(40); // Adjust the percentage for the thickness of the donut
-    pieSeries.slices.template.cornerRadius = 10;
-    pieSeries.slices.template.innerCornerRadius = 7;
-    pieSeries.slices.template.draggable = false;
-
-    pieSeries.colors.list = [
-      am4core.color("#4caf50"), // Green for completed
-      am4core.color("#f44336"), // Red for remaining
-    ];
-
-    // Add labels
-    pieSeries.labels.template.text = "{category}: {value}%";
-    pieSeries.ticks.template.disabled = true;
-
-    // Clean up on unmount
-    return () => {
-      chart.dispose();
-    };
-  }, [completionPercentage]);
+  const { _id, name, description, endDate, completionPercentage, priority } =
+    task;
 
   return (
     <div className="task-description">
       <div className="task-description__container">
         <div className="task-description__header">
           <h1 className="task-description__title">
-            <span className="task-description__id">{id}</span>
+            <span className="task-description__id">{_id}</span>
             {name}
           </h1>
           <div className="task-description__meta">
-            <span className="task-description__date">{dueDate}</span>
+            <span className="task-description__date">{"Hi"}</span>
             <span className="task-description__progress">
               {completionPercentage}% Complete
             </span>
-            <span className={`priority-badge ${task.priority.toLowerCase()}`}>
-              {task.priority}
+            <span className={`priority-badge ${priority.toLowerCase()}`}>
+              {priority}
             </span>
             <span
               className={`due-date-badge ${
-                new Date(task.endDate) < new Date() ? "overdue" : ""
+                new Date(endDate) < new Date() ? "overdue" : ""
               }`}
             >
-              Due: {new Date(task.endDate).toLocaleDateString()}
+              Due: {new Date(endDate).toLocaleDateString()}
             </span>
           </div>
         </div>
