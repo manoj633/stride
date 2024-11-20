@@ -109,6 +109,28 @@ export const selectGoalStats = (state) => {
   };
 };
 
+export const updateGoalCompletion = createAsyncThunk(
+  "goals/updateCompletion",
+  async ({ goalId, subtasks }, { getState }) => {
+    const state = getState();
+    const goalSubtasks = state.subtasks.items.filter(
+      (st) => st.goalId === goalId
+    );
+
+    const completedCount = goalSubtasks.filter((st) => st.completed).length;
+    const completionPercentage =
+      goalSubtasks.length > 0
+        ? (completedCount / goalSubtasks.length) * 100
+        : 0;
+
+    const goal = state.goals.items.find((goal) => goal._id === goalId);
+    const updatedGoal = { ...goal, completionPercentage };
+
+    const response = await goalAPI.update(goalId, updatedGoal);
+    return response.data;
+  }
+);
+
 const goalSlice = createSlice({
   name: "goals",
   initialState: {
@@ -224,6 +246,16 @@ const goalSlice = createSlice({
           (goal) => !action.payload.includes(goal._id)
         );
         state.selectedGoals = [];
+      })
+      .addCase(updateGoalCompletion.fulfilled, (state, action) => {
+        const goalIndex = state.items.findIndex(
+          (goal) => goal._id === action.payload.goalId
+        );
+        if (goalIndex !== -1) {
+          state.items[goalIndex].completionPercentage =
+            action.payload.completionPercentage;
+          state.items[goalIndex].completed = action.payload.completed;
+        }
       });
   },
 });
