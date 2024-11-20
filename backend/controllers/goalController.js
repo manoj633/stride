@@ -85,7 +85,7 @@ const updateGoal = asyncHandler(async (req, res) => {
     goal.collaborators = collaborators || goal.collaborators;
     goal.tags = tags || goal.tags;
     goal.completionPercentage =
-      completionPercentage || goal.completionPercentage;
+      completionPercentage ?? goal.completionPercentage;
     goal.completed = completed !== undefined ? completed : goal.completed;
 
     const updatedGoal = await goal.save();
