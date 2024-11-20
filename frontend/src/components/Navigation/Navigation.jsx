@@ -1,4 +1,3 @@
-// src/components/Navigation/Navigation.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 import "./Navigation.css";
@@ -8,12 +7,19 @@ const Navigation = () => {
     <nav className="nav">
       <div className="nav__container">
         <div className="nav__logo">
-          <NavLink to="/goals" className="nav__logo-link">
+          <NavLink to="/" className="nav__logo-link">
             Stride
           </NavLink>
         </div>
-
         <div className="nav__menu">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `nav__link ${isActive ? "nav__link--active" : ""}`
+            }
+          >
+            Calendar
+          </NavLink>
           <NavLink
             to="/goals"
             className={({ isActive }) =>
@@ -22,7 +28,6 @@ const Navigation = () => {
           >
             Goals
           </NavLink>
-
           <NavLink
             to="/tasks"
             className={({ isActive }) =>
@@ -31,7 +36,6 @@ const Navigation = () => {
           >
             Tasks
           </NavLink>
-
           <NavLink
             to="/subtasks"
             className={({ isActive }) =>
@@ -39,6 +43,14 @@ const Navigation = () => {
             }
           >
             Subtasks
+          </NavLink>
+          <NavLink
+            to="/tags/manage"
+            className={({ isActive }) =>
+              `nav__link ${isActive ? "nav__link--active" : ""}`
+            }
+          >
+            Tags
           </NavLink>
         </div>
       </div>
