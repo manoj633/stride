@@ -83,7 +83,7 @@ const updateTask = asyncHandler(async (req, res) => {
     task.endDate = endDate || task.endDate;
     task.goalId = goalId || task.goalId;
     task.completionPercentage =
-      completionPercentage || task.completionPercentage;
+      completionPercentage ?? task.completionPercentage;
     task.completed = completed !== undefined ? completed : task.completed;
 
     const updatedTask = await task.save();
