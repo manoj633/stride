@@ -55,7 +55,7 @@ const ListView = ({
                 {goal.tags &&
                   goal.tags.map((tag) => (
                     <span key={tag} className="tag-badge">
-                      {tags?.find((t) => t._id == tag).name}
+                      {tags?.find((t) => t._id == tag)?.name}
                     </span>
                   ))}
               </div>
