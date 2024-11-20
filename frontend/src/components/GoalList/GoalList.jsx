@@ -14,9 +14,16 @@ import {
   archiveGoal,
   selectGoalStats,
 } from "../../store/features/goals/goalSlice";
+import { fetchTags } from "../../store/features/tags/tagSlice";
 
 // View Components
-const ListView = ({ goals, handleGoalSelect, selectedGoals, navigate }) => (
+const ListView = ({
+  goals,
+  handleGoalSelect,
+  tags,
+  selectedGoals,
+  navigate,
+}) => (
   <div className="enhanced-goals__list">
     {goals.map(
       (goal) =>
@@ -48,7 +55,7 @@ const ListView = ({ goals, handleGoalSelect, selectedGoals, navigate }) => (
                 {goal.tags &&
                   goal.tags.map((tag) => (
                     <span key={tag} className="tag-badge">
-                      {tag}
+                      {tags?.find((t) => t._id == tag).name}
                     </span>
                   ))}
               </div>
@@ -192,10 +199,12 @@ const GoalList = () => {
   const goals = useAppSelector((state) => state.goals.items);
   const loading = useAppSelector((state) => state.goals.loading);
   const error = useAppSelector((state) => state.goals.error);
+  const tags = useAppSelector((state) => state.tags.items);
 
   // Add useEffect to fetch goals when component mounts
   useEffect(() => {
     dispatch(fetchGoals());
+    dispatch(fetchTags());
   }, [dispatch]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -378,6 +387,7 @@ const GoalList = () => {
           <ListView
             goals={filteredAndSortedGoals}
             handleGoalSelect={handleGoalSelect}
+            tags={tags}
             selectedGoals={selectedGoals}
             navigate={navigate}
           />
