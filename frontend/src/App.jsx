@@ -15,6 +15,8 @@ import SubtaskDescription from "./components/SubtaskDescription/SubtaskDescripti
 import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
 import { TagManager } from "./components/TagsManager/TagManager";
 
+import "./App.css";
+
 const App = () => {
   return (
     <Provider store={store}>
