@@ -1,14 +1,24 @@
-// src/components/AddSubTask/AddSubTask.jsx
 import React, { useState, useEffect } from "react";
-import {
-  goalsProvider,
-  getTasksByGoalId,
-  addSubtask,
-} from "../../services/dataService";
-import "./AddSubTask.css";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { fetchGoals } from "../../store/features/goals/goalSlice";
+import {
+  selectTasksByGoalId,
+  fetchTasks,
+} from "../../store/features/tasks/taskSlice";
+import { createSubtask } from "../../store/features/subtasks/subtaskSlice";
+import "./AddSubTask.css";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+
+const formatDate = (isoDate) => {
+  return new Date(isoDate).toISOString().split("T")[0];
+};
 
 const AddSubTask = ({ onSubtaskAdded }) => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  // Form state
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -18,15 +28,25 @@ const AddSubTask = ({ onSubtaskAdded }) => {
     taskId: "",
   });
 
-  const [goals, setGoals] = useState([]);
-  const [availableTasks, setAvailableTasks] = useState([]);
+  // State for task date range
+  const [taskDateRange, setTaskDateRange] = useState({
+    minDate: "",
+    maxDate: "",
+  });
 
-  const navigate = useNavigate();
+  // Fetch goals and tasks from Redux state
+  const goals = useAppSelector((state) => state.goals.items);
+  const availableTasks = useSelector((state) =>
+    selectTasksByGoalId(state, formData.goalId)
+  );
 
+  // Fetch goals and tasks when the component loads
   useEffect(() => {
-    setGoals(goalsProvider());
-  }, []);
+    dispatch(fetchGoals());
+    dispatch(fetchTasks());
+  }, [dispatch]);
 
+  // Handle goal selection change
   const handleGoalChange = (e) => {
     const selectedGoalId = e.target.value;
     setFormData((prev) => ({
@@ -34,17 +54,41 @@ const AddSubTask = ({ onSubtaskAdded }) => {
       goalId: selectedGoalId,
       taskId: "", // Reset task selection when goal changes
     }));
-    setAvailableTasks(getTasksByGoalId(selectedGoalId));
+    setTaskDateRange({ minDate: "", maxDate: "" }); // Reset date range
   };
 
-  const handleSubmit = (e) => {
+  // Handle task selection change
+  const handleTaskChange = (e) => {
+    const selectedTaskId = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      taskId: selectedTaskId,
+    }));
+
+    // Find the selected task to set the date range
+    const selectedTask = availableTasks.find(
+      (task) => task._id === selectedTaskId
+    );
+    if (selectedTask) {
+      setTaskDateRange({
+        minDate: formatDate(selectedTask.startDate),
+        maxDate: formatDate(selectedTask.endDate),
+      });
+    } else {
+      setTaskDateRange({ minDate: "", maxDate: "" });
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newSubtask = addSubtask(formData);
-    onSubtaskAdded?.(newSubtask);
+    const newSubtaskData = await dispatch(createSubtask(formData)).unwrap();
+    onSubtaskAdded?.(newSubtaskData);
     resetForm();
-    navigate(-1);
+    navigate(-1); // Navigate back
   };
 
+  // Reset form state
   const resetForm = () => {
     setFormData({
       name: "",
@@ -54,12 +98,12 @@ const AddSubTask = ({ onSubtaskAdded }) => {
       goalId: "",
       taskId: "",
     });
-    setAvailableTasks([]);
+    setTaskDateRange({ minDate: "", maxDate: "" });
   };
 
   return (
     <div className="add-subtask">
-      <h1 class="add-subtask__title">Add a Subtask</h1>
+      <h1 className="add-subtask__title">Add a Subtask</h1>
       <form className="add-subtask__form" onSubmit={handleSubmit}>
         <div className="add-subtask__form-group">
           <label className="add-subtask__label">Name</label>
@@ -110,7 +154,33 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               setFormData((prev) => ({ ...prev, dueDate: e.target.value }))
             }
             required
+            min={taskDateRange.minDate}
+            max={taskDateRange.maxDate}
+            disabled={!formData.taskId}
           />
+          {formData.taskId && !taskDateRange.minDate && (
+            <p className="add-subtask__warning">
+              Please select a task to enable the date range.
+            </p>
+          )}
+        </div>
+
+        <div className="add-subtask__form-group">
+          <label className="add-subtask__label">Select Task</label>
+          <select
+            className="add-subtask__select"
+            value={formData.taskId}
+            onChange={handleTaskChange}
+            required
+            disabled={!formData.goalId}
+          >
+            <option value="">Choose a task</option>
+            {availableTasks.map((task) => (
+              <option key={task._id} value={task._id}>
+                {task.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="add-subtask__form-group">
@@ -123,14 +193,14 @@ const AddSubTask = ({ onSubtaskAdded }) => {
           >
             <option value="">Choose a goal</option>
             {goals.map((goal) => (
-              <option key={goal.id} value={goal.id}>
+              <option key={goal._id} value={goal._id}>
                 {goal.title}
               </option>
             ))}
           </select>
         </div>
 
-        <div className="add-subtask__form-group">
+        {/* <div className="add-subtask__form-group">
           <label className="add-subtask__label">Select Task</label>
           <select
             className="add-subtask__select"
@@ -143,12 +213,12 @@ const AddSubTask = ({ onSubtaskAdded }) => {
           >
             <option value="">Choose a task</option>
             {availableTasks.map((task) => (
-              <option key={task.id} value={task.id}>
+              <option key={task._id} value={task._id}>
                 {task.name}
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         <button type="submit" className="add-subtask__submit-btn">
           Add Subtask
