@@ -38,9 +38,24 @@ export const deleteTask = createAsyncThunk("tasks/deleteTask", async (id) => {
 });
 
 export const updateTaskCompletion = createAsyncThunk(
-  "tasks/updateTaskCompletion",
-  async ({ id, completionData }) => {
-    const response = await taskAPI.updateCompletion(id, completionData);
+  "tasks/updateCompletion",
+  async ({ taskId, subtasks }, { getState }) => {
+    const state = getState();
+    const taskSubtasks = state.subtasks.items.filter(
+      (st) => st.taskId === taskId
+    );
+
+    const completedCount = taskSubtasks.filter((st) => st.completed).length;
+    const completionPercentage =
+      taskSubtasks.length > 0
+        ? (completedCount / taskSubtasks.length) * 100
+        : 0;
+    console.log(completionPercentage);
+
+    const task = state.tasks.items.find((task) => task._id === taskId);
+    const updatedTask = { ...task, completionPercentage };
+
+    const response = await taskAPI.update(taskId, updatedTask);
     return response.data;
   }
 );
@@ -101,11 +116,13 @@ const taskSlice = createSlice({
       })
       // Update task completion cases
       .addCase(updateTaskCompletion.fulfilled, (state, action) => {
-        const index = state.items.findIndex(
-          (task) => task._id === action.payload._id
+        const taskIndex = state.items.findIndex(
+          (task) => task._id === action.payload.taskId
         );
-        if (index !== -1) {
-          state.items[index] = action.payload;
+        if (taskIndex !== -1) {
+          state.items[taskIndex].completionPercentage =
+            action.payload.completionPercentage;
+          state.items[taskIndex].completed = action.payload.completed;
         }
       });
   },
