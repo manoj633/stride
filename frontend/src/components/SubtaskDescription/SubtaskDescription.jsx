@@ -1,25 +1,88 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+// SubtaskDescription/SubtaskDescription.jsx
+import React, { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import {
-  subtasksProvider,
-  updateSubtaskCompletionStatus,
-} from "../../services/dataService";
+  fetchSubtaskById,
+  updateSubtask,
+} from "../../store/features/subtasks/subtaskSlice";
 import "./SubtaskDescription.css";
+import { updateTaskCompletion } from "../../store/features/tasks/taskSlice";
+import { updateGoalCompletion } from "../../store/features/goals/goalSlice";
 
 const SubtaskDescription = () => {
   const { subtaskId } = useParams();
-  const subtasks = subtasksProvider();
-  const subtask = subtasks.find((st) => st.id === subtaskId);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [completed, setCompleted] = useState(
-    subtask ? subtask.completed : false
+  const allSubtasks = useSelector((state) => state.subtasks.items);
+
+  // Redux selectors
+  const subtask = useSelector((state) =>
+    state.subtasks.items.find((st) => st._id === subtaskId)
   );
+  const loading = useSelector((state) => state.subtasks.loading);
+  const error = useSelector((state) => state.subtasks.error);
+
+  useEffect(() => {
+    dispatch(fetchSubtaskById(subtaskId));
+  }, [dispatch, subtaskId]);
+
+  console.log(subtask);
 
   const handleCheckboxChange = () => {
-    const newCompletedStatus = !completed;
-    setCompleted(newCompletedStatus);
-    updateSubtaskCompletionStatus(subtaskId, newCompletedStatus);
+    const updatedSubtask = {
+      ...subtask,
+      completed: !subtask.completed,
+    };
+
+    dispatch(updateSubtask({ id: subtaskId, subtaskData: updatedSubtask }))
+      .then(() => {
+        if (subtask.taskId) {
+          dispatch(
+            updateTaskCompletion({
+              taskId: subtask.taskId,
+              subtasks: allSubtasks,
+            })
+          )
+            .then(() => {
+              // If task has goalId, update goal completion
+              if (subtask.goalId) {
+                dispatch(
+                  updateGoalCompletion({
+                    goalId: subtask.goalId,
+                    subtasks: allSubtasks,
+                  })
+                )
+                  .then(() => {
+                    navigate(-1); // Navigate back after all updates are complete
+                  })
+                  .catch((error) => {
+                    console.error("Failed to update goal completion:", error);
+                  });
+              } else {
+                navigate(-1); // Navigate back if no goal update needed
+              }
+            })
+            .catch((error) => {
+              console.error("Failed to update task completion:", error);
+            });
+        } else {
+          navigate(-1); // Navigate back if no task update needed
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to update subtask:", error);
+      });
   };
+
+  if (loading) {
+    return <div className="subtask">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="subtask">Error: {error}</div>;
+  }
 
   if (!subtask) {
     return (
@@ -39,12 +102,12 @@ const SubtaskDescription = () => {
           <input
             type="checkbox"
             className="subtask__checkbox"
-            checked={completed}
+            checked={subtask.completed}
             onChange={handleCheckboxChange}
             id="subtask-status"
           />
           <label htmlFor="subtask-status" className="subtask__status-label">
-            {completed ? "Completed" : "Mark as complete"}
+            {subtask.completed ? "Completed" : "Mark as complete"}
           </label>
         </div>
         <h2 className="subtask__title">{subtask.name}</h2>
@@ -54,7 +117,9 @@ const SubtaskDescription = () => {
         <div className="subtask__info-card">
           <div className="subtask__info-item">
             <span className="subtask__info-label">Due Date</span>
-            <span className="subtask__info-value">{subtask.dueDate}</span>
+            <span className="subtask__info-value">
+              {new Date(subtask.dueDate).toLocaleDateString()}
+            </span>
           </div>
 
           <div className="subtask__info-item">
