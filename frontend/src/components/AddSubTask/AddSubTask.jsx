@@ -145,24 +145,20 @@ const AddSubTask = ({ onSubtaskAdded }) => {
         </div>
 
         <div className="add-subtask__form-group">
-          <label className="add-subtask__label">Due Date</label>
-          <input
-            type="date"
-            className="add-subtask__input"
-            value={formData.dueDate}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, dueDate: e.target.value }))
-            }
+          <label className="add-subtask__label">Select Goal</label>
+          <select
+            className="add-subtask__select"
+            value={formData.goalId}
+            onChange={handleGoalChange}
             required
-            min={taskDateRange.minDate}
-            max={taskDateRange.maxDate}
-            disabled={!formData.taskId}
-          />
-          {formData.taskId && !taskDateRange.minDate && (
-            <p className="add-subtask__warning">
-              Please select a task to enable the date range.
-            </p>
-          )}
+          >
+            <option value="">Choose a goal</option>
+            {goals.map((goal) => (
+              <option key={goal._id} value={goal._id}>
+                {goal.title}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="add-subtask__form-group">
@@ -184,41 +180,25 @@ const AddSubTask = ({ onSubtaskAdded }) => {
         </div>
 
         <div className="add-subtask__form-group">
-          <label className="add-subtask__label">Select Goal</label>
-          <select
-            className="add-subtask__select"
-            value={formData.goalId}
-            onChange={handleGoalChange}
-            required
-          >
-            <option value="">Choose a goal</option>
-            {goals.map((goal) => (
-              <option key={goal._id} value={goal._id}>
-                {goal.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* <div className="add-subtask__form-group">
-          <label className="add-subtask__label">Select Task</label>
-          <select
-            className="add-subtask__select"
-            value={formData.taskId}
+          <label className="add-subtask__label">Due Date</label>
+          <input
+            type="date"
+            className="add-subtask__input"
+            value={formData.dueDate}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, taskId: e.target.value }))
+              setFormData((prev) => ({ ...prev, dueDate: e.target.value }))
             }
             required
-            disabled={!formData.goalId}
-          >
-            <option value="">Choose a task</option>
-            {availableTasks.map((task) => (
-              <option key={task._id} value={task._id}>
-                {task.name}
-              </option>
-            ))}
-          </select>
-        </div> */}
+            min={taskDateRange.minDate}
+            max={taskDateRange.maxDate}
+            disabled={!formData.taskId}
+          />
+          {formData.taskId && !taskDateRange.minDate && (
+            <p className="add-subtask__warning">
+              Please select a task to enable the date range.
+            </p>
+          )}
+        </div>
 
         <button type="submit" className="add-subtask__submit-btn">
           Add Subtask
