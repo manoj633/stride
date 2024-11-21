@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   fetchSubtaskById,
   updateSubtask,
+  deleteSubtask,
 } from "../../store/features/subtasks/subtaskSlice";
 import "./SubtaskDescription.css";
 import { updateTaskCompletion } from "../../store/features/tasks/taskSlice";
@@ -76,6 +77,43 @@ const SubtaskDescription = () => {
       });
   };
 
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this subtask?")) {
+      dispatch(deleteSubtask(subtaskId))
+        .then(() => {
+          if (subtask.taskId) {
+            dispatch(
+              updateTaskCompletion({
+                taskId: subtask.taskId,
+                subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
+              })
+            )
+              .then(() => {
+                if (subtask.goalId) {
+                  dispatch(
+                    updateGoalCompletion({
+                      goalId: subtask.goalId,
+                      subtasks: allSubtasks.filter(
+                        (st) => st._id !== subtaskId
+                      ),
+                    })
+                  );
+                }
+                navigate(-1);
+              })
+              .catch((error) => {
+                console.error("Failed to update task completion:", error);
+              });
+          } else {
+            navigate(-1);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to delete subtask:", error);
+        });
+    }
+  };
+
   if (loading) {
     return <div className="subtask">Loading...</div>;
   }
@@ -111,6 +149,9 @@ const SubtaskDescription = () => {
           </label>
         </div>
         <h2 className="subtask__title">{subtask.name}</h2>
+        <button onClick={handleDelete} className="subtask__delete-btn">
+          Delete Subtask
+        </button>
       </div>
 
       <div className="subtask__content">
