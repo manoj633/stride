@@ -23,4 +23,19 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-.log
+# Log files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+
+# Application specific logs
+application.log
+error.log
+access.log
+
+# Log directories
+log/
+logs/
