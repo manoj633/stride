@@ -28,7 +28,8 @@
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "mongoose": "^8.8.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
