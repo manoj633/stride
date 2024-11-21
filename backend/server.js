@@ -13,6 +13,7 @@ import taskRoutes from "./routes/taskRoutes.js";
 import subtaskRoutes from "./routes/subtaskRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import limiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ connectDB();
 
 const app = express();
 app.use(cors());
+app.use(limiter);
 app.use(express.json());
 app.use(helmet());
 app.use(sanitizeInput);
