@@ -6,6 +6,8 @@ import helmet from "helmet";
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+import { sanitizeInput } from "./middleware/sanitize.js";
+
 import goalRoutes from "./routes/goalRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import subtaskRoutes from "./routes/subtaskRoutes.js";
@@ -21,6 +23,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
+app.use(sanitizeInput);
 
 // Configure Winston logger
 const logger = winston.createLogger({
