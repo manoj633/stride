@@ -65,6 +65,7 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    margin-bottom: 1rem;
 }
 
 .enhanced-goals__search-input {
@@ -118,6 +119,7 @@
     cursor: pointer;
     font-size: 0.875rem;
     transition: background-color 0.2s ease;
+    width: 100%;
 }
 
 .enhanced-goals__export-btn:hover {

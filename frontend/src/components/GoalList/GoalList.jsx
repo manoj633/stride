@@ -1,24 +1,23 @@
-import React, { useState, useMemo, useEffect } from "react";
+// src/components/GoalList/GoalList.jsx
+import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Calendar from "react-calendar";
-import * as am5 from "@amcharts/amcharts5";
-
-import "./GoalList.css";
-import DonutChart from "../GoalList/DonutChart";
-
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   fetchGoals,
-  deleteGoal,
-  updateGoalStatus,
-  archiveGoal,
   selectGoalStats,
 } from "../../store/features/goals/goalSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
-import ListView from "./views/ListView";
+
 import KanbanBoard from "./views/KanbanBoard";
 import CalendarView from "./views/CalendarView";
 import TimelineView from "./views/TimelineView";
+import ListView from "./views/ListView";
+import { SearchAndFilters } from "./controls/SearchAndFilters";
+import { BulkActions } from "./controls/BulkActions";
+import { Stats } from "./Stats";
+import DonutChart from "./DonutChart";
+import { useGoalListLogic } from "./hooks/useGoalListLogic";
+import "./GoalList.css";
 
 const GoalList = () => {
   const navigate = useNavigate();
@@ -27,179 +26,31 @@ const GoalList = () => {
   const loading = useAppSelector((state) => state.goals.loading);
   const error = useAppSelector((state) => state.goals.error);
   const tags = useAppSelector((state) => state.tags.items);
+  const stats = useAppSelector(selectGoalStats);
 
-  // Add useEffect to fetch goals when component mounts
   useEffect(() => {
     dispatch(fetchGoals());
     dispatch(fetchTags());
   }, [dispatch]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [sortBy, setSortBy] = useState("dueDate");
-  const [viewType, setViewType] = useState("list");
-  const [selectedGoals, setSelectedGoals] = useState([]);
-
-  const handleBulkDelete = () => {
-    if (selectedGoals.length === 0) return;
-
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${selectedGoals.length} selected goal(s)?`
-    );
-
-    if (confirmDelete) {
-      // Dispatch delete actions for each selected goal
-      selectedGoals.forEach((goalId) => {
-        dispatch(deleteGoal(goalId));
-      });
-      setSelectedGoals([]);
-    }
-  };
-
-  // components/SomeComponent.jsx
-  const handleBulkStatusUpdate = async () => {
-    if (selectedGoals.length === 0) return;
-
-    const confirmUpdate = window.confirm(
-      `Do you want to mark ${selectedGoals.length} selected goal(s) as completed?`
-    );
-
-    if (confirmUpdate) {
-      try {
-        // Using Promise.all to handle multiple async updates
-        await Promise.all(
-          selectedGoals.map((goalId) =>
-            dispatch(
-              updateGoalStatus({
-                id: goalId,
-                status: {
-                  completed: true,
-                  completionPercentage: 100,
-                },
-              })
-            ).unwrap()
-          )
-        );
-
-        // Clear selection after successful updates
-        setSelectedGoals([]);
-
-        // Optionally refresh the goals list
-        dispatch(fetchGoals());
-      } catch (error) {
-        // Handle any errors that occurred during the updates
-        console.error("Failed to update goals:", error);
-      }
-    }
-  };
-
-  const handleBulkArchive = () => {
-    if (selectedGoals.length === 0) return;
-
-    const confirmArchive = window.confirm(
-      `Are you sure you want to archive ${selectedGoals.length} selected goal(s)?`
-    );
-
-    if (confirmArchive) {
-      selectedGoals.forEach((goalId) => {
-        dispatch(archiveGoal(goalId));
-      });
-      setSelectedGoals([]);
-    }
-  };
-
-  const stats = useAppSelector(selectGoalStats);
-  const chartData = useMemo(() => {
-    const completed = goals.filter(
-      (g) => g.completionPercentage === 100
-    ).length;
-    const inProgress = goals.filter(
-      (g) => g.completionPercentage > 0 && g.completionPercentage < 100
-    ).length;
-    const notStarted = goals.filter((g) => g.completionPercentage === 0).length;
-    const total = goals.length;
-
-    return [
-      {
-        category: "Completed",
-        value: total ? Math.round((completed / total) * 100) : 0,
-        settings: { fill: am5.color("#1a73e8") },
-      },
-      {
-        category: "In Progress",
-        value: total ? Math.round((inProgress / total) * 100) : 0,
-        settings: { fill: am5.color("#4285f4") },
-      },
-      {
-        category: "Not Started",
-        value: total ? Math.round((notStarted / total) * 100) : 0,
-        settings: { fill: am5.color("#8ab4f8") },
-      },
-    ];
-  }, [goals]);
-
-  const filteredAndSortedGoals = useMemo(() => {
-    return goals
-      .filter((goal) => {
-        const matchesSearch = goal.title
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-        if (filterStatus === "all") return matchesSearch;
-        if (filterStatus === "completed")
-          return goal.completionPercentage === 100 && matchesSearch;
-        if (filterStatus === "in-progress")
-          return (
-            goal.completionPercentage > 0 &&
-            goal.completionPercentage < 100 &&
-            matchesSearch
-          );
-        if (filterStatus === "overdue") {
-          const isOverdue =
-            new Date() > new Date(goal.duration.endDate) &&
-            goal.completionPercentage < 100;
-          return isOverdue && matchesSearch;
-        }
-        return matchesSearch;
-      })
-      .sort((a, b) => {
-        switch (sortBy) {
-          case "dueDate":
-            return new Date(a.duration.endDate) - new Date(b.duration.endDate);
-          case "priority":
-            const priorityOrder = { High: 3, Medium: 2, Low: 1 };
-            return priorityOrder[b.priority] - priorityOrder[a.priority];
-          case "completion":
-            return b.completionPercentage - a.completionPercentage;
-          case "alphabetical":
-            return a.title.localeCompare(b.title);
-          case "created":
-            return new Date(a.createdAt) - new Date(b.createdAt);
-          case "lastModified":
-            return new Date(b.updatedAt) - new Date(a.updatedAt);
-          default:
-            return 0;
-        }
-      });
-  }, [goals, searchTerm, filterStatus, sortBy]);
-
-  const handleGoalSelect = (goalId) => {
-    setSelectedGoals((prev) =>
-      prev.includes(goalId)
-        ? prev.filter((id) => id !== goalId)
-        : [...prev, goalId]
-    );
-  };
-
-  const exportGoals = () => {
-    const dataStr = JSON.stringify(goals);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const exportFileDefaultName = "goals.json";
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
+  const {
+    searchTerm,
+    filterStatus,
+    sortBy,
+    viewType,
+    selectedGoals,
+    setSearchTerm,
+    setFilterStatus,
+    setSortBy,
+    setViewType,
+    filteredAndSortedGoals,
+    handleGoalSelect,
+    handleBulkDelete,
+    handleBulkStatusUpdate,
+    handleBulkArchive,
+    exportGoals,
+    chartData,
+  } = useGoalListLogic(goals);
 
   const renderContent = () => {
     switch (viewType) {
@@ -232,96 +83,31 @@ const GoalList = () => {
         <div className="enhanced-goals__sidebar">
           <div className="enhanced-goals__header">
             <h2>My Goals</h2>
-
-            <div className="goals__stats">
-              <div className="stat-item">
-                <h3>Completion Rate</h3>
-                <p>{stats.completionRate.toFixed(1)}%</p>
-              </div>
-              <div className="stat-item">
-                <h3>Overdue Goals</h3>
-                <p>{stats.overdueGoals}</p>
-              </div>
-              <div className="stat-item">
-                <h3>Goals This Month</h3>
-                <p>{stats.monthlyGoals}</p>
-              </div>
-            </div>
-
-            <div className="enhanced-goals__controls">
-              <input
-                type="text"
-                placeholder="Search goals..."
-                className="enhanced-goals__search-input"
-                onChange={(e) => setSearchTerm(e.target.value)}
+            <Stats stats={stats} />
+            <SearchAndFilters
+              setSearchTerm={setSearchTerm}
+              setFilterStatus={setFilterStatus}
+              setSortBy={setSortBy}
+              setViewType={setViewType}
+            />
+            {selectedGoals?.length > 0 && (
+              <BulkActions
+                selectedGoals={selectedGoals}
+                onDelete={handleBulkDelete}
+                onStatusUpdate={handleBulkStatusUpdate}
+                onArchive={handleBulkArchive}
               />
-
-              <div className="enhanced-goals__filters">
-                <select
-                  className="enhanced-goals__filter-select"
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="all">All Goals</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="overdue">Overdue</option>
-                </select>
-
-                <select
-                  className="enhanced-goals__sort-select"
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="dueDate">Due Date</option>
-                  <option value="priority">Priority</option>
-                  <option value="completion">Completion %</option>
-                  <option value="alphabetical">Alphabetical</option>
-                  <option value="created">Creation Date</option>
-                  <option value="lastModified">Last Modified</option>
-                </select>
-
-                <select
-                  className="enhanced-goals__view-select"
-                  onChange={(e) => setViewType(e.target.value)}
-                >
-                  <option value="list">List View</option>
-                  <option value="kanban">Kanban Board</option>
-                  <option value="calendar">Calendar View</option>
-                  <option value="timeline">Timeline View</option>
-                </select>
-              </div>
-
-              {selectedGoals.length > 0 && (
-                <div className="enhanced-goals__bulk-actions">
-                  <button onClick={handleBulkDelete}>
-                    Delete Selected ({selectedGoals.length})
-                  </button>
-                  <button
-                    onClick={handleBulkStatusUpdate}
-                    className="enhanced-goals__bulk-action-btn"
-                  >
-                    Update Status ({selectedGoals.length})
-                  </button>
-                  <button
-                    onClick={handleBulkArchive}
-                    className="enhanced-goals__bulk-action-btn"
-                  >
-                    Archive Selected ({selectedGoals.length})
-                  </button>
-                </div>
-              )}
-
-              <button
-                className="enhanced-goals__export-btn"
-                onClick={exportGoals}
-              >
-                Export Goals
-              </button>
-            </div>
+            )}
+            <button
+              className="enhanced-goals__export-btn"
+              onClick={exportGoals}
+            >
+              Export Goals
+            </button>
           </div>
         </div>
         <div className="enhanced-goals__main">
           <div className="enhanced-goals__content">{renderContent()}</div>
-
           <div className="enhanced-goals__chart-container">
             <h3>Goal Distribution</h3>
             <DonutChart data={chartData} />
