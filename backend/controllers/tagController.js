@@ -1,3 +1,4 @@
+// src/controllers/tagController.js
 import Tag from "../models/tagModel.js";
 import asyncHandler from "../middleware/asyncHandler.js";
 import logger from "../utils/logger.js";
@@ -24,7 +25,11 @@ export const createTag = asyncHandler(async (req, res) => {
     logger.info(`Created new tag with ID: ${createdTag._id}`);
     res.status(201).json(createdTag);
   } catch (error) {
-    logger.error("Error creating tag:", error);
+    logger.error({
+      message: "Error creating tag",
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ message: "Error creating tag" });
   }
 });
@@ -35,10 +40,17 @@ export const createTag = asyncHandler(async (req, res) => {
 export const getTags = asyncHandler(async (req, res) => {
   try {
     const tags = await Tag.find();
-    logger.info("Fetched all tags");
+    logger.info({
+      message: "Fetched all tags",
+      count: tags.length,
+    });
     res.status(200).json(tags);
   } catch (error) {
-    logger.error("Error fetching tags:", error);
+    logger.error({
+      message: "Error fetching tags",
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ message: "Error fetching tags" });
   }
 });
@@ -58,7 +70,12 @@ export const getTagById = asyncHandler(async (req, res) => {
       res.status(404).json({ message: "Tag not found" });
     }
   } catch (error) {
-    logger.error("Error fetching tag by ID:", error);
+    logger.error({
+      message: "Error fetching tag by ID",
+      id: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ message: "Error fetching tag" });
   }
 });
@@ -76,14 +93,22 @@ export const updateTag = asyncHandler(async (req, res) => {
       tag.color = color || tag.color;
 
       const updatedTag = await tag.save();
-      logger.info(`Updated tag with ID: ${req.params.id}`);
+      logger.info({
+        message: `Updated tag with ID: ${req.params.id}`,
+        updates: { name, color },
+      });
       res.status(200).json(updatedTag);
     } else {
       logger.warn(`Tag not found with ID: ${req.params.id}`);
       res.status(404).json({ message: "Tag not found" });
     }
   } catch (error) {
-    logger.error("Error updating tag:", error);
+    logger.error({
+      message: "Error updating tag",
+      id: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ message: "Error updating tag" });
   }
 });
@@ -104,7 +129,12 @@ export const deleteTag = asyncHandler(async (req, res) => {
       res.status(404).json({ message: "Tag not found" });
     }
   } catch (error) {
-    logger.error("Error deleting tag:", error);
+    logger.error({
+      message: "Error deleting tag",
+      id: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ message: "Error deleting tag" });
   }
 });
