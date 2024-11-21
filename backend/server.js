@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import winston from "winston"; // Import Winston
+import helmet from "helmet";
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
@@ -19,6 +20,7 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
 
 // Configure Winston logger
 const logger = winston.createLogger({
