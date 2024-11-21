@@ -99,7 +99,6 @@ const TaskDescription = () => {
             {name}
           </h1>
           <div className="task-description__meta">
-            <span className="task-description__date">{"Hi"}</span>
             <span className="task-description__progress">
               {completionPercentage}% Complete
             </span>
