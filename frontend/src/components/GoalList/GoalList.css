@@ -4,12 +4,14 @@
 .enhanced-goals-container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 1rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 .enhanced-goals {
     display: flex;
     min-height: calc(100vh - 60px);
+    margin-top: 1rem;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -588,4 +590,115 @@
     padding: 2rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-top: auto;
+}
+
+/* Medium screens (tablets) */
+@media screen and (max-width: 1024px) {
+    .enhanced-goals__sidebar {
+        width: 350px;
+    }
+
+    .goals__stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile screens */
+@media screen and (max-width: 768px) {
+    .enhanced-goals-container {
+        padding: 0 0.5rem;
+    }
+
+    .enhanced-goals {
+        flex-direction: column;
+        margin-top: 0.5rem;
+    }
+
+    .enhanced-goals__sidebar {
+        width: 100%;
+    }
+
+    .enhanced-goals__header {
+        padding: 1rem;
+    }
+
+    .enhanced-goals__main {
+        padding: 1rem;
+    }
+
+    .enhanced-goals__item {
+        padding: 0.75rem;
+    }
+
+    .enhanced-goals__item-details {
+        gap: 0.25rem;
+    }
+
+    /* Improve mobile calendar view */
+    .calendar-view {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0.5rem;
+    }
+
+    .react-calendar {
+        width: 100%;
+    }
+
+    /* Improve mobile kanban view */
+    .enhanced-goals__kanban {
+        grid-template-columns: 1fr;
+        padding: 0.5rem;
+    }
+
+    .kanban-column {
+        min-height: auto;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Small mobile screens */
+@media screen and (max-width: 480px) {
+    .enhanced-goals__header h2 {
+        font-size: 1.1rem;
+    }
+
+    .stat-item {
+        padding: 0.5rem;
+    }
+
+    .stat-item h3 {
+        font-size: 0.7rem;
+    }
+
+    .stat-item p {
+        font-size: 1rem;
+    }
+
+    .priority-badge,
+    .category-badge,
+    .tag-badge {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    .enhanced-goals__chart-container {
+        padding: 1rem;
+        height: 300px;
+    }
+}
+
+/* Timeline view improvements */
+@media screen and (max-width: 768px) {
+    .timeline-view {
+        padding: 1rem;
+    }
+
+    .timeline-item {
+        margin: 1rem 0;
+    }
+
+    .timeline-content {
+        padding: 0.75rem;
+    }
 }
