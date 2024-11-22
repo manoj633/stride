@@ -5,7 +5,7 @@ import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 
 import SubtaskList from "../SubtaskList/SubtaskList";
-import { fetchTasks } from "../../store/features/tasks/taskSlice";
+import { fetchTasks, deleteTask } from "../../store/features/tasks/taskSlice";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 
 import "./TaskDescription.css";
@@ -65,6 +65,17 @@ const TaskDescription = () => {
     };
   }, [task]);
 
+  const handleDeleteTask = async () => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      try {
+        await dispatch(deleteTask(_id));
+        navigate("/tasks"); // Redirect to tasks list after deletion
+      } catch (error) {
+        console.error("Failed to delete task:", error);
+      }
+    }
+  };
+
   // Render loading state
   if (loading) {
     return <div className="task-description">Loading...</div>;
@@ -113,6 +124,12 @@ const TaskDescription = () => {
               Due: {new Date(endDate).toLocaleDateString()}
             </span>
           </div>
+          <button
+            className="task-description__delete-btn"
+            onClick={handleDeleteTask}
+          >
+            Delete Task
+          </button>
         </div>
 
         <div className="task-description__content">

@@ -1,6 +1,6 @@
-/* TaskDescription.css */
+/* src/components/TaskDescription/TaskDescription.css */
 .task-description {
-    padding: 2rem;
+    padding: clamp(1rem, 3vw, 2rem);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -8,22 +8,23 @@
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(231, 231, 231, 0.5);
-    border-radius: 16px;
-    padding: 2rem;
+    border-radius: clamp(8px, 2vw, 16px);
+    padding: clamp(1rem, 3vw, 2rem);
 }
 
 .task-description__header {
-    margin-bottom: 2rem;
+    margin-bottom: clamp(1rem, 3vw, 2rem);
 }
 
 .task-description__title {
-    font-size: 1.5rem;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
     font-weight: 600;
     color: #1a1a1a;
     margin: 0 0 0.5rem 0;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .task-description__id {
@@ -31,16 +32,18 @@
     color: #4285f4;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.875rem;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
     font-weight: 500;
 }
 
 .task-description__meta {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    font-size: 0.875rem;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
     color: #666;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
 .task-description__date {
@@ -56,19 +59,19 @@
 
 .task-description__content {
     display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
 }
 
 .task-description__info {
     background: linear-gradient(to bottom right, #ffffff, #fafafa);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: clamp(1rem, 2vw, 1.5rem);
     border: 1px solid rgba(231, 231, 231, 0.5);
 }
 
 .task-description__text {
-    font-size: 0.95rem;
+    font-size: clamp(0.875rem, 1.5vw, 0.95rem);
     line-height: 1.6;
     color: #4b4b4b;
     margin: 0;
@@ -77,20 +80,20 @@
 .task-description__chart-wrapper {
     background: white;
     border-radius: 12px;
-    padding: 1rem;
+    padding: clamp(0.75rem, 1.5vw, 1rem);
     border: 1px solid rgba(231, 231, 231, 0.5);
 }
 
 .task-description__chart {
     width: 100%;
-    height: 300px;
+    height: clamp(200px, 40vw, 300px);
 }
 
 .task-description__subtitle {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    margin: 0 0 clamp(0.75rem, 1.5vw, 1rem) 0;
     font-weight: 600;
     color: #1a1a1a;
-    margin: 0 0 1rem 0;
 }
 
 .task-description__notice {
@@ -150,4 +153,99 @@
 
 .task-description__notice-text {
     display: inline-block;
+}
+
+/* src/components/TaskDescription/TaskDescription.css */
+
+.task-description__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.task-description__delete-btn {
+    padding: 0.5rem 1rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease;
+}
+
+.task-description__delete-btn:hover {
+    background-color: #c82333;
+}
+
+@media screen and (max-width: 768px) {
+    .task-description__actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 1024px) {
+    .task-description__meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .task-description__container {
+        border-radius: 12px;
+    }
+
+    .task-description__title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .task-description__actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .task-description__delete-btn {
+        width: 100%;
+        padding: 0.75rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .task-empty__message {
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .subtask-empty__icon {
+        font-size: 2.5rem;
+    }
+
+    .subtask-empty__text {
+        font-size: 1rem;
+    }
+
+    .task-description__notice {
+        padding: 0.75rem;
+    }
+}
+
+/* For very small devices */
+@media screen and (max-width: 320px) {
+    .task-description {
+        padding: 0.75rem;
+    }
+
+    .task-description__container {
+        padding: 1rem;
+    }
 }
