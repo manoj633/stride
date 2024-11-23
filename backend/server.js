@@ -1,8 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
+// import cors from "cors";
 import winston from "winston"; // Import Winston
-import helmet from "helmet";
+// import helmet from "helmet";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -26,10 +26,23 @@ const port = process.env.PORT || 5000;
 connectDB();
 
 const app = express();
-app.use(cors());
+// app.use(cors());
 app.use(limiter);
 app.use(express.json());
-app.use(helmet());
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: {
+//       directives: {
+//         defaultSrc: ["'self'"],
+//         connectSrc: ["'self'", process.env.REACT_APP_API_URL],
+//         scriptSrc: ["'self'", "'unsafe-inline'"],
+//         styleSrc: ["'self'", "'unsafe-inline'"],
+//         imgSrc: ["'self'", "data:", "https:"],
+//         fontSrc: ["'self'", "https:", "data:"],
+//       },
+//     },
+//   })
+// );
 app.use(sanitizeInput);
 
 // Configure Winston logger
