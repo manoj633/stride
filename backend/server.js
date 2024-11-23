@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-// import cors from "cors";
+import cors from "cors";
 import winston from "winston"; // Import Winston
 // import helmet from "helmet";
 import { fileURLToPath } from "url";
@@ -26,7 +26,12 @@ const port = process.env.PORT || 5000;
 connectDB();
 
 const app = express();
-// app.use(cors());
+app.use(
+  cors({
+    origin: "https://stride-qd71.onrender.com/",
+    credentials: true,
+  })
+);
 app.use(limiter);
 app.use(express.json());
 // app.use(
