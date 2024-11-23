@@ -42,6 +42,11 @@ const TaskCalendar = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalDate, setModalDate] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice("ontouchstart" in window);
+  }, []);
 
   useEffect(() => {
     dispatch(fetchGoals());
@@ -268,14 +273,18 @@ const TaskCalendar = () => {
                 {dayItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`task-item ${item.type}-item`}
+                    className={`task-item ${item.type}-item ${
+                      isTouchDevice ? "touch-device" : ""
+                    }`}
                     style={{
                       backgroundColor: COLORS.find((c) => c.id === item.color)
                         ?.bg,
                     }}
-                    onClick={() => handleItemClick(item)}
-                    draggable
-                    onDragStart={() => handleDragStart(date, item)}
+                    onClick={() => isTouchDevice && handleItemClick(item)}
+                    draggable={!isTouchDevice}
+                    onDragStart={() =>
+                      !isTouchDevice && handleDragStart(date, item)
+                    }
                   >
                     {item.type === "subtask" ? (
                       <input
