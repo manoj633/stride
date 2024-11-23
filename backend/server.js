@@ -3,6 +3,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import winston from "winston"; // Import Winston
 import helmet from "helmet";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
@@ -61,12 +66,16 @@ app.use("/api/subtasks", subtaskRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/comments", commentRoutes);
 
+console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "production") {
-  const __dirname = path.resolve();
-  app.use(express.static(path.join(__dirname, "/frontend/dist")));
-  app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"))
-  );
+  try {
+    app.use(express.static(path.join(__dirname, "/frontend/dist")));
+    app.get("*", (req, res) =>
+      res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"))
+    );
+  } catch (error) {
+    console.error("Error serving static files:", error);
+  }
 } else {
   app.get("/", (req, res) => {
     res.send("API is running....");
