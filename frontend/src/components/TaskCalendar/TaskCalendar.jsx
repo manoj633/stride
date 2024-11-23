@@ -2,15 +2,24 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 
+// Import the slice actions
 import {
-  goalsProvider,
-  tasksProvider,
-  subtasksProvider,
-  updateSubtaskCompletionStatus,
-  updateGoalCompletionStatus,
-} from "../../services/dataService";
+  fetchGoals,
+  setSelectedGoal,
+  updateGoalStatus,
+} from "../../store/features/goals/goalSlice";
+import {
+  fetchTasks,
+  setSelectedTask,
+} from "../../store/features/tasks/taskSlice";
+import {
+  fetchSubtasks,
+  setSelectedSubtask,
+  markSubtaskComplete,
+} from "../../store/features/subtasks/subtaskSlice";
+
 import "./TaskCalendar.css";
 
 const COLORS = [
@@ -22,58 +31,82 @@ const COLORS = [
 
 const TaskCalendar = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const goals = useAppSelector((state) => state.goals.items);
+  const tasks = useAppSelector((state) => state.tasks.items);
+  const subtasks = useAppSelector((state) => state.subtasks.items);
+
   const [calendarItems, setCalendarItems] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [modalDate, setModalDate] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
-  const [goals, setGoals] = useState([]);
-  useEffect(() => {
-    const fetchGoals = async () => {
-      const { inputGoals } = await axios.get("/api/goals");
-      setGoals(inputGoals);
-    };
-    fetchGoals();
-    const tasks = tasksProvider();
-    const subtasks = subtasksProvider();
 
+  useEffect(() => {
+    dispatch(fetchGoals());
+    dispatch(fetchTasks());
+    dispatch(fetchSubtasks());
+  }, [dispatch]);
+
+  useEffect(() => {
     const itemsByDate = {};
 
     goals.forEach((goal) => {
-      const dateStr = new Date(goal.duration.startDate)
-        .toISOString()
-        .split("T")[0];
-      if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-      itemsByDate[dateStr].push({
-        id: `goal-${goal.id}`,
-        text: goal.title,
-        type: "goal",
-        priority: goal.priority,
-        completed: goal.completed,
-        color: goal.priority.toLowerCase(),
-        originalItem: goal,
-      });
+      // Create start and end dates
+      const startDate = new Date(goal.duration.startDate);
+      const endDate = new Date(goal.duration.endDate);
+
+      // Loop through each day between start and end
+      for (
+        let date = startDate;
+        date <= endDate;
+        date = new Date(date.setDate(date.getDate() + 1))
+      ) {
+        const dateStr = date.toISOString().split("T")[0];
+        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+        itemsByDate[dateStr].push({
+          id: `goal-${goal._id}`,
+          text: goal.title,
+          type: "goal",
+          priority: goal.priority,
+          completed: goal.completed,
+          color: goal.priority.toLowerCase(),
+          originalItem: goal,
+        });
+      }
     });
 
     tasks.forEach((task) => {
-      const dateStr = new Date(task.startDate).toISOString().split("T")[0];
-      if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-      itemsByDate[dateStr].push({
-        id: `task-${task.id}`,
-        text: task.name,
-        type: "task",
-        priority: task.priority,
-        completed: task.completed,
-        color: task.priority.toLowerCase(),
-        originalItem: task,
-      });
+      const startDate = new Date(task.startDate);
+      const endDate = new Date(task.endDate);
+
+      // Create array of dates between start and end
+      for (
+        let date = startDate;
+        date <= endDate;
+        date = new Date(date.setDate(date.getDate() + 1))
+      ) {
+        const dateStr = date.toISOString().split("T")[0];
+
+        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+        itemsByDate[dateStr].push({
+          id: `task-${task._id}`,
+          text: task.name,
+          type: "task",
+          priority: task.priority,
+          completed: task.completed,
+          color: task.priority.toLowerCase(),
+          originalItem: task,
+        });
+      }
     });
 
     subtasks.forEach((subtask) => {
       const dateStr = new Date(subtask.dueDate).toISOString().split("T")[0];
       if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
       itemsByDate[dateStr].push({
-        id: `subtask-${subtask.id}`,
+        id: `subtask-${subtask._id}`,
         text: subtask.name,
         type: "subtask",
         priority: subtask.priority,
@@ -84,23 +117,15 @@ const TaskCalendar = () => {
     });
 
     setCalendarItems(itemsByDate);
-  }, []);
-
-  // src/components/TaskCalendar/TaskCalendar.jsx
+  }, [goals, tasks, subtasks]);
 
   const toggleItem = (date, item) => {
     const [type, id] = item.id.split("-");
 
     // Update the completion status based on item type
     switch (type) {
-      case "goal":
-        updateGoalCompletionStatus(id, !item.completed); // Call your data service function
-        break;
-      case "task":
-        updateTaskCompletionStatus(id, !item.completed); // Call your data service function
-        break;
       case "subtask":
-        updateSubtaskCompletionStatus(id, !item.completed);
+        dispatch(markSubtaskComplete({ id }));
         break;
       default:
         console.warn("Unknown item type:", type);
@@ -151,12 +176,15 @@ const TaskCalendar = () => {
     const [type, id] = item.id.split("-");
     switch (type) {
       case "goal":
+        dispatch(setSelectedGoal(item.originalItem));
         navigate(`/goals/${id}`);
         break;
       case "task":
+        dispatch(setSelectedTask(item.originalItem));
         navigate(`/tasks/${id}`);
         break;
       case "subtask":
+        dispatch(setSelectedSubtask(item.originalItem));
         navigate(`/subtasks/${id}`);
         break;
     }
@@ -249,20 +277,24 @@ const TaskCalendar = () => {
                     draggable
                     onDragStart={() => handleDragStart(date, item)}
                   >
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      className="task-checkbox"
-                      onChange={() => toggleItem(date, item)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    {item.type === "subtask" ? (
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        className="task-checkbox"
+                        onChange={() => toggleItem(date, item)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      ""
+                    )}
 
                     <span
                       className={`task-text ${
                         item.completed ? "completed" : ""
                       }`}
                     >
-                      {item.text}
+                      {item.type.toUpperCase()} - {item.text}
                     </span>
                   </div>
                 ))}
