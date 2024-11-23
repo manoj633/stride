@@ -390,10 +390,15 @@
     }
 
     .calendar-container {
-        padding: 0.5rem;
+        max-width: 100%;
+        padding: 0.25rem;
     }
 
     .calendar-grid {
+        grid-template-columns: 1fr;
+        /* Change to single column */
+        min-width: unset;
+        /* Remove minimum width */
         gap: 0.5rem;
     }
 
@@ -412,15 +417,20 @@
     }
 
     .day-header {
-        font-size: 0.75rem;
-        padding: 0.25rem;
+        display: none;
     }
 
     .date-number {
-        font-size: 0.75rem;
+        font-size: 1rem;
+        font-weight: bold;
     }
 
     .task-list {
+        max-height: none;
+    }
+
+    .task-list {
+        padding: 0.5rem;
         gap: 0.25rem;
     }
 }
@@ -432,7 +442,11 @@
     }
 
     .calendar-container {
-        padding: 0.25rem;
+        padding: 0.125rem;
+    }
+
+    .calendar-cell {
+        padding: 0.5rem;
     }
 
     .date-number {
