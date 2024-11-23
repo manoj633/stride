@@ -13,7 +13,7 @@ export const createTag = createAsyncThunk("tags/createTag", async (tagData) => {
 
 export const updateTag = createAsyncThunk(
   "tags/updateTag",
-  async ({ is, tagData }) => {
+  async ({ id, tagData }) => {
     const response = await tagAPI.update(id, tagData);
     return response;
   }
@@ -63,11 +63,10 @@ const tagSlice = createSlice({
       })
       // Update tag cases
       .addCase(updateTag.fulfilled, (state, action) => {
-        const index = state.items.findIndex(
-          (tag) => tag._id === action.payload._id
-        );
+        const updatedTag = action.payload;
+        const index = state.tags.findIndex((tag) => tag._id === updatedTag._id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.tags[index] = updatedTag;
         }
       })
       // Delete tag cases

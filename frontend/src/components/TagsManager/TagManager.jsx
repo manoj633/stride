@@ -28,9 +28,10 @@ export const TagManager = () => {
     }
   };
 
-  const handleUpdateTag = (tag) => {
+  const handleUpdateTag = (tag, forceUpdate = false) => {
     if (
       editingTag &&
+      forceUpdate &&
       (editingTag.name.trim() !== tag.name || editingTag.color !== tag.color)
     ) {
       dispatch(
@@ -42,8 +43,8 @@ export const TagManager = () => {
           },
         })
       );
+      setEditingTag(null);
     }
-    setEditingTag(null);
   };
 
   const handleDeleteTag = (tagId) => {
@@ -87,7 +88,12 @@ export const TagManager = () => {
           <div
             key={tag._id}
             className="tag-manager__item"
-            style={{ backgroundColor: tag.color }}
+            style={{
+              backgroundColor:
+                editingTag && editingTag._id === tag._id
+                  ? editingTag.color
+                  : tag.color,
+            }}
           >
             {editingTag && editingTag._id === tag._id ? (
               <div className="tag-manager__edit-group">
@@ -98,17 +104,32 @@ export const TagManager = () => {
                   onChange={(e) =>
                     setEditingTag({ ...editingTag, name: e.target.value })
                   }
-                  onBlur={() => handleUpdateTag(tag)}
-                  onKeyPress={(e) => e.key === "Enter" && handleUpdateTag(tag)}
+                  onBlur={(e) => {
+                    // Only update if the click is not on the color picker
+                    if (
+                      !e.relatedTarget?.classList.contains(
+                        "tag-manager__color-picker"
+                      )
+                    ) {
+                      handleUpdateTag(tag, true);
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleUpdateTag(tag, true);
+                    }
+                  }}
                   autoFocus
                 />
                 <input
                   type="color"
                   className="tag-manager__color-picker"
                   value={editingTag.color}
-                  onChange={(e) =>
-                    setEditingTag({ ...editingTag, color: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setEditingTag({ ...editingTag, color: e.target.value });
+                    handleUpdateTag(tag, true);
+                  }}
+                  onBlur={() => handleUpdateTag(tag, true)}
                 />
               </div>
             ) : (

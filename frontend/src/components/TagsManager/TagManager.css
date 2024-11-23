@@ -48,6 +48,7 @@
     border-radius: 8px;
     cursor: pointer;
     background: #ffffff;
+    z-index: 1000;
 }
 
 .tag-manager__button {
