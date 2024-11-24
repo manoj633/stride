@@ -16,6 +16,7 @@ import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
 import { TagManager } from "./components/TagsManager/TagManager";
 
 import "./App.css";
+import Login from "./components/Login/Login";
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
             <Route path="/subtasks/add" Component={AddSubTask} />
             <Route path="/subtasks" Component={SubtaskList} />
             <Route path="/tags/manage" Component={TagManager} />
+            <Route path="/login" Component={Login} />
           </Routes>
         </main>
       </BrowserRouter>
