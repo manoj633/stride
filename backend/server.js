@@ -18,6 +18,7 @@ import taskRoutes from "./routes/taskRoutes.js";
 import subtaskRoutes from "./routes/subtaskRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import limiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
@@ -83,6 +84,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/subtasks", subtaskRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/users", userRoutes);
 
 console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "production") {
