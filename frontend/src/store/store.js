@@ -6,6 +6,7 @@ import taskReducer from "./features/tasks/taskSlice";
 import subtaskReducer from "./features/subtasks/subtaskSlice";
 import commentReducer from "./features/comments/commentSlice";
 import authReducer from "./features/auth/authSlice";
+import userReducer from "./features/users/userSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     subtasks: subtaskReducer,
     comments: commentReducer,
     auth: authReducer,
+    user: userReducer,
   },
 });
 
