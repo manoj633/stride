@@ -1,13 +1,47 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../store/hooks.js";
+
+import { login } from "../../store/features/users/userSlice.js";
+import { setCredentials } from "../../store/features/auth/authSlice.js";
+import { toast } from "react-toastify";
+
 import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const submitHandler = (e) => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const { loading, error, userInfo } = useAppSelector((state) => state.user);
+
+  const { search } = useLocation();
+  const sp = new URLSearchParams(search);
+  const redirect = sp.get("redirect") || "/";
+
+  useEffect(() => {
+    if (userInfo) {
+      navigate(redirect);
+    }
+  }, [userInfo, redirect, navigate]);
+
+  const submitHandler = async (e) => {
     e.preventDefault();
+    console.log("entered");
+
+    try {
+      //login with BE
+      const res = await dispatch(login({ email, password })).unwrap();
+      console.log(res);
+      //dispatch setCredentials for local store user data
+      //   dispatch(setCredentials({ ...res }));
+      console.log("loggedIn");
+      navigate(redirect);
+    } catch (error) {
+      toast.error(error?.data?.message || error.error);
+    }
     console.log("submit");
   };
 
@@ -44,14 +78,21 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <button type="submit" className="login__button">
+              <button
+                type="submit"
+                className="login__button"
+                disabled={loading}
+              >
                 Sign In
               </button>
             </form>
             <div className="login__footer">
               <span className="login__footer-text">
                 New Customer?{" "}
-                <Link to="/register" className="login__link">
+                <Link
+                  to={redirect ? `/register?redirect=${redirect} ` : "/"}
+                  className="login__link"
+                >
                   Register
                 </Link>
               </span>
