@@ -1,17 +1,20 @@
 /* components/tags/TagManager.css */
 .tag-manager {
-    padding: 24px;
+    padding: 20px;
+    width: 100%;
     max-width: 800px;
     margin: 0 auto;
     background-color: #ffffff;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
 }
 
 .tag-manager__form {
     margin-bottom: 24px;
     display: flex;
+    flex-direction: row;
     gap: 12px;
     background: #f8f9fa;
     padding: 16px;
@@ -32,6 +35,7 @@
     font-size: 14px;
     background: #ffffff;
     transition: border-color 0.2s ease;
+    width: 100%;
 }
 
 .tag-manager__input:focus {
@@ -59,20 +63,7 @@
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s ease;
-}
-
-.tag-manager__button--create {
-    background-color: #339af0;
-    color: white;
-}
-
-.tag-manager__button--create:hover {
-    background-color: #228be6;
-}
-
-.tag-manager__button--create:disabled {
-    background-color: #e9ecef;
-    cursor: not-allowed;
+    white-space: nowrap;
 }
 
 .tag-manager__list {
@@ -89,17 +80,15 @@
     border-radius: 12px;
     transition: all 0.2s ease;
     border: 1px solid #e9ecef;
-}
-
-.tag-manager__item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .tag-manager__edit-group {
     display: flex;
     gap: 12px;
     flex: 1;
+    min-width: 200px;
 }
 
 .tag-manager__edit-input {
@@ -109,17 +98,64 @@
     border-radius: 8px;
     font-size: 14px;
     background: #ffffff;
-}
-
-.tag-manager__name {
-    font-size: 14px;
-    font-weight: 500;
-    color: #495057;
+    min-width: 0;
 }
 
 .tag-manager__actions {
     display: flex;
     gap: 8px;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+    .tag-manager {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .tag-manager__form {
+        flex-direction: column;
+        padding: 12px;
+    }
+
+    .tag-manager__input-group {
+        width: 100%;
+    }
+
+    .tag-manager__button {
+        width: 100%;
+        padding: 10px 16px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .tag-manager__item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tag-manager__actions {
+        flex-direction: row;
+        justify-content: stretch;
+    }
+
+    .tag-manager__actions button {
+        flex: 1;
+    }
+
+    .tag-manager__edit-group {
+        width: 100%;
+    }
+
+    .tag-manager__name {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .tag-manager__color-picker {
+        width: 36px;
+        height: 36px;
+    }
 }
 
 .tag-manager__button--edit {
