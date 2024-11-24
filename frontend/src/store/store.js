@@ -5,6 +5,7 @@ import goalReducer from "./features/goals/goalSlice";
 import taskReducer from "./features/tasks/taskSlice";
 import subtaskReducer from "./features/subtasks/subtaskSlice";
 import commentReducer from "./features/comments/commentSlice";
+import authReducer from "./features/auth/authSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +14,7 @@ export const store = configureStore({
     tasks: taskReducer,
     subtasks: subtaskReducer,
     comments: commentReducer,
-    // Future reducers can be added here (e.g., goals)
+    auth: authReducer,
   },
 });
 
