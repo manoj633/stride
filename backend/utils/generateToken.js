@@ -4,7 +4,7 @@ const generateToken = (res, userId) => {
   //receives paylod (userId in our case)
   //A secret stored in .env
   //expires in
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ userId }, process.env.JWT_KEY, {
     expiresIn: "30d",
   });
 
