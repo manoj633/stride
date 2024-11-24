@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import "./Navigation.css";
+import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
+import { logout } from "../../store/features/users/userSlice.js";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const dispatch = useAppDispatch();
+  const { loading, error, userInfo } = useAppSelector((state) => state.user);
+
+  const logoutHandler = () => {
+    dispatch(logout());
+    setIsDropdownOpen(false);
+  };
 
   // Handle scroll effect
   useEffect(() => {
@@ -58,6 +69,37 @@ const Navigation = () => {
               {label}
             </NavLink>
           ))}
+          {userInfo ? (
+            <div className="nav__user-dropdown">
+              <button
+                className="nav__user-dropdown-toggle"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                {userInfo.name}
+              </button>
+              {isDropdownOpen && (
+                <div className="nav__user-dropdown-menu">
+                  <NavLink
+                    to="/profile"
+                    className="nav__user-dropdown-item"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    Profile
+                  </NavLink>
+                  <button
+                    className="nav__user-dropdown-item"
+                    onClick={logoutHandler}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <NavLink to="/login" className="nav__link">
+              <FaUser /> Sign In
+            </NavLink>
+          )}
         </div>
       </div>
     </nav>
