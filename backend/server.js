@@ -35,6 +35,7 @@ app.use(
 );
 app.use(limiter);
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 // app.use(
 //   helmet({
 //     contentSecurityPolicy: {
