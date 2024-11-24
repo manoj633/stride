@@ -51,3 +51,20 @@ export const commentAPI = {
     axiosInstance.put(`/comments/${id}`, commentData),
   delete: (id) => axiosInstance.delete(`/comments/${id}`),
 };
+
+export const userAPI = {
+  // Public routes
+  register: (userData) => axiosInstance.post("/users", userData),
+  login: (credentials) => axiosInstance.post("/users/login", credentials),
+
+  // Protected routes
+  logout: () => axiosInstance.post("/users/logout"),
+  getProfile: () => axiosInstance.get("/users/profile"),
+  updateProfile: (userData) => axiosInstance.put("/users/profile", userData),
+
+  // Admin routes
+  getAllUsers: () => axiosInstance.get("/users"),
+  getUserById: (id) => axiosInstance.get(`/users/${id}`),
+  updateUser: (id, userData) => axiosInstance.put(`/users/${id}`, userData),
+  deleteUser: (id) => axiosInstance.delete(`/users/${id}`),
+};
