@@ -5,6 +5,7 @@ import winston from "winston"; // Import Winston
 // import helmet from "helmet";
 import { fileURLToPath } from "url";
 import path from "path";
+import cookieParser from "cookie-parser";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,6 +37,9 @@ app.use(
 app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//Cookie parser middleware
+app.use(cookieParser());
 // app.use(
 //   helmet({
 //     contentSecurityPolicy: {
