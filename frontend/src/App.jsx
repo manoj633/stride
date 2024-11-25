@@ -17,7 +17,9 @@ import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
 import { TagManager } from "./components/TagsManager/TagManager";
 
 import "./App.css";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
+import Register from "./components/Register/Register";
 
 const App = () => {
   return (
@@ -38,6 +40,7 @@ const App = () => {
             <Route path="/subtasks" Component={SubtaskList} />
             <Route path="/tags/manage" Component={TagManager} />
             <Route path="/login" Component={Login} />
+            <Route path="/register" Component={Register} />
           </Routes>
         </main>
         <ToastContainer />
