@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./Navigation.css";
+import { FaUser } from "react-icons/fa";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 import { logout } from "../../store/features/users/userSlice.js";
 
@@ -9,12 +10,18 @@ const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { loading, error, userInfo } = useAppSelector((state) => state.user);
 
-  const logoutHandler = () => {
-    dispatch(logout());
-    setIsDropdownOpen(false);
+  const logoutHandler = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      setIsDropdownOpen(false);
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // Handle scroll effect

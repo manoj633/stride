@@ -14,7 +14,7 @@ const protect = asyncHandler(async (req, res, next) => {
     //In our case, payload is the user ID
     //Then return the user without retrieving the password
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_KEY);
       req.user = await User.findById(decoded.userId).select("-password");
       next();
     } catch (error) {
