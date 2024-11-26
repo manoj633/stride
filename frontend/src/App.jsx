@@ -20,6 +20,7 @@ import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
+import Profile from "./components/Profile/Profile";
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
             <Route path="/tags/manage" Component={TagManager} />
             <Route path="/login" Component={Login} />
             <Route path="/register" Component={Register} />
+            <Route path="/profile" Component={Profile} />
           </Routes>
         </main>
         <ToastContainer />
