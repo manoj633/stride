@@ -32,6 +32,7 @@ const SubtaskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Goal",
     },
+    user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
   },
   { timestamps: true }
 );

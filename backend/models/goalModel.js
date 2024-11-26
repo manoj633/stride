@@ -30,6 +30,7 @@ const GoalSchema = new mongoose.Schema(
       enum: ["High", "Medium", "Low"],
       default: "Medium",
     },
+    user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
     duration: {
       startDate: {
         type: Date,
