@@ -50,6 +50,7 @@ const importData = async () => {
         ...goal,
         collaborators: [adminUser],
         tags: goalTags,
+        user: adminUser,
       };
     });
     const createdGoals = await Goal.insertMany(sampleGoals);
@@ -64,6 +65,7 @@ const importData = async () => {
     const sampleTasks = tasks.map((task) => ({
       ...task,
       goalId: goalMap[task.goalId - 1], // Replace `goalId` with MongoDB _id
+      user: adminUser,
     }));
     const createdTasks = await Task.insertMany(sampleTasks);
 
@@ -79,6 +81,7 @@ const importData = async () => {
         ...subtask,
         taskId: taskMap[subtask.taskId - 1],
         goalId: goalMap[subtask.goalId - 1],
+        user: adminUser,
       };
     });
     await Subtask.insertMany(sampleSubtasks);
