@@ -75,7 +75,27 @@ const GoalList = () => {
 
   if (loading) return <div>Loading goals...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (goals.length === 0) return <div>No goals present. Add a new goal</div>;
+  if (goals.length === 0) {
+    const handleNavigateToAdd = () => {
+      navigate("/goals/add");
+    };
+
+    return (
+      <div className="goal-list">
+        <div
+          className="goal-list__empty goal-list__empty--clickable"
+          onClick={handleNavigateToAdd}
+        >
+          <div className="goal-list__empty-content">
+            <div className="goal-list__empty-text">
+              No Goals found for today
+            </div>
+            <div className="goal-list__empty-action">Click to add a Goal</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="enhanced-goals-container">
