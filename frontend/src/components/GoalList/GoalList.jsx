@@ -33,6 +33,12 @@ const GoalList = () => {
     dispatch(fetchTags());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (error === "Request failed with status code 401") {
+      navigate("/login");
+    }
+  }, [error, navigate]);
+
   const {
     searchTerm,
     filterStatus,
@@ -74,7 +80,6 @@ const GoalList = () => {
   };
 
   if (loading) return <div>Loading goals...</div>;
-  if (error) return <div>Error: {error}</div>;
   if (goals.length === 0) {
     const handleNavigateToAdd = () => {
       navigate("/goals/add");

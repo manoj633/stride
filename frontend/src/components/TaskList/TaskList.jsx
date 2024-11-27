@@ -20,6 +20,12 @@ const TaskList = ({ tasks: propTasks }) => {
     }
   }, [dispatch, propTasks]);
 
+  useEffect(() => {
+    if (error === "Request failed with status code 401") {
+      navigate("/login");
+    }
+  }, [error, navigate]);
+
   // If tasks are passed as props (from GoalDescription), use those
   // Otherwise, filter tasks from Redux store for current month
   const tasks =
@@ -45,10 +51,6 @@ const TaskList = ({ tasks: propTasks }) => {
 
   if (loading && !propTasks) {
     return <div className="task-list">Loading tasks...</div>;
-  }
-
-  if (error && !propTasks) {
-    return <div className="task-list">Error loading tasks: {error}</div>;
   }
 
   // Empty state handling

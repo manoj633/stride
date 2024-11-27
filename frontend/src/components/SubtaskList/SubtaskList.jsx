@@ -20,6 +20,12 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
     }
   }, [dispatch, propSubtasks]);
 
+  useEffect(() => {
+    if (error === "Request failed with status code 401") {
+      navigate("/login");
+    }
+  }, [error, navigate]);
+
   // Use propSubtasks if provided, otherwise filter today's subtasks from Redux store
   const subtasks =
     propSubtasks ||
@@ -39,10 +45,6 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
 
   if (loading && !propSubtasks) {
     return <div className="subtask-list">Loading...</div>;
-  }
-
-  if (error && !propSubtasks) {
-    return <div className="subtask-list">Error: {error}</div>;
   }
 
   if (subtasks.length === 0) {

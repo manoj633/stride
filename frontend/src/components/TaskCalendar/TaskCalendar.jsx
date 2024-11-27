@@ -8,7 +8,6 @@ import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 import {
   fetchGoals,
   setSelectedGoal,
-  updateGoalStatus,
 } from "../../store/features/goals/goalSlice";
 import {
   fetchTasks,
