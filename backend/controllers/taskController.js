@@ -10,7 +10,7 @@ import logger from "../utils/logger.js";
  */
 const getTasks = asyncHandler(async (req, res) => {
   logger.info("Fetching all tasks", { endpoint: "/api/tasks" });
-  const tasks = await Task.find({});
+  const tasks = await Task.find({ createdBy: req.userId });
   logger.debug("Tasks fetched successfully", { count: tasks.length });
   res.json(tasks);
 });
@@ -22,14 +22,20 @@ const getTasks = asyncHandler(async (req, res) => {
  */
 const getTaskById = asyncHandler(async (req, res) => {
   logger.info("Fetching task by id", {
-    taskId: req.params.id,
+    taskId: req.originalUrl,
     endpoint: "/api/tasks/:id",
   });
 
   const task = await Task.findById(req.params.id);
   if (task) {
-    logger.debug("Task found successfully", { taskId: req.params.id });
-    return res.json(task);
+    if (task?.createdBy === req.userId) {
+      logger.debug("Task found successfully", { taskId: req.params.id });
+      return res.json(task);
+    } else {
+      logger.error("Task not found", { taskId: req.params.id });
+      res.status(404);
+      throw new Error("Resource not found");
+    }
   }
 
   logger.error("Task not found", { taskId: req.params.id });
@@ -66,6 +72,7 @@ const createTask = asyncHandler(async (req, res) => {
     endDate,
     goalId,
     completionPercentage,
+    createdBy: req.userId,
   });
 
   const createdTask = await task.save();

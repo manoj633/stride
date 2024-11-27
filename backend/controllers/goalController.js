@@ -9,7 +9,7 @@ import logger from "../utils/logger.js";
  */
 const getGoals = asyncHandler(async (req, res) => {
   logger.info("Fetching all goals", { endpoint: "/api/goals" });
-  const goals = await Goal.find({});
+  const goals = await Goal.find({ createdBy: req.userId });
   logger.debug("Goals fetched successfully", { count: goals.length });
   res.json(goals);
 });
@@ -28,7 +28,13 @@ const getGoalById = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
   if (goal) {
     logger.debug("Goal found successfully", { goalId: req.params.id });
-    return res.json(goal);
+
+    if (goal?.createdBy === req.userId) {
+      return res.json(goal);
+    } else {
+      res.status(404);
+      throw new Error("Resource not found");
+    }
   }
 
   logger.error("Goal not found", { goalId: req.params.id });
@@ -55,6 +61,7 @@ const createGoal = asyncHandler(async (req, res) => {
     duration: req.body.duration,
     collaborators: req.body.collaborators,
     tags: req.body.tags,
+    createdBy: req.userId,
   });
 
   const createdGoal = await goal.save();

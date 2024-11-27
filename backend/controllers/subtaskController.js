@@ -10,8 +10,10 @@ import logger from "../utils/logger.js";
  */
 const getSubtasks = asyncHandler(async (req, res) => {
   logger.info("Fetching all subtasks", { endpoint: "/api/subtasks" });
-  const subtasks = await Subtask.find({});
-  logger.debug("Subtasks fetched successfully", { count: subtasks.length });
+  const subtasks = await Subtask.find({ createdBy: req.userId });
+  logger.debug("Subtasks fetched successfully", {
+    count: subtasks.length,
+  });
   res.json(subtasks);
 });
 
@@ -28,8 +30,19 @@ const getSubtaskById = asyncHandler(async (req, res) => {
 
   const subtask = await Subtask.findById(req.params.id);
   if (subtask) {
-    logger.debug("Subtask found successfully", { subtaskId: req.params.id });
-    return res.json(subtask);
+    console.log(
+      subtask.createdBy,
+      req.userId,
+      !subtask.createdBy.equals(req.userId)
+    );
+    if (subtask.createdBy.equals(req.userId)) {
+      logger.debug("Subtask found successfully", { subtaskId: req.params.id });
+      return res.json(subtask);
+    } else {
+      logger.error("Subtask not found", { subtaskId: req.params.id });
+      res.status(404);
+      throw new Error("Resource not found");
+    }
   }
   logger.error("Subtask not found", { subtaskId: req.params.id });
   res.status(404);
@@ -55,6 +68,7 @@ const createSubtask = asyncHandler(async (req, res) => {
     dueDate,
     taskId,
     goalId,
+    createdBy: req.userId,
   });
 
   const createdSubtask = await subtask.save();
