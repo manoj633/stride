@@ -7,14 +7,18 @@ import {
   deleteSubtask,
   markSubtaskAsCompleted,
 } from "../controllers/subtaskController.js";
+import extractUser from "../utils/extractUser.js";
 
 const router = express.Router();
 
-router.route("/").get(getSubtasks).post(createSubtask);
+router
+  .route("/")
+  .get(extractUser, getSubtasks)
+  .post(extractUser, createSubtask);
 
 router
   .route("/:id")
-  .get(getSubtaskById)
+  .get(extractUser, getSubtaskById)
   .put(updateSubtask)
   .delete(deleteSubtask);
 

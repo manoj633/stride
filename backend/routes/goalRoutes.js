@@ -15,11 +15,12 @@ import {
   updateGoalStatus,
   archiveGoal,
 } from "../controllers/goalController.js";
+import extractUser from "../utils/extractUser.js";
 
 const router = express.Router();
 
 // Get all goals and create a new goal
-router.route("/").get(getGoals).post(createGoal);
+router.route("/").get(extractUser, getGoals).post(extractUser, createGoal);
 
 // Get, update, or delete goal by id
 router.route("/:id").get(getGoalById).put(updateGoal).delete(deleteGoal);
