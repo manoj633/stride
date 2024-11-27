@@ -11,7 +11,11 @@ const TaskSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
     priority: {
       type: String,
       enum: ["High", "Medium", "Low"],
