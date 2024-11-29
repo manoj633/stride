@@ -30,8 +30,8 @@ const Content = ({
       onAddTag={onAddTag}
     />
     <ProgressChart goal={goal} />
-    <Collaborators collaborators={collaborators} />
-    <Dependencies dependencies={dependencies} />
+    {/* <Collaborators collaborators={collaborators} /> */}
+    {/* <Dependencies dependencies={dependencies} /> */}
     <TaskSection tasks={tasks} />
     <RelatedGoals relatedGoals={relatedGoals} />
     <CommentsSection

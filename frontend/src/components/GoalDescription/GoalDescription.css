@@ -148,12 +148,20 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .goal-description__content {
+        grid-template-columns: 1fr !important;
+    }
+
     .goal-description__actions {
         flex-direction: column;
     }
 
     .collaborators-list {
         flex-direction: column;
+    }
+
+    .goal-description__meta {
+        flex-direction: column !important;
     }
 }
 
