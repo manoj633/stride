@@ -152,6 +152,7 @@ const GoalDescription = () => {
       <div className="goal-description__container">
         <Header
           goal={goal}
+          tags={tags}
           isEditing={isEditing}
           editedGoal={editedGoal}
           onEdit={handleEdit}

@@ -6,6 +6,7 @@ import Actions from "./Actions";
 
 const Header = ({
   goal,
+  tags,
   isEditing,
   editedGoal,
   onEdit,
@@ -18,6 +19,7 @@ const Header = ({
     {isEditing ? (
       <EditForm
         editedGoal={editedGoal}
+        tags={tags}
         onSave={onSave}
         onCancel={onCancel}
         setEditedGoal={setEditedGoal}
