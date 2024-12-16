@@ -70,7 +70,14 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
   return (
     <div className="subtask-list">
       {subtasks.map((subtask) => (
-        <div key={subtask._id} className="subtask-list__item">
+        <div
+          key={subtask._id}
+          className={`subtask-list__link ${
+            subtask.completed
+              ? "subtask-list__link--completed"
+              : "subtask-list__link--not-completed"
+          }`}
+        >
           <Link to={`/subtasks/${subtask._id}`} className="subtask-list__link">
             <div className="subtask-list__content">
               <span className="subtask-list__name">{subtask.name}</span>
@@ -83,7 +90,11 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
               )}
               {subtask.dueDate && (
                 <span className="subtask-list__date">
-                  {new Date(subtask.dueDate).toLocaleDateString()}
+                  {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </span>
               )}
             </div>

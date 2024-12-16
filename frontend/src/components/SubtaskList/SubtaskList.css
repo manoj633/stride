@@ -75,6 +75,21 @@
     gap: 1.25rem;
 }
 
+.subtask-list__link--completed {
+    background-color: #b2f0c8;
+    color: #000;
+}
+
+.subtask-list__link--not-completed {
+    background-color: #fddfdf;
+    color: #000;
+}
+
+.subtask-list__link:hover {
+    opacity: 0.9;
+    transition: background-color 0.3s ease;
+}
+
 .subtask-list__name {
     font-size: 1rem;
     color: #2D3436;
