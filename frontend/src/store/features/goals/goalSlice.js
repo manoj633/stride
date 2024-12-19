@@ -120,7 +120,7 @@ export const updateGoalCompletion = createAsyncThunk(
     const completedCount = goalSubtasks.filter((st) => st.completed).length;
     const completionPercentage =
       goalSubtasks.length > 0
-        ? (completedCount / goalSubtasks.length) * 100
+        ? Number((completedCount / goalSubtasks.length) * 100).toFixed(2)
         : 0;
 
     const goal = state.goals.items.find((goal) => goal._id === goalId);
