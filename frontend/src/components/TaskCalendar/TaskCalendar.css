@@ -106,7 +106,7 @@
     color: #666;
 }
 
-.task-list {
+.calendar-task-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -425,11 +425,11 @@
         font-weight: bold;
     }
 
-    .task-list {
+    .calendar-task-list {
         max-height: none;
     }
 
-    .task-list {
+    .calendar-task-list {
         padding: 0.5rem;
         gap: 0.25rem;
     }
@@ -494,7 +494,7 @@
         min-height: 80px;
     }
 
-    .task-list {
+    .calendar-task-list {
         max-height: 60px;
         overflow-y: auto;
     }
