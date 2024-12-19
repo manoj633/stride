@@ -50,7 +50,13 @@ const TaskList = ({ tasks: propTasks }) => {
     })();
 
   if (loading && !propTasks) {
-    return <div className="task-list">Loading tasks...</div>;
+    return (
+      <div className="task-list">
+        <div className="task-list--loading"></div>
+        <div className="task-list--loading"></div>
+        <div className="task-list--loading"></div>
+      </div>
+    );
   }
 
   // Empty state handling
