@@ -11,6 +11,113 @@
     box-sizing: border-box;
 }
 
+.tag-manager__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.tag-manager__controls {
+    display: flex;
+    gap: 12px;
+}
+
+.tag-manager__filter,
+.tag-manager__sort {
+    padding: 8px 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.tag-manager__color-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tag-manager__random-color {
+    padding: 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.tag-manager__random-color:hover {
+    transform: rotate(180deg);
+}
+
+.tag-manager__presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    animation: slideDown 0.3s ease;
+}
+
+.tag-manager__preset-item {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.tag-manager__preset-item:hover {
+    transform: translateY(-2px);
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(180deg);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tag-manager__item {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .tag-manager__form {
     margin-bottom: 24px;
     display: flex;
@@ -64,6 +171,26 @@
     font-weight: 500;
     transition: all 0.2s ease;
     white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.tag-manager__button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.tag-manager__button:hover::after {
+    width: 200%;
+    height: 200%;
 }
 
 .tag-manager__list {
