@@ -87,7 +87,12 @@ const TaskList = ({ tasks: propTasks }) => {
                 <p className="task-list__description">{task.description}</p>
               )}
               <div className="task-list__meta">
-                <span className="task-list__priority">{task.priority}</span>
+                <span
+                  className="task-list__priority"
+                  data-priority={task.priority.toLowerCase()}
+                >
+                  {task.priority}
+                </span>
                 <span className="task-list__date">{task.dueDate}</span>
                 <span className="task-list__progress">
                   {task.completionPercentage}%
