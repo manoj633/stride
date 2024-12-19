@@ -11,24 +11,156 @@
     box-sizing: border-box;
 }
 
-.tag-manager__header {
+.tag-manager__dashboard {
+    background: linear-gradient(135deg, #f6f8fd 0%, #f1f4f9 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.tag-manager__stats {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 24px;
     margin-bottom: 24px;
 }
 
-.tag-manager__controls {
+.tag-manager__stat-item {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    flex: 1;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.tag-manager__stat-item:hover {
+    transform: translateY(-2px);
+}
+
+.tag-manager__stat-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.tag-manager__stat-label {
+    font-size: 14px;
+    color: #718096;
+}
+
+.tag-manager__search-container {
     display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.tag-manager__search {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.tag-manager__search:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+}
+
+.tag-manager__view-options {
+    display: flex;
+    gap: 8px;
+}
+
+.tag-manager__view-button {
+    padding: 8px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-manager__view-button.active {
+    background: #4299e1;
+    color: white;
+    border-color: #4299e1;
+}
+
+.tag-manager__categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.tag-manager__category {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: slideIn 0.3s ease forwards;
+}
+
+.tag-manager__category:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.tag-manager__category:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.tag-manager__category-title {
+    font-size: 16;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 16px;
+}
+
+.tag-manager__preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 12px;
 }
 
-.tag-manager__filter,
-.tag-manager__sort {
-    padding: 8px 12px;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
+.tag-manager__preset-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-manager__preset-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tag-manager__preset-button span {
     font-size: 14px;
+    font-weight: 500;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .tag-manager__color-controls {
@@ -319,4 +451,57 @@
     background: #fff0f0;
     border-radius: 8px;
     font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .tag-manager__dashboard {
+        padding: 16px;
+    }
+
+    .tag-manager__stats {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .tag-manager__search-container {
+        flex-direction: column;
+    }
+
+    .tag-manager__view-options {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .tag-manager__dashboard {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+
+    .tag-manager__stat-item {
+        background: #2d3748;
+    }
+
+    .tag-manager__stat-value {
+        color: #fff;
+    }
+
+    .tag-manager__stat-label {
+        color: #a0aec0;
+    }
+
+    .tag-manager__search {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: white;
+    }
+
+    .tag-manager__category {
+        background: #2d3748;
+    }
+
+    .tag-manager__category-title {
+        color: #fff;
+    }
 }

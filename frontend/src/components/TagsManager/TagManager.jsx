@@ -1,5 +1,5 @@
 // components/tags/TagManager.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   fetchTags,
@@ -31,6 +31,52 @@ const tagPresets = [
   { name: "Urgent", color: "#ffffba" },
 ];
 
+const generateTagIcon = (name) => {
+  const icons = {
+    important: "⭐",
+    urgent: "🔥",
+    work: "💼",
+    personal: "👤",
+    home: "🏠",
+    study: "📚",
+    health: "❤️",
+    finance: "💰",
+    today: "📅",
+    "this week": "📆",
+    "this month": "📊",
+    someday: "🔮",
+    recurring: "🔄",
+  };
+  const lowerName = name.toLowerCase();
+  return icons[lowerName] || "🏷️";
+};
+
+const tagCategories = {
+  "Task Status": [
+    { name: "To Do", color: "#ff9aa2" },
+    { name: "In Progress", color: "#ffdac1" },
+    { name: "Done", color: "#c7ceea" },
+  ],
+  Priority: [
+    { name: "Important", color: "#ff6b6b" },
+    { name: "Urgent", color: "#ffd93d" },
+    { name: "Low Priority", color: "#95e1d3" },
+  ],
+  Areas: [
+    { name: "Work", color: "#a8e6cf" },
+    { name: "Personal", color: "#dcedc1" },
+    { name: "Study", color: "#ffd3b6" },
+    { name: "Health", color: "#ffaaa5" },
+  ],
+  "Time Frame": [
+    { name: "Today", color: "#ff8585" },
+    { name: "This Week", color: "#82c1ff" },
+    { name: "This Month", color: "#87e6b5" },
+    { name: "Someday", color: "#b5b5ff" },
+    { name: "Recurring", color: "#ffc385" },
+  ],
+};
+
 export const TagManager = () => {
   const dispatch = useAppDispatch();
   const { items: tags, loading, error } = useAppSelector((state) => state.tags);
@@ -39,6 +85,10 @@ export const TagManager = () => {
   const [showPresets, setShowPresets] = useState(false);
   const [filterText, setFilterText] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [tagStats, setTagStats] = useState({ total: 0, recent: 0 });
+  const [showColorPalette, setShowColorPalette] = useState(false);
+  const [recentlyUsed, setRecentlyUsed] = useState([]);
 
   useEffect(() => {
     dispatch(fetchTags());
@@ -83,6 +133,17 @@ export const TagManager = () => {
     setShowPresets(false);
   };
 
+  const handleTagUsage = useCallback((tag) => {
+    const now = new Date();
+    setRecentlyUsed((prev) => {
+      const updated = prev.filter((t) => t.id !== tag._id);
+      return [{ id: tag._id, name: tag.name, usedAt: now }, ...updated].slice(
+        0,
+        5
+      );
+    });
+  }, []);
+
   const filteredTags = tags
     .filter((tag) => tag.name.toLowerCase().includes(filterText.toLowerCase()))
     .sort((a, b) => {
@@ -110,25 +171,74 @@ export const TagManager = () => {
 
   return (
     <div className="tag-manager">
-      <div className="tag-manager__header">
-        <h2>Tag Manager</h2>
-        <div className="tag-manager__controls">
+      <div className="tag-manager__dashboard">
+        <div className="tag-manager__stats">
+          <div className="tag-manager__stat-item">
+            <span className="tag-manager__stat-value">{tags.length}</span>
+            <span className="tag-manager__stat-label">Total Tags</span>
+          </div>
+          <div className="tag-manager__stat-item">
+            <span className="tag-manager__stat-value">
+              {recentlyUsed.length}
+            </span>
+            <span className="tag-manager__stat-label">Recently Used</span>
+          </div>
+        </div>
+
+        <div className="tag-manager__search-container">
           <input
             type="text"
-            placeholder="Filter tags..."
+            placeholder="🔍 Search tags..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            className="tag-manager__filter"
+            className="tag-manager__search"
           />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="tag-manager__sort"
-          >
-            <option value="name">Sort by name</option>
-            <option value="color">Sort by color</option>
-          </select>
+          <div className="tag-manager__view-options">
+            <button
+              className={`tag-manager__view-button ${
+                sortBy === "name" ? "active" : ""
+              }`}
+              onClick={() => setSortBy("name")}
+            >
+              A-Z
+            </button>
+            <button
+              className={`tag-manager__view-button ${
+                sortBy === "color" ? "active" : ""
+              }`}
+              onClick={() => setSortBy("color")}
+            >
+              🎨
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="tag-manager__categories">
+        {Object.entries(tagCategories).map(([category, presets]) => (
+          <div key={category} className="tag-manager__category">
+            <h3 className="tag-manager__category-title">{category}</h3>
+            <div className="tag-manager__preset-grid">
+              {presets.map((preset) => (
+                <button
+                  key={preset.name}
+                  className="tag-manager__preset-button"
+                  style={{
+                    backgroundColor: preset.color,
+                    opacity: activeCategory === category ? 1 : 0.7,
+                  }}
+                  onClick={() => {
+                    setNewTag(preset);
+                    setActiveCategory(category);
+                  }}
+                >
+                  {generateTagIcon(preset.name)}
+                  <span>{preset.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       <form className="tag-manager__form" onSubmit={handleCreateTag}>
