@@ -102,13 +102,15 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
               <div className="subtask-list__content">
                 <span className="subtask-list__name">{subtask.name}</span>
                 <div className="subtask-list__meta">
-                  {subtask.status && (
-                    <span
-                      className={`subtask-list__status subtask-list__status--${subtask.status.toLowerCase()}`}
-                    >
-                      {subtask.status}
-                    </span>
-                  )}
+                  <span
+                    className={`subtask-list__status ${
+                      subtask.completed
+                        ? "subtask-list__status--completed"
+                        : "subtask-list__status--pending"
+                    }`}
+                  >
+                    {subtask.completed ? "Completed" : "Pending"}
+                  </span>
                   {subtask.dueDate && (
                     <span className="subtask-list__date">
                       {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
