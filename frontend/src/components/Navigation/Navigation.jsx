@@ -41,7 +41,7 @@ const Navigation = () => {
       label: "Goals",
       children: [
         { path: "/goals/add", label: "Add Goal" },
-        { path: "/goals/view", label: "View Goals" },
+        { path: "/goals/", label: "View Goals" },
       ],
     },
     {
@@ -49,7 +49,7 @@ const Navigation = () => {
       label: "Tasks",
       children: [
         { path: "/tasks/add", label: "Add Task" },
-        { path: "/tasks/view", label: "View Tasks" },
+        { path: "/tasks/", label: "View Tasks" },
       ],
     },
     {
@@ -57,7 +57,7 @@ const Navigation = () => {
       label: "Subtasks",
       children: [
         { path: "/subtasks/add", label: "Add Subtask" },
-        { path: "/subtasks/view", label: "View Subtasks" },
+        { path: "/subtasks/", label: "View Subtasks" },
       ],
     },
     { path: "/tags/manage", label: "Tags" },
