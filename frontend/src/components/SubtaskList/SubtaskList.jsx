@@ -48,18 +48,22 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
   }
 
   if (subtasks.length === 0) {
+    const handleNavigateToAdd = () => {
+      navigate("/tasks/add");
+    };
+
     return (
       <div className="subtask-list">
         <div
           className="subtask-list__empty subtask-list__empty--clickable"
-          onClick={() => navigate("/subtasks/add")}
+          onClick={handleNavigateToAdd}
         >
           <div className="subtask-list__empty-content">
             <div className="subtask-list__empty-text">
               No subtasks found for today
             </div>
             <div className="subtask-list__empty-action">
-              Click to add a subtask
+              Click to add a task
             </div>
           </div>
         </div>
