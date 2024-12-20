@@ -1,17 +1,19 @@
 /* SubtaskList/SubtaskList.css */
+
+/* Container */
 .subtask-list {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     font-family: "Inter", system-ui, -apple-system, sans-serif;
     max-width: 900px;
-    /* Increased max-width */
     margin: 0 auto;
     padding: 1.5rem;
     background-color: #fafbfc;
     min-height: calc(100vh - 3rem);
 }
 
+/* Empty State Styles */
 .subtask-list__empty {
     display: flex;
     align-items: center;
@@ -33,16 +35,6 @@
     border-color: #d0e1f9;
 }
 
-.subtask-list__empty--clickable {
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-
-.subtask-list__empty--clickable:hover {
-    background-color: #f0f0f0;
-    border-color: #ccc;
-}
-
 .subtask-list__empty-content {
     display: flex;
     flex-direction: column;
@@ -51,14 +43,12 @@
 
 .subtask-list__empty-icon {
     font-size: 3rem;
-    /* Larger icon */
     margin-bottom: 1.5rem;
     opacity: 0.9;
 }
 
 .subtask-list__empty-text {
     font-size: 1.5rem;
-    /* Larger text */
     color: #3a4f66;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -87,7 +77,7 @@
     font-size: 1.2rem;
 }
 
-
+/* Task Item Styles */
 .subtask-list__item {
     background: #ffffff;
     border-radius: 16px;
@@ -95,7 +85,7 @@
     transition: all 0.2s ease;
     border: 1px solid #edf2f7;
     height: 72px;
-    /* Fixed height for consistency */
+    animation: fadeIn 0.3s ease forwards;
 }
 
 .subtask-list__item:hover {
@@ -104,6 +94,12 @@
     border-color: #d0e1f9;
 }
 
+.subtask-list__item--completed {
+    background-color: #f8fafc;
+    border-color: #edf2f7;
+}
+
+/* Link and Content Styles */
 .subtask-list__link {
     text-decoration: none;
     color: inherit;
@@ -122,23 +118,8 @@
     padding: 0.5rem 0;
 }
 
-.subtask-list__item--completed .checkbox-circle {
-    background-color: #48bb78;
-    border-color: #48bb78;
-}
-
-.subtask-list__item--completed {
-    background-color: #f8fafc;
-    border-color: #edf2f7;
-}
-
-.subtask-list__item--completed .subtask-list__name {
-    color: #94a3b8;
-    text-decoration: line-through;
-}
-
-
-subtask-list__link .subtask-list__checkbox {
+/* Checkbox Styles */
+.subtask-list__checkbox {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,21 +133,12 @@ subtask-list__link .subtask-list__checkbox {
     transition: all 0.2s ease;
 }
 
-.subtask-list__link--completed {
-    background-color: #b2f0c8;
-    color: #000;
+.subtask-list__item--completed .checkbox-circle {
+    background-color: #48bb78;
+    border-color: #48bb78;
 }
 
-.subtask-list__link--not-completed {
-    background-color: #fddfdf;
-    color: #000;
-}
-
-.subtask-list__link:hover {
-    opacity: 0.9;
-    transition: background-color 0.3s ease;
-}
-
+/* Task Name Styles */
 .subtask-list__name {
     font-size: 1.05rem;
     color: #2d3748;
@@ -174,36 +146,19 @@ subtask-list__link .subtask-list__checkbox {
     letter-spacing: -0.01em;
 }
 
+.subtask-list__item--completed .subtask-list__name {
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+/* Meta Information Styles */
 .subtask-list__meta {
     display: flex;
     align-items: center;
     gap: 1.25rem;
 }
 
-.subtask-list__status {
-    font-size: 0.8rem;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.subtask-list__status--pending {
-    background-color: #fff5f5;
-    color: #f56565;
-}
-
-.subtask-list__status--completed {
-    background-color: #f0fff4;
-    color: #48bb78;
-}
-
-.subtask-list__status--in-progress {
-    background-color: #ebf8ff;
-    color: #4299e1;
-}
-
+/* Status Styles */
 .subtask-list__status {
     font-size: 0.8rem;
     padding: 0.4rem 1rem;
@@ -223,8 +178,7 @@ subtask-list__link .subtask-list__checkbox {
     color: #10b981;
 }
 
-
-
+/* Date Styles */
 .subtask-list__date {
     font-size: 0.9rem;
     color: #64748b;
@@ -233,6 +187,7 @@ subtask-list__link .subtask-list__checkbox {
     text-align: right;
 }
 
+/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -243,8 +198,4 @@ subtask-list__link .subtask-list__checkbox {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.subtask-list__item {
-    animation: fadeIn 0.3s ease forwards;
 }
