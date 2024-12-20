@@ -69,38 +69,60 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
 
   return (
     <div className="subtask-list">
-      {subtasks.map((subtask) => (
+      {subtasks.length === 0 ? (
         <div
-          key={subtask._id}
-          className={`subtask-list__link ${
-            subtask.completed
-              ? "subtask-list__link--completed"
-              : "subtask-list__link--not-completed"
-          }`}
+          className="subtask-list__empty"
+          onClick={() => navigate("/subtasks/add")}
         >
-          <Link to={`/subtasks/${subtask._id}`} className="subtask-list__link">
-            <div className="subtask-list__content">
-              <span className="subtask-list__name">{subtask.name}</span>
-              {subtask.status && (
-                <span
-                  className={`subtask-list__status subtask-list__status--${subtask.status.toLowerCase()}`}
-                >
-                  {subtask.status}
-                </span>
-              )}
-              {subtask.dueDate && (
-                <span className="subtask-list__date">
-                  {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-              )}
+          <div className="subtask-list__empty-content">
+            <div className="subtask-list__empty-icon">📝</div>
+            <div className="subtask-list__empty-text">
+              Nothing planned for today
             </div>
-          </Link>
+            <div className="subtask-list__empty-action">
+              <span className="plus-icon">+</span> Add new task
+            </div>
+          </div>
         </div>
-      ))}
+      ) : (
+        subtasks.map((subtask) => (
+          <div
+            key={subtask._id}
+            className={`subtask-list__item ${
+              subtask.completed ? "subtask-list__item--completed" : ""
+            }`}
+          >
+            <Link
+              to={`/subtasks/${subtask._id}`}
+              className="subtask-list__link"
+            >
+              <div className="subtask-list__checkbox">
+                <div className="checkbox-circle"></div>
+              </div>
+              <div className="subtask-list__content">
+                <span className="subtask-list__name">{subtask.name}</span>
+                <div className="subtask-list__meta">
+                  {subtask.status && (
+                    <span
+                      className={`subtask-list__status subtask-list__status--${subtask.status.toLowerCase()}`}
+                    >
+                      {subtask.status}
+                    </span>
+                  )}
+                  {subtask.dueDate && (
+                    <span className="subtask-list__date">
+                      {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          </div>
+        ))
+      )}
     </div>
   );
 };

@@ -2,8 +2,11 @@
 .subtask-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    gap: 0.75rem;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
 }
 
 /* Add these styles to your existing CSS */
@@ -11,14 +14,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 200px;
-    background-color: #f5f5f5;
-    border-radius: 8px;
+    min-height: 250px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
     padding: 2rem;
     text-align: center;
-    color: #666;
-    font-size: 1.1rem;
-    border: 2px dashed #ddd;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.subtask-list__empty:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1),
+        0 4px 6px -1px rgba(0, 0, 0, 0.06);
 }
 
 .subtask-list__empty--clickable {
@@ -37,42 +47,87 @@
     gap: 0.5rem;
 }
 
+.subtask-list__empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
 .subtask-list__empty-text {
-    font-size: 1.1rem;
-    color: #666;
+    font-size: 1.25rem;
+    color: #4a5568;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
 }
 
 .subtask-list__empty-action {
-    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
     color: #3b82f6;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 20px;
+}
+
+.plus-icon {
+    font-weight: 600;
 }
 
 
 .subtask-list__item {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(231, 231, 231, 0.5);
+    background: #ffffff;
     border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
 }
 
 .subtask-list__item:hover {
     transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(66, 133, 244, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    border-color: #cbd5e0;
 }
 
 .subtask-list__link {
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 1rem 1.25rem;
+    gap: 1rem;
 }
 
 .subtask-list__content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.subtask-list__item--completed .checkbox-circle {
+    background-color: #48bb78;
+    border-color: #48bb78;
+}
+
+.subtask-list__item--completed .subtask-list__name {
+    color: #a0aec0;
+    text-decoration: line-through;
+}
+
+.subtask-list__checkbox {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    justify-content: center;
+}
+
+.checkbox-circle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e0;
+    border-radius: 50%;
+    transition: all 0.2s ease;
 }
 
 .subtask-list__link--completed {
@@ -91,11 +146,39 @@
 }
 
 .subtask-list__name {
-    font-size: 1rem;
-    color: #2D3436;
+    font-size: 0.95rem;
+    color: #2d3748;
     font-weight: 500;
-    letter-spacing: -0.01em;
-    flex: 1;
+}
+
+.subtask-list__meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.subtask-list__status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.subtask-list__status--pending {
+    background-color: #fff5f5;
+    color: #f56565;
+}
+
+.subtask-list__status--completed {
+    background-color: #f0fff4;
+    color: #48bb78;
+}
+
+.subtask-list__status--in-progress {
+    background-color: #ebf8ff;
+    color: #4299e1;
 }
 
 .subtask-list__status {
@@ -122,7 +205,7 @@
 }
 
 .subtask-list__date {
-    font-size: 0.875rem;
-    color: #636E72;
+    font-size: 0.85rem;
+    color: #718096;
     font-weight: 500;
 }
