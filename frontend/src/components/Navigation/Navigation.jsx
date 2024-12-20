@@ -36,9 +36,30 @@ const Navigation = () => {
 
   const navLinks = [
     { path: "/", label: "Calendar" },
-    { path: "/goals", label: "Goals" },
-    { path: "/tasks", label: "Tasks" },
-    { path: "/subtasks", label: "Subtasks" },
+    {
+      path: "/goals",
+      label: "Goals",
+      children: [
+        { path: "/goals/add", label: "Add Goal" },
+        { path: "/goals/view", label: "View Goals" },
+      ],
+    },
+    {
+      path: "/tasks",
+      label: "Tasks",
+      children: [
+        { path: "/tasks/add", label: "Add Task" },
+        { path: "/tasks/view", label: "View Tasks" },
+      ],
+    },
+    {
+      path: "/subtasks",
+      label: "Subtasks",
+      children: [
+        { path: "/subtasks/add", label: "Add Subtask" },
+        { path: "/subtasks/view", label: "View Subtasks" },
+      ],
+    },
     { path: "/tags/manage", label: "Tags" },
   ];
 
@@ -64,17 +85,44 @@ const Navigation = () => {
         <div
           className={`nav__menu ${isMobileMenuOpen ? "nav__menu--open" : ""}`}
         >
-          {navLinks.map(({ path, label }) => (
-            <NavLink
-              key={path}
-              to={path}
-              className={({ isActive }) =>
-                `nav__link ${isActive ? "nav__link--active" : ""}`
-              }
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {label}
-            </NavLink>
+          {navLinks.map(({ path, label, children }) => (
+            <div key={path} className="nav__item">
+              {children ? (
+                <div className="nav__dropdown">
+                  <NavLink
+                    to={path}
+                    className={({ isActive }) =>
+                      `nav__link ${isActive ? "nav__link--active" : ""}`
+                    }
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {label}
+                  </NavLink>
+                  <div className="nav__dropdown-content">
+                    {children.map((child) => (
+                      <NavLink
+                        key={child.path}
+                        to={child.path}
+                        className="nav__dropdown-item"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {child.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <NavLink
+                  to={path}
+                  className={({ isActive }) =>
+                    `nav__link ${isActive ? "nav__link--active" : ""}`
+                  }
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {label}
+                </NavLink>
+              )}
+            </div>
           ))}
           {userInfo ? (
             <div className="nav__user-dropdown">

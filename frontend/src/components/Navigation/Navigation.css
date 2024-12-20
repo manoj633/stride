@@ -9,6 +9,47 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 1000;
     transition: all 0.3s ease;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.nav__item {
+    position: relative;
+}
+
+.nav__dropdown {
+    position: relative;
+}
+
+.nav__dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    z-index: 1000;
+}
+
+.nav__dropdown:hover .nav__dropdown-content {
+    display: block;
+}
+
+.nav__dropdown-item {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #666666;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.nav__dropdown-item:hover {
+    color: #000000;
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .nav--scrolled {
@@ -209,5 +250,61 @@
         box-shadow: none;
         margin-top: 0;
         background: rgba(0, 0, 0, 0.02);
+    }
+}
+
+.nav__item {
+    position: relative;
+}
+
+.nav__dropdown {
+    position: relative;
+}
+
+.nav__dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    z-index: 1000;
+}
+
+.nav__dropdown:hover .nav__dropdown-content {
+    display: block;
+}
+
+.nav__dropdown-item {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #666666;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.nav__dropdown-item:hover {
+    color: #000000;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile styles for dropdown */
+@media screen and (max-width: 768px) {
+    .nav__dropdown-content {
+        position: static;
+        display: block;
+        box-shadow: none;
+        background: rgba(0, 0, 0, 0.02);
+        margin-top: 0.5rem;
+    }
+
+    .nav__dropdown-item {
+        padding: 0.75rem 1rem;
+        text-align: center;
     }
 }
