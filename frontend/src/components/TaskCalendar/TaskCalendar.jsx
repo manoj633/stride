@@ -272,7 +272,7 @@ const TaskCalendar = () => {
                 {dayItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`task-item ${item.type}-item ${
+                    className={`task-item type-${item.type} ${
                       isTouchDevice ? "touch-device" : ""
                     }`}
                     data-priority={item.priority.toLowerCase()}

@@ -1,16 +1,36 @@
 :root {
+    /* Expanded color palette */
     --primary-color: #635bff;
+    --primary-light: #8f89ff;
+    --primary-dark: #4a41ff;
     --secondary-color: #f7f7ff;
     --border-color: #e8e8ef;
     --text-primary: #2d2d3d;
     --text-secondary: #6b6b76;
+
+    /* Status colors with different shades */
     --success-color: #32d583;
+    --success-light: #e6f9ef;
     --warning-color: #ffd43b;
+    --warning-light: #fff8e6;
     --danger-color: #ff5c5c;
+    --danger-light: #ffe6e6;
+
+    /* Enhanced shadows */
+    --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.02);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    /* Refined border radius */
+    --radius-xs: 4px;
     --radius-sm: 6px;
     --radius-md: 12px;
+    --radius-lg: 16px;
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
 }
 
 .calendar-container {
@@ -85,16 +105,19 @@
     padding: 1rem;
     min-height: 150px;
     background: white;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
+    display: flex;
+    flex-direction: column;
 }
 
 .calendar-cell:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+    border-color: var(--primary-light);
 }
 
 .calendar-cell.today {
-    background: linear-gradient(to bottom right, #fff, var(--secondary-color));
+    background: linear-gradient(135deg, white, var(--secondary-color));
     border: 2px solid var(--primary-color);
 }
 
@@ -138,9 +161,35 @@
 }
 
 .calendar-task-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+    padding-right: 4px;
+}
+
+.calendar-task-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.calendar-task-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-task-list::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.task-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    margin: 8px;
 }
 
 .task-item {
@@ -152,7 +201,9 @@
     background: white;
     border: 1px solid var(--border-color);
     margin-bottom: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
 }
 
 .task-item:hover {
@@ -166,13 +217,19 @@
 
 .task-checkbox {
     appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border: 2px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     cursor: pointer;
     position: relative;
-    transition: all 0.2s ease;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.task-checkbox:hover {
+    border-color: var(--primary-color);
+    background: var(--secondary-color);
 }
 
 .task-checkbox:checked {
@@ -188,18 +245,22 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .task-item[data-priority="high"] {
     border-left: 3px solid var(--danger-color);
+    background: var(--danger-light);
 }
 
 .task-item[data-priority="medium"] {
     border-left: 3px solid var(--warning-color);
+    background: var(--warning-light);
 }
 
 .task-item[data-priority="low"] {
     border-left: 3px solid var(--success-color);
+    background: var(--success-light);
 }
 
 .task-text {
@@ -213,6 +274,12 @@
     text-decoration: line-through;
     color: var(--text-secondary);
     opacity: 0.7;
+    transition: all var(--transition-normal);
+}
+
+.task-item:has(.task-text.completed) {
+    background: #f5f5f7;
+    border-left-color: var(--text-secondary);
 }
 
 .task-actions {
@@ -246,6 +313,19 @@
     color: #dc3545;
     background-color: rgba(220, 53, 69, 0.1);
 }
+
+.task-item.type-goal::before {
+    background-color: var(--primary-color);
+}
+
+.task-item.type-task::before {
+    background-color: var(--warning-color);
+}
+
+.task-item.type-subtask::before {
+    background-color: var(--success-color);
+}
+
 
 /* Modal styles */
 .modal-overlay {
