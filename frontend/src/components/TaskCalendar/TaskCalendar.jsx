@@ -275,6 +275,7 @@ const TaskCalendar = () => {
                     className={`task-item ${item.type}-item ${
                       isTouchDevice ? "touch-device" : ""
                     }`}
+                    data-priority={item.priority.toLowerCase()}
                     style={{
                       backgroundColor: COLORS.find((c) => c.id === item.color)
                         ?.bg,
