@@ -1,5 +1,5 @@
 // src/components/TaskCalendar/TaskCalendar.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
@@ -42,6 +42,7 @@ const TaskCalendar = () => {
   const [modalDate, setModalDate] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const calendarGridRef = useRef(null);
 
   useEffect(() => {
     setIsTouchDevice("ontouchstart" in window);
@@ -227,6 +228,29 @@ const TaskCalendar = () => {
     setCurrentDate(newDate);
   };
 
+  const handleKeyDown = (e) => {
+    switch (e.key) {
+      case "ArrowLeft":
+        console.log(" left");
+        navigateWeek(-1);
+        break;
+      case "ArrowRight":
+        console.log("right");
+        navigateWeek(1);
+        break;
+    }
+  };
+
+  useEffect(() => {
+    // event listener for arrow key presses
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]); // Listen for changes to handleKeyDown
+
   const days = getDaysInWeek(currentDate);
 
   return (
@@ -243,7 +267,11 @@ const TaskCalendar = () => {
         </div>
       </div>
 
-      <div className="calendar-grid">
+      <div
+        className="calendar-grid"
+        ref={calendarGridRef}
+        tabIndex={0} // Making the grid focusable
+      >
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div key={day} className="day-header">
             {day}
