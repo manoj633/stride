@@ -253,6 +253,23 @@ const TaskCalendar = () => {
 
   const days = getDaysInWeek(currentDate);
 
+  const calculateDayProgress = (items) => {
+    console.log(items);
+    if (
+      !items ||
+      items.filter((item) => item.type === "subtask").length === 0
+    ) {
+      return 0; // No items, 0% progress
+    }
+
+    const totalItems = items.filter((item) => item.type === "subtask").length;
+    const completedItems = items.filter(
+      (item) => item.completed && item.type === "subtask"
+    ).length;
+
+    return (completedItems / totalItems) * 100;
+  };
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
@@ -282,6 +299,7 @@ const TaskCalendar = () => {
           const dateStr = date.toISOString().split("T")[0];
           const dayItems = calendarItems[dateStr] || [];
           const isToday = new Date().toDateString() === date.toDateString();
+          const dayProgress = calculateDayProgress(dayItems);
 
           return (
             <div
@@ -292,7 +310,15 @@ const TaskCalendar = () => {
             >
               <div className="date-header">
                 <div className="date-info">
-                  <span className="date-number">{formatDate(date)}</span>
+                  <div
+                    className="day-progress-circle"
+                    style={{ "--progress": `${dayProgress}%` }}
+                  >
+                    <span className="percentage">
+                      {Math.round(dayProgress)}%
+                    </span>
+                  </div>
+                  <div className="date-number">{formatDate(date)}</div>
                 </div>
               </div>
 
