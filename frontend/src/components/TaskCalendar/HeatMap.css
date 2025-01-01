@@ -1,0 +1,71 @@
+/* src/components/TaskCalendar/HeatMap.css */
+.heatmap-calendar {
+    display: flex;
+    /* Arrange months horizontally */
+    flex-wrap: wrap;
+    /* Wrap months to the next line if needed */
+    gap: 1.2rem;
+
+}
+
+.heatmap-month {
+    width: 230px;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.heatmap-month-header {
+    /* Style for the month header */
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0.8rem;
+    padding: 1rem 1.5rem;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9e9e9;
+}
+
+
+.heatmap-weekday-header {
+    font-size: 0.8rem;
+    text-align: center;
+    font-weight: 500;
+    color: #777777;
+    padding: 0.5rem 0;
+}
+
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    /* 7 columns for days of the week */
+    gap: 2px;
+}
+
+.heatmap-cell {
+    padding-top: 100%;
+    /* Maintain aspect ratio for square cells */
+    position: relative;
+    background-color: #f0f0f0;
+    /* Default color */
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.heatmap-cell.empty {
+    /* Style for empty cells (days not in the month) */
+    background-color: transparent;
+    /* Make them invisible */
+    border: none;
+    pointer-events: none;
+    /* Disable hover effect on empty cells */
+}
+
+.heatmap-cell:hover {
+    background-color: #ddd;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}

@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 
+import HeatMap from "./HeatMap.jsx";
+
 // Import the slice actions
 import {
   fetchGoals,
@@ -38,10 +40,9 @@ const TaskCalendar = () => {
 
   const [calendarItems, setCalendarItems] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [showModal, setShowModal] = useState(false);
-  const [modalDate, setModalDate] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [view, setView] = useState("weekly");
   const calendarGridRef = useRef(null);
 
   useEffect(() => {
@@ -228,14 +229,30 @@ const TaskCalendar = () => {
     setCurrentDate(newDate);
   };
 
+  const generateHeatmapData = () => {
+    const heatmapData = {};
+
+    // Iterate over the calendarItems to get task counts for each date
+    for (const dateStr in calendarItems) {
+      if (calendarItems.hasOwnProperty(dateStr)) {
+        // Calculate task count for the day (considering only subtasks for now)
+        const taskCount = calendarItems[dateStr].filter(
+          (item) => item.type === "subtask"
+        ).length;
+
+        heatmapData[dateStr] = { value: taskCount };
+      }
+    }
+
+    return heatmapData;
+  };
+
   const handleKeyDown = (e) => {
     switch (e.key) {
       case "ArrowLeft":
-        console.log(" left");
         navigateWeek(-1);
         break;
       case "ArrowRight":
-        console.log("right");
         navigateWeek(1);
         break;
     }
@@ -254,7 +271,6 @@ const TaskCalendar = () => {
   const days = getDaysInWeek(currentDate);
 
   const calculateDayProgress = (items) => {
-    console.log(items);
     if (
       !items ||
       items.filter((item) => item.type === "subtask").length === 0
@@ -274,6 +290,20 @@ const TaskCalendar = () => {
     <div className="calendar-container">
       <div className="calendar-header">
         <h1>Weekly Overview</h1>
+        <div className="view-switch">
+          <button
+            onClick={() => setView("weekly")}
+            className={view === "weekly" ? "active" : ""}
+          >
+            Weekly
+          </button>
+          <button
+            onClick={() => setView("monthly")}
+            className={view === "monthly" ? "active" : ""}
+          >
+            Monthly
+          </button>
+        </div>
         <div className="navigation-buttons">
           <button onClick={() => navigateWeek(-1)} className="nav-button">
             <ChevronLeft />
@@ -284,87 +314,93 @@ const TaskCalendar = () => {
         </div>
       </div>
 
-      <div
-        className="calendar-grid"
-        ref={calendarGridRef}
-        tabIndex={0} // Making the grid focusable
-      >
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} className="day-header">
-            {day}
-          </div>
-        ))}
+      <div className="calendar-content">
+        {view === "weekly" && ( // Conditionally render weekly or monthly view
+          <div
+            className="calendar-grid"
+            ref={calendarGridRef}
+            tabIndex={0} // Making the grid focusable
+          >
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day} className="day-header">
+                {day}
+              </div>
+            ))}
 
-        {days.map((date) => {
-          const dateStr = date.toISOString().split("T")[0];
-          const dayItems = calendarItems[dateStr] || [];
-          const isToday = new Date().toDateString() === date.toDateString();
-          const dayProgress = calculateDayProgress(dayItems);
+            {days.map((date) => {
+              const dateStr = date.toISOString().split("T")[0];
+              const dayItems = calendarItems[dateStr] || [];
+              const isToday = new Date().toDateString() === date.toDateString();
+              const dayProgress = calculateDayProgress(dayItems);
 
-          return (
-            <div
-              key={dateStr}
-              className={`calendar-cell ${isToday ? "today" : ""}`}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(date)}
-            >
-              <div className="date-header">
-                <div className="date-info">
-                  <div
-                    className="day-progress-circle"
-                    style={{ "--progress": `${dayProgress}%` }}
-                  >
-                    <span className="percentage">
-                      {Math.round(dayProgress)}%
-                    </span>
+              return (
+                <div
+                  key={dateStr}
+                  className={`calendar-cell ${isToday ? "today" : ""}`}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(date)}
+                >
+                  <div className="date-header">
+                    <div className="date-info">
+                      <div
+                        className="day-progress-circle"
+                        style={{ "--progress": `${dayProgress}%` }}
+                      >
+                        <span className="percentage">
+                          {Math.round(dayProgress)}%
+                        </span>
+                      </div>
+                      <div className="date-number">{formatDate(date)}</div>
+                    </div>
                   </div>
-                  <div className="date-number">{formatDate(date)}</div>
+
+                  <div className="calendar-task-list">
+                    {dayItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`task-item type-${item.type} ${
+                          isTouchDevice ? "touch-device" : ""
+                        }`}
+                        data-priority={item.priority.toLowerCase()}
+                        style={{
+                          backgroundColor: COLORS.find(
+                            (c) => c.id === item.color
+                          )?.bg,
+                        }}
+                        onClick={() => isTouchDevice && handleItemClick(item)}
+                        draggable={!isTouchDevice}
+                        onDragStart={() =>
+                          !isTouchDevice && handleDragStart(date, item)
+                        }
+                      >
+                        {item.type === "subtask" ? (
+                          <input
+                            type="checkbox"
+                            checked={item.completed}
+                            className="task-checkbox"
+                            onChange={() => toggleItem(date, item)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          ""
+                        )}
+
+                        <span
+                          className={`task-text ${
+                            item.completed ? "completed" : ""
+                          }`}
+                        >
+                          {item.type.toUpperCase()} - {item.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              <div className="calendar-task-list">
-                {dayItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`task-item type-${item.type} ${
-                      isTouchDevice ? "touch-device" : ""
-                    }`}
-                    data-priority={item.priority.toLowerCase()}
-                    style={{
-                      backgroundColor: COLORS.find((c) => c.id === item.color)
-                        ?.bg,
-                    }}
-                    onClick={() => isTouchDevice && handleItemClick(item)}
-                    draggable={!isTouchDevice}
-                    onDragStart={() =>
-                      !isTouchDevice && handleDragStart(date, item)
-                    }
-                  >
-                    {item.type === "subtask" ? (
-                      <input
-                        type="checkbox"
-                        checked={item.completed}
-                        className="task-checkbox"
-                        onChange={() => toggleItem(date, item)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      ""
-                    )}
-
-                    <span
-                      className={`task-text ${
-                        item.completed ? "completed" : ""
-                      }`}
-                    >
-                      {item.type.toUpperCase()} - {item.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
+        {view === "monthly" && <HeatMap data={generateHeatmapData()} />}
       </div>
     </div>
   );
