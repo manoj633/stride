@@ -2,6 +2,8 @@
 import { useState, useMemo } from "react";
 import { useAppDispatch } from "../../../store/hooks";
 import * as am5 from "@amcharts/amcharts5";
+import { toast } from "react-toastify";
+
 import {
   deleteGoal,
   updateGoalStatus,
@@ -118,7 +120,15 @@ export const useGoalListLogic = (goals) => {
     if (confirmDelete) {
       // Dispatch delete actions for each selected goal
       selectedGoals.forEach((goalId) => {
-        dispatch(deleteGoal(goalId));
+        dispatch(deleteGoal(goalId))
+          .unwrap()
+          .then(() => {
+            toast.success("Goal(s) deleted successfully!");
+          })
+          .catch((error) => {
+            console.error("Failed to delete goal:", error);
+            toast.error("Failed to delete goal(s).");
+          });
       });
       setSelectedGoals([]);
     }
@@ -133,19 +143,25 @@ export const useGoalListLogic = (goals) => {
 
     if (confirmUpdate) {
       try {
-        // Using Promise.all to handle multiple async updates
-        await Promise.all(
-          selectedGoals.map((goalId) =>
-            dispatch(
-              updateGoalStatus({
-                id: goalId,
-                status: {
-                  completed: true,
-                  completionPercentage: 100,
-                },
-              })
-            ).unwrap()
-          )
+        toast.promise(
+          Promise.all(
+            selectedGoals.map((goalId) =>
+              dispatch(
+                updateGoalStatus({
+                  id: goalId,
+                  status: {
+                    completed: true,
+                    completionPercentage: 100,
+                  },
+                })
+              ).unwrap()
+            )
+          ),
+          {
+            pending: "Updating goal statuses...",
+            success: "Goal statuses updated successfully!",
+            error: "Failed to update goal statuses 🤯",
+          }
         );
 
         // Clear selection after successful updates
@@ -169,7 +185,15 @@ export const useGoalListLogic = (goals) => {
 
     if (confirmArchive) {
       selectedGoals.forEach((goalId) => {
-        dispatch(archiveGoal(goalId));
+        dispatch(archiveGoal(goalId))
+          .unwrap()
+          .then(() => {
+            toast.success("Goal(s) archived successfully!");
+          })
+          .catch((error) => {
+            console.error("Failed to archive goal:", error);
+            toast.error("Failed to archive goal(s).");
+          });
       });
       setSelectedGoals([]);
     }
