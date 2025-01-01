@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 import { fetchGoals } from "../../store/features/goals/goalSlice";
 import {
   selectTasksByGoalId,
@@ -82,10 +84,23 @@ const AddSubTask = ({ onSubtaskAdded }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newSubtaskData = await dispatch(createSubtask(formData)).unwrap();
-    onSubtaskAdded?.(newSubtaskData);
-    resetForm();
-    navigate(-1); // Navigate back
+
+    try {
+      const newSubtaskData = await toast.promise(
+        dispatch(createSubtask(formData)).unwrap(),
+        {
+          pending: "Creating your subtask...",
+          success: "Subtask created successfully!",
+          error: "Failed to create subtask 🤯",
+        }
+      );
+
+      onSubtaskAdded?.(newSubtaskData);
+      resetForm();
+      navigate(-1); // Navigate back
+    } catch (error) {
+      console.error("Failed to create subtask:", error);
+    }
   };
 
   // Reset form state

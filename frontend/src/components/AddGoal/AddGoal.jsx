@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { createGoal } from "../../store/features/goals/goalSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
+import { toast } from "react-toastify";
 
 const AddGoal = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const AddGoal = () => {
   useEffect(() => {
     dispatch(fetchTags());
   }, [dispatch]);
-  console.log(tags);
+
   const [goal, setGoal] = useState({
     title: "",
     description: "",
@@ -50,8 +51,11 @@ const AddGoal = () => {
     };
 
     try {
-      // Add the new goal
-      await dispatch(createGoal(goal)).unwrap();
+      toast.promise(dispatch(createGoal(goal)).unwrap(), {
+        pending: "Creating your goal...",
+        success: "Goal created successfully!",
+        error: "Failed to create goal 🤯",
+      });
 
       // Reset form
       setGoal({
@@ -59,7 +63,10 @@ const AddGoal = () => {
         description: "",
         category: "Education",
         priority: "Medium",
-        dueDate: "",
+        duration: {
+          startDate: "",
+          endDate: "",
+        },
         completed: false,
         completionPercentage: 0,
         collaborators: [],

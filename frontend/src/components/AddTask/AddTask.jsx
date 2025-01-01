@@ -1,6 +1,7 @@
 // src/components/AddTask/AddTask.jsx
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { toast } from "react-toastify";
 
 import "./AddTask.css";
 import { useNavigate } from "react-router-dom";
@@ -55,7 +56,11 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     };
 
     try {
-      await dispatch(createTask(taskData)).unwrap();
+      toast.promise(dispatch(createTask(taskData)).unwrap(), {
+        pending: "Creating your task...",
+        success: "Task created successfully!",
+        error: "Failed to create task 🤯",
+      });
     } catch (error) {
       console.error("Failed to create task:", error);
     }
