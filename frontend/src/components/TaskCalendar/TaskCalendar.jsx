@@ -289,7 +289,11 @@ const TaskCalendar = () => {
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h1>Weekly Overview</h1>
+        {view === "weekly" ? (
+          <h1>Weekly Overview</h1>
+        ) : (
+          <h1>Monthly Overview</h1>
+        )}
         <div className="view-switch">
           <button
             onClick={() => setView("weekly")}
