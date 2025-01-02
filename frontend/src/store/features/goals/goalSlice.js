@@ -124,7 +124,11 @@ export const updateGoalCompletion = createAsyncThunk(
         : 0;
 
     const goal = state.goals.items.find((goal) => goal._id === goalId);
-    const updatedGoal = { ...goal, completionPercentage };
+    const updatedGoal = {
+      ...goal,
+      completionPercentage,
+      completed: completionPercentage === "100.00",
+    };
 
     const response = await goalAPI.update(goalId, updatedGoal);
     return response.data;

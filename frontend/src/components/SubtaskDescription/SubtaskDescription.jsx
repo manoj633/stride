@@ -31,8 +31,6 @@ const SubtaskDescription = () => {
     dispatch(fetchSubtaskById(subtaskId));
   }, [dispatch, subtaskId]);
 
-  console.log(subtask);
-
   const handleCheckboxChange = () => {
     const updatedSubtask = {
       ...subtask,

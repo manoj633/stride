@@ -52,7 +52,11 @@ export const updateTaskCompletion = createAsyncThunk(
         : 0;
 
     const task = state.tasks.items.find((task) => task._id === taskId);
-    const updatedTask = { ...task, completionPercentage };
+    const updatedTask = {
+      ...task,
+      completionPercentage,
+      completed: completionPercentage === 100,
+    };
 
     const response = await taskAPI.update(taskId, updatedTask);
     return response.data;
