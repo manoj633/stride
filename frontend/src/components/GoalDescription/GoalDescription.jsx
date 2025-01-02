@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
+import { toast } from "react-toastify";
 
 import TagModal from "../TagModal/TagModal";
 import Header from "./Header";
@@ -14,7 +15,6 @@ import {
   fetchGoals,
   updateGoal,
   deleteGoal,
-  setSelectedGoal,
 } from "../../store/features/goals/goalSlice";
 import { fetchTasks } from "../../store/features/tasks/taskSlice";
 import {
@@ -96,11 +96,25 @@ const GoalDescription = () => {
     setIsEditing(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editedGoal) {
-      dispatch(updateGoal({ id: editedGoal._id, goalData: editedGoal }));
-      setIsEditing(false);
-      setEditedGoal(null);
+      try {
+        await toast.promise(
+          dispatch(
+            updateGoal({ id: editedGoal._id, goalData: editedGoal })
+          ).unwrap(),
+          {
+            pending: "Saving changes...",
+            success: "Goal updated successfully!",
+            error: "Failed to update goal 🤯",
+          }
+        );
+        setIsEditing(false);
+        setEditedGoal(null);
+      } catch (error) {
+        console.error("Error updating goal:", error);
+        toast.error("Failed to update goal");
+      }
     }
   };
 
@@ -109,41 +123,87 @@ const GoalDescription = () => {
     setEditedGoal(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this goal?")) {
-      dispatch(deleteGoal(goalId));
-      navigate("/goals");
+      try {
+        await toast.promise(dispatch(deleteGoal(goalId)).unwrap(), {
+          pending: "Deleting goal...",
+          success: "Goal deleted successfully!",
+          error: "Failed to delete goal 🤯",
+        });
+        navigate("/goals");
+      } catch (error) {
+        console.error("Error deleting goal:", error);
+        toast.error("Failed to delete goal");
+      }
     }
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (comment.trim()) {
-      dispatch(createComment({ goalId, text: comment.trim(), authorId: "1" }));
-      setComment("");
+      try {
+        await toast.promise(
+          dispatch(
+            createComment({ goalId, text: comment.trim(), authorId: "1" })
+          ).unwrap(),
+          {
+            pending: "Adding comment...",
+            success: "Comment added!",
+            error: "Failed to add comment 🤯",
+          }
+        );
+        setComment("");
+      } catch (error) {
+        console.error("Error adding comment:", error);
+        toast.error("Failed to add comment");
+      }
     }
   };
 
-  const handleTagSave = (selectedTagId) => {
+  const handleTagSave = async (selectedTagId) => {
     const updatedTags = [...(goal.tags || []), selectedTagId];
-    console.log(updatedTags);
-    dispatch(
-      updateGoal({
-        id: goal._id,
-        goalData: { ...goal, tags: updatedTags },
-      })
-    );
-    setIsTagModalOpen(false);
+    try {
+      await toast.promise(
+        dispatch(
+          updateGoal({
+            id: goal._id,
+            goalData: { ...goal, tags: updatedTags },
+          })
+        ).unwrap(),
+        {
+          pending: "Adding tag...",
+          success: "Tag added!",
+          error: "Failed to add tag 🤯",
+        }
+      );
+      setIsTagModalOpen(false);
+    } catch (error) {
+      console.error("Error adding tag:", error);
+      toast.error("Failed to add tag");
+    }
   };
 
-  const handleRemoveTag = (tagId) => {
+  const handleRemoveTag = async (tagId) => {
     if (window.confirm("Are you sure you want to remove this tag?")) {
       const updatedTags = goal.tags.filter((id) => id !== tagId);
-      dispatch(
-        updateGoal({
-          id: goal._id,
-          goalData: { ...goal, tags: updatedTags },
-        })
-      );
+      try {
+        await toast.promise(
+          dispatch(
+            updateGoal({
+              id: goal._id,
+              goalData: { ...goal, tags: updatedTags },
+            })
+          ).unwrap(),
+          {
+            pending: "Removing tag...",
+            success: "Tag removed!",
+            error: "Failed to remove tag 🤯",
+          }
+        );
+      } catch (error) {
+        console.error("Error removing tag:", error);
+        toast.error("Failed to remove tag");
+      }
     }
   };
 

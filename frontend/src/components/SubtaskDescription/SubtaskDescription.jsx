@@ -2,6 +2,8 @@
 import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+
 import {
   fetchSubtaskById,
   updateSubtask,
@@ -74,6 +76,7 @@ const SubtaskDescription = () => {
       })
       .catch((error) => {
         console.error("Failed to update subtask:", error);
+        toast.error("Failed to update subtask");
       });
   };
 
@@ -81,6 +84,7 @@ const SubtaskDescription = () => {
     if (window.confirm("Are you sure you want to delete this subtask?")) {
       dispatch(deleteSubtask(subtaskId))
         .then(() => {
+          toast.success("Subtask deleted successfully!");
           if (subtask.taskId) {
             dispatch(
               updateTaskCompletion({
@@ -110,6 +114,7 @@ const SubtaskDescription = () => {
         })
         .catch((error) => {
           console.error("Failed to delete subtask:", error);
+          toast.error("Failed to delete subtask");
         });
     }
   };

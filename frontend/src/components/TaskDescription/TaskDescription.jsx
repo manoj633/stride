@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
+import { toast } from "react-toastify";
 
 import SubtaskList from "../SubtaskList/SubtaskList";
 import { fetchTasks, deleteTask } from "../../store/features/tasks/taskSlice";
@@ -68,10 +69,16 @@ const TaskDescription = () => {
   const handleDeleteTask = async () => {
     if (window.confirm("Are you sure you want to delete this task?")) {
       try {
-        await dispatch(deleteTask(_id));
-        navigate("/tasks"); // Redirect to tasks list after deletion
+        await toast.promise(dispatch(deleteTask(_id)).unwrap(), {
+          pending: "Deleting task...",
+          success: "Task deleted successfully!",
+          error: "Failed to delete task 🤯",
+        });
+        navigate("/tasks");
       } catch (error) {
         console.error("Failed to delete task:", error);
+
+        toast.error("Failed to delete task");
       }
     }
   };
