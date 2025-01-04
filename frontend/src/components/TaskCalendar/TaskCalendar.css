@@ -36,7 +36,9 @@
 .calendar-container {
     margin: 2rem auto;
     padding: 1.5rem;
-    background: white;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
@@ -67,6 +69,12 @@
     color: #555;
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+.calendar-header,
+.view-switch button,
+.navigation-buttons {
+    background: transparent;
 }
 
 .view-switch button:hover {
