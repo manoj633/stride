@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 
 import HeatMap from "./HeatMap.jsx";
@@ -10,15 +11,17 @@ import HeatMap from "./HeatMap.jsx";
 import {
   fetchGoals,
   setSelectedGoal,
+  updateGoalCompletion,
 } from "../../store/features/goals/goalSlice";
 import {
   fetchTasks,
   setSelectedTask,
+  updateTaskCompletion,
 } from "../../store/features/tasks/taskSlice";
 import {
   fetchSubtasks,
   setSelectedSubtask,
-  markSubtaskComplete,
+  updateSubtask,
 } from "../../store/features/subtasks/subtaskSlice";
 
 import "./TaskCalendar.css";
@@ -127,11 +130,57 @@ const TaskCalendar = () => {
 
   const toggleItem = (date, item) => {
     const [type, id] = item.id.split("-");
+    console.log(item);
 
     // Update the completion status based on item type
     switch (type) {
       case "subtask":
-        dispatch(markSubtaskComplete({ id }));
+        const updatedSubtask = {
+          ...item.originalItem,
+          completed: !item.originalItem.completed,
+        };
+        dispatch(updateSubtask({ id: id, subtaskData: updatedSubtask }))
+          .then(() => {
+            if (item.originalItem.taskId) {
+              dispatch(
+                updateTaskCompletion({
+                  taskId: item.originalItem.taskId,
+                  subtasks: subtasks,
+                })
+              )
+                .then(() => {
+                  // If task has goalId, update goal completion
+                  if (item.originalItem.goalId) {
+                    dispatch(
+                      updateGoalCompletion({
+                        goalId: item.originalItem.goalId,
+                        subtasks: subtasks,
+                      })
+                    )
+                      .then(() => {
+                        toast.success("Subtask updated successfully");
+                      })
+                      .catch((error) => {
+                        console.error(
+                          "Failed to update goal completion:",
+                          error
+                        );
+                      });
+                  } else {
+                    navigate(-1); // Navigate back if no goal update needed
+                  }
+                })
+                .catch((error) => {
+                  console.error("Failed to update task completion:", error);
+                });
+            } else {
+              navigate(-1); // Navigate back if no task update needed
+            }
+          })
+          .catch((error) => {
+            console.error("Failed to update subtask:", error);
+            toast.error("Failed to update subtask");
+          });
         break;
       default:
         console.warn("Unknown item type:", type);
