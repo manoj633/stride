@@ -228,6 +228,7 @@ const TaskCalendar = () => {
   };
 
   const handleItemClick = (item) => {
+    console.log("triggerd");
     const [type, id] = item.id.split("-");
     switch (type) {
       case "goal":
@@ -420,7 +421,7 @@ const TaskCalendar = () => {
                             (c) => c.id === item.color
                           )?.bg,
                         }}
-                        onClick={() => isTouchDevice && handleItemClick(item)}
+                        onClick={() => handleItemClick(item)}
                         draggable={!isTouchDevice}
                         onDragStart={() =>
                           !isTouchDevice && handleDragStart(date, item)
