@@ -1,26 +1,32 @@
+// Core Node.js modules
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Third-party libraries
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import winston from "winston"; // Import Winston
-// import helmet from "helmet";
-import { fileURLToPath } from "url";
-import path from "path";
 import cookieParser from "cookie-parser";
+import winston from "winston";
+// import helmet from "helmet";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+// Custom modules and utilities
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import { sanitizeInput } from "./middleware/sanitize.js";
+import limiter from "./middleware/rateLimiter.js";
 
+// Routes
 import goalRoutes from "./routes/goalRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import subtaskRoutes from "./routes/subtaskRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import limiter from "./middleware/rateLimiter.js";
+
+// Configure directory paths
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 const port = process.env.PORT || 5000;
