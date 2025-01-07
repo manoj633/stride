@@ -7,7 +7,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import winston from "winston";
 // import helmet from "helmet";
 
 // Custom modules and utilities
@@ -15,6 +14,7 @@ import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import { sanitizeInput } from "./middleware/sanitize.js";
 import limiter from "./middleware/rateLimiter.js";
+import logger from "./utils/logger.js";
 
 // Routes
 import goalRoutes from "./routes/goalRoutes.js";
@@ -63,17 +63,17 @@ app.use(cookieParser());
 app.use(sanitizeInput);
 
 // Configure Winston logger
-const logger = winston.createLogger({
-  level: "info",
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.simple()
-  ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: "server.log" }),
-  ],
-});
+// const logger = winston.createLogger({
+//   level: "info",
+//   format: winston.format.combine(
+//     winston.format.colorize(),
+//     winston.format.simple()
+//   ),
+//   transports: [
+//     new winston.transports.Console(),
+//     new winston.transports.File({ filename: "server.log" }),
+//   ],
+// });
 
 // Use Winston to log server start
 app
