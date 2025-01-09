@@ -185,6 +185,7 @@
 .today .date-number {
     background: var(--primary-color);
     color: white;
+    margin-left: 10px;
 }
 
 .day-progress-circle {
