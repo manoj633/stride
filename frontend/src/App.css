@@ -2,3 +2,15 @@
     margin-top: 64px;
     padding: 24px;
 }
+
+.main-content.pomodoro {
+    background-color: #f08080;
+}
+
+.main-content.shortBreak {
+    background-color: #17a2b8;
+}
+
+.main-content.longBreak {
+    background-color: #808000;
+}

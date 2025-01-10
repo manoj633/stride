@@ -1,0 +1,62 @@
+/* components/TimerCard.css */
+.timer-card-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.timer-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Modifiers for different timer states - BEM */
+.timer-card.pomodoro {
+    background-color: #f08080;
+}
+
+.timer-card.shortBreak {
+    background-color: #17a2b8;
+}
+
+.timer-card.longBreak {
+    background-color: #808000;
+}
+
+.timer-card__buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.timer-card__button {
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: transparent;
+    color: white;
+}
+
+.timer-card__button:hover {
+    opacity: 0.8;
+}
+
+.timer-card__button.active {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.timer-card__display {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: white;
+}
+
+/* ... rest of the styles */

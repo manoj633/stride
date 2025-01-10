@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { store } from "./store/store";
@@ -21,33 +21,46 @@ import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
 import Profile from "./components/Profile/Profile";
+import Pomodoro from "./components/Pomodoro/Pomodoro";
+import {
+  TimerContext,
+  TimerProvider,
+} from "./components/Pomodoro/TimerContext";
 
 const App = () => {
+  const { activeTimer } = useContext(TimerContext);
+
   return (
-    <Provider store={store}>
-      <BrowserRouter>
-        <Navigation />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" Component={TaskCalendar} />
-            <Route path="/goals/:goalId" Component={GoalDescription} />
-            <Route path="/goals/add" Component={AddGoal} />
-            <Route path="/goals" Component={GoalList} />
-            <Route path="/tasks/:taskId" Component={TaskDescription} />
-            <Route path="/tasks/add" Component={AddTask} />
-            <Route path="/tasks" Component={TaskList} />
-            <Route path="/subtasks/:subtaskId" Component={SubtaskDescription} />
-            <Route path="/subtasks/add" Component={AddSubTask} />
-            <Route path="/subtasks" Component={SubtaskList} />
-            <Route path="/tags/manage" Component={TagManager} />
-            <Route path="/login" Component={Login} />
-            <Route path="/register" Component={Register} />
-            <Route path="/profile" Component={Profile} />
-          </Routes>
-        </main>
-        <ToastContainer />
-      </BrowserRouter>
-    </Provider>
+    <TimerProvider>
+      <Provider store={store}>
+        <BrowserRouter>
+          <Navigation />
+          <main className={`main-content ${activeTimer}`}>
+            <Routes>
+              <Route path="/" Component={TaskCalendar} />
+              <Route path="/goals/:goalId" Component={GoalDescription} />
+              <Route path="/goals/add" Component={AddGoal} />
+              <Route path="/goals" Component={GoalList} />
+              <Route path="/tasks/:taskId" Component={TaskDescription} />
+              <Route path="/tasks/add" Component={AddTask} />
+              <Route path="/tasks" Component={TaskList} />
+              <Route
+                path="/subtasks/:subtaskId"
+                Component={SubtaskDescription}
+              />
+              <Route path="/subtasks/add" Component={AddSubTask} />
+              <Route path="/subtasks" Component={SubtaskList} />
+              <Route path="/tags/manage" Component={TagManager} />
+              <Route path="/login" Component={Login} />
+              <Route path="/register" Component={Register} />
+              <Route path="/profile" Component={Profile} />
+              <Route path="/pomodoro" Component={Pomodoro} />
+            </Routes>
+          </main>
+          <ToastContainer />
+        </BrowserRouter>
+      </Provider>
+    </TimerProvider>
   );
 };
 

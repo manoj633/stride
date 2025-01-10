@@ -1,0 +1,35 @@
+/* components/TimerButton.css */
+.timer-button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.timer-button {
+    background-color: #4CAF50;
+    /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.timer-button.start {
+    background-color: #4CAF50;
+    /* Green */
+}
+
+.timer-button.pause {
+    background-color: #f44336;
+    /* Red */
+}
+
+.timer-button.reset {
+    background-color: #008CBA;
+    /* Blue */
+}
