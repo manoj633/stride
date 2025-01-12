@@ -1,7 +1,8 @@
 // components/TimerCard.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import TimerButton from "./TimerButton"; // Assuming you create this for the Start/Pause button
 import "./TimerCard.css";
+import { TimerContext } from "./TimerContext";
 
 const TIMER_STATES = {
   POMODORO: "pomodoro",
@@ -16,9 +17,9 @@ const TIMER_DURATIONS = {
 };
 
 const TimerCard = ({ onPomodoroComplete }) => {
-  const [activeTimer, setActiveTimer] = useState(TIMER_STATES.POMODORO);
+  const { activeTimer, setActiveTimer } = useContext(TimerContext);
   const [secondsRemaining, setSecondsRemaining] = useState(
-    TIMER_DURATIONS[TIMER_STATES.POMODORO]
+    TIMER_DURATIONS[activeTimer]
   );
   const [isRunning, setIsRunning] = useState(false);
 
