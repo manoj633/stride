@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { store } from "./store/store";
 import Navigation from "./components/Navigation/Navigation";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import GoalList from "./components/GoalList/GoalList";
 import AddGoal from "./components/AddGoal/AddGoal";
 import GoalDescription from "./components/GoalDescription/GoalDescription";
@@ -29,11 +29,16 @@ import {
 
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
+  const location = useLocation();
+
+  const mainClass = `main-content ${
+    location.pathname === "/pomodoro" ? activeTimer : ""
+  }`;
 
   return (
-    <BrowserRouter>
+    <>
       <Navigation />
-      <main className={`main-content ${activeTimer}`}>
+      <main className={mainClass}>
         <Routes>
           <Route path="/" Component={TaskCalendar} />
           <Route path="/goals/:goalId" Component={GoalDescription} />
@@ -53,7 +58,7 @@ const App = () => {
         </Routes>
       </main>
       <ToastContainer />
-    </BrowserRouter>
+    </>
   );
 };
 
@@ -61,7 +66,9 @@ const RootApp = () => {
   return (
     <TimerProvider>
       <Provider store={store}>
-        <App /> {/* App is now a child of Provider */}
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
       </Provider>
     </TimerProvider>
   );
