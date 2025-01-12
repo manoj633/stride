@@ -31,37 +31,40 @@ const App = () => {
   const { activeTimer } = useContext(TimerContext);
 
   return (
+    <BrowserRouter>
+      <Navigation />
+      <main className={`main-content ${activeTimer}`}>
+        <Routes>
+          <Route path="/" Component={TaskCalendar} />
+          <Route path="/goals/:goalId" Component={GoalDescription} />
+          <Route path="/goals/add" Component={AddGoal} />
+          <Route path="/goals" Component={GoalList} />
+          <Route path="/tasks/:taskId" Component={TaskDescription} />
+          <Route path="/tasks/add" Component={AddTask} />
+          <Route path="/tasks" Component={TaskList} />
+          <Route path="/subtasks/:subtaskId" Component={SubtaskDescription} />
+          <Route path="/subtasks/add" Component={AddSubTask} />
+          <Route path="/subtasks" Component={SubtaskList} />
+          <Route path="/tags/manage" Component={TagManager} />
+          <Route path="/login" Component={Login} />
+          <Route path="/register" Component={Register} />
+          <Route path="/profile" Component={Profile} />
+          <Route path="/pomodoro" Component={Pomodoro} />
+        </Routes>
+      </main>
+      <ToastContainer />
+    </BrowserRouter>
+  );
+};
+
+const RootApp = () => {
+  return (
     <TimerProvider>
       <Provider store={store}>
-        <BrowserRouter>
-          <Navigation />
-          <main className={`main-content ${activeTimer}`}>
-            <Routes>
-              <Route path="/" Component={TaskCalendar} />
-              <Route path="/goals/:goalId" Component={GoalDescription} />
-              <Route path="/goals/add" Component={AddGoal} />
-              <Route path="/goals" Component={GoalList} />
-              <Route path="/tasks/:taskId" Component={TaskDescription} />
-              <Route path="/tasks/add" Component={AddTask} />
-              <Route path="/tasks" Component={TaskList} />
-              <Route
-                path="/subtasks/:subtaskId"
-                Component={SubtaskDescription}
-              />
-              <Route path="/subtasks/add" Component={AddSubTask} />
-              <Route path="/subtasks" Component={SubtaskList} />
-              <Route path="/tags/manage" Component={TagManager} />
-              <Route path="/login" Component={Login} />
-              <Route path="/register" Component={Register} />
-              <Route path="/profile" Component={Profile} />
-              <Route path="/pomodoro" Component={Pomodoro} />
-            </Routes>
-          </main>
-          <ToastContainer />
-        </BrowserRouter>
+        <App /> {/* App is now a child of Provider */}
       </Provider>
     </TimerProvider>
   );
 };
 
-export default App;
+export default RootApp;
