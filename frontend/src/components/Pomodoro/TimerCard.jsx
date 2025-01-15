@@ -1,6 +1,6 @@
 // components/TimerCard.js
 import React, { useState, useEffect, useContext } from "react";
-import TimerButton from "./TimerButton"; // Assuming you create this for the Start/Pause button
+import TimerButton from "./TimerButton";
 import "./TimerCard.css";
 import { TimerContext } from "./TimerContext";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -17,6 +17,10 @@ const TimerCard = ({ onPomodoroComplete }) => {
   const [secondsRemaining, setSecondsRemaining] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [modalIsOpen, setIsOpen] = useState(false);
+
+  // State for pomodoro cycle and count
+  const [pomodoroCycle, setPomodoroCycle] = useState(1);
+  const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
 
   const [customDurations, setCustomDurations] = useState({
     [TIMER_STATES.POMODORO]: localStorage.getItem(TIMER_STATES.POMODORO)
@@ -36,7 +40,7 @@ const TimerCard = ({ onPomodoroComplete }) => {
 
   const handleTimerSelection = (timerType) => {
     setActiveTimer(timerType);
-    setSecondsRemaining(customDurations[timerType] * 60); // Set seconds from minutes
+    setSecondsRemaining(customDurations[timerType] * 60);
     setIsRunning(false);
   };
 
@@ -58,15 +62,12 @@ const TimerCard = ({ onPomodoroComplete }) => {
   }
 
   const handleDurationChange = (timerType, newDuration) => {
-    // Clear input when empty
     if (newDuration === "") {
       newDuration = 0;
     } else {
-      // Convert to a number (or 0 if NaN)
       newDuration = parseInt(newDuration, 10) || 0;
     }
 
-    // Enforce range (1-60)
     newDuration = Math.max(1, Math.min(60, newDuration));
 
     setCustomDurations((prevDurations) => {
@@ -74,7 +75,6 @@ const TimerCard = ({ onPomodoroComplete }) => {
         ...prevDurations,
         [timerType]: newDuration,
       };
-      // Save to localStorage
       localStorage.setItem(timerType, updatedDurations[timerType]);
       return updatedDurations;
     });
@@ -88,12 +88,34 @@ const TimerCard = ({ onPomodoroComplete }) => {
       }, 1000);
     } else {
       clearInterval(intervalId);
-      if (secondsRemaining === 0 && activeTimer === TIMER_STATES.POMODORO) {
-        onPomodoroComplete();
+      if (secondsRemaining === 0) {
+        // Handle timer completion
+        handleTimerComplete();
       }
     }
     return () => clearInterval(intervalId);
   }, [isRunning, secondsRemaining, activeTimer]);
+
+  const handleTimerComplete = () => {
+    if (activeTimer === TIMER_STATES.POMODORO) {
+      setPomodorosCompleted(pomodorosCompleted + 1);
+      if (pomodoroCycle < 4) {
+        // Move to short break
+        setActiveTimer(TIMER_STATES.SHORT_BREAK);
+        setSecondsRemaining(customDurations[TIMER_STATES.SHORT_BREAK] * 60);
+        setPomodoroCycle(pomodoroCycle + 1);
+      } else {
+        // Move to long break
+        setActiveTimer(TIMER_STATES.LONG_BREAK);
+        setSecondsRemaining(customDurations[TIMER_STATES.LONG_BREAK] * 60);
+        setPomodoroCycle(1); // Reset cycle
+      }
+    } else {
+      // If coming from a break, move to pomodoro
+      setActiveTimer(TIMER_STATES.POMODORO);
+      setSecondsRemaining(customDurations[TIMER_STATES.POMODORO] * 60);
+    }
+  };
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60)
@@ -190,6 +212,7 @@ const TimerCard = ({ onPomodoroComplete }) => {
           />
         </div>
       </div>
+      <div>Pomodoros Completed: {pomodorosCompleted}</div>
     </div>
   );
 };
