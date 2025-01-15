@@ -212,6 +212,9 @@ const TimerCard = ({ onPomodoroComplete }) => {
           />
         </div>
       </div>
+      <div className="pomodoro-count">
+        Pomodoros Completed: {pomodorosCompleted}
+      </div>
     </div>
   );
 };

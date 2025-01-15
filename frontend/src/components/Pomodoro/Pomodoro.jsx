@@ -11,9 +11,6 @@ const Pomodoro = () => {
       <TimerCard
         onPomodoroComplete={() => setPomodorosCompleted(pomodorosCompleted + 1)}
       />
-      <div className="pomodoro-count">
-        Pomodoros Completed: {pomodorosCompleted}
-      </div>
     </div>
   );
 };
