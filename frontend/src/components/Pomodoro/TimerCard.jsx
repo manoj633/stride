@@ -30,6 +30,10 @@ const TimerCard = ({ onPomodoroComplete }) => {
       : 15,
   });
 
+  useEffect(() => {
+    setSecondsRemaining(customDurations[activeTimer] * 60);
+  }, [customDurations, activeTimer]);
+
   const handleTimerSelection = (timerType) => {
     setActiveTimer(timerType);
     setSecondsRemaining(customDurations[timerType] * 60); // Set seconds from minutes
@@ -96,7 +100,7 @@ const TimerCard = ({ onPomodoroComplete }) => {
       .toString()
       .padStart(2, "0");
     const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${remainingSeconds}`; // Added missing template literal
+    return `${minutes}:${remainingSeconds}`;
   };
 
   Modal.setAppElement("#root");
@@ -125,6 +129,7 @@ const TimerCard = ({ onPomodoroComplete }) => {
                 <input
                   type="number"
                   id={`${timerType}-duration`}
+                  min="1"
                   value={customDurations[timerType]}
                   onChange={(e) =>
                     handleDurationChange(timerType, e.target.value)
@@ -133,6 +138,19 @@ const TimerCard = ({ onPomodoroComplete }) => {
                 <span>minutes</span>
               </div>
             ))}
+            <div className="modal-buttons">
+              <button
+                onClick={closeModal}
+                className="modal-button cancel-button"
+              >
+                {" "}
+                Close
+              </button>
+              <button onClick={closeModal} className="modal-button ok-button">
+                {" "}
+                OK
+              </button>
+            </div>
           </div>
         </Modal>
         <div className="timer-card__buttons">
