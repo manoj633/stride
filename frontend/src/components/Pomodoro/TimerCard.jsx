@@ -3,6 +3,8 @@ import React, { useState, useEffect, useContext } from "react";
 import TimerButton from "./TimerButton"; // Assuming you create this for the Start/Pause button
 import "./TimerCard.css";
 import { TimerContext } from "./TimerContext";
+import SettingsIcon from "@mui/icons-material/Settings";
+import Modal from "react-modal";
 
 const TIMER_STATES = {
   POMODORO: "pomodoro",
@@ -10,23 +12,28 @@ const TIMER_STATES = {
   LONG_BREAK: "longBreak",
 };
 
-const TIMER_DURATIONS = {
-  [TIMER_STATES.POMODORO]: 25 * 60, // 25 minutes in seconds
-  [TIMER_STATES.SHORT_BREAK]: 5 * 60, // 5 minutes in seconds
-  [TIMER_STATES.LONG_BREAK]: 15 * 60, // 15 minutes in seconds
-};
-
 const TimerCard = ({ onPomodoroComplete }) => {
   const { activeTimer, setActiveTimer } = useContext(TimerContext);
-  const [secondsRemaining, setSecondsRemaining] = useState(
-    TIMER_DURATIONS[activeTimer]
-  );
+  const [secondsRemaining, setSecondsRemaining] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
+  const [modalIsOpen, setIsOpen] = useState(false);
+
+  const [customDurations, setCustomDurations] = useState({
+    [TIMER_STATES.POMODORO]: localStorage.getItem(TIMER_STATES.POMODORO)
+      ? parseInt(localStorage.getItem(TIMER_STATES.POMODORO), 10)
+      : 25,
+    [TIMER_STATES.SHORT_BREAK]: localStorage.getItem(TIMER_STATES.SHORT_BREAK)
+      ? parseInt(localStorage.getItem(TIMER_STATES.SHORT_BREAK), 10)
+      : 5,
+    [TIMER_STATES.LONG_BREAK]: localStorage.getItem(TIMER_STATES.LONG_BREAK)
+      ? parseInt(localStorage.getItem(TIMER_STATES.LONG_BREAK), 10)
+      : 15,
+  });
 
   const handleTimerSelection = (timerType) => {
     setActiveTimer(timerType);
-    setSecondsRemaining(TIMER_DURATIONS[timerType]);
-    setIsRunning(false); // Reset timer when switching types
+    setSecondsRemaining(customDurations[timerType] * 60); // Set seconds from minutes
+    setIsRunning(false);
   };
 
   const handleStartPause = () => {
@@ -34,8 +41,39 @@ const TimerCard = ({ onPomodoroComplete }) => {
   };
 
   const handleReset = () => {
-    setSecondsRemaining(TIMER_DURATIONS[activeTimer]);
+    setSecondsRemaining(customDurations[activeTimer] * 60);
     setIsRunning(false);
+  };
+
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
+  const handleDurationChange = (timerType, newDuration) => {
+    // Clear input when empty
+    if (newDuration === "") {
+      newDuration = 0;
+    } else {
+      // Convert to a number (or 0 if NaN)
+      newDuration = parseInt(newDuration, 10) || 0;
+    }
+
+    // Enforce range (1-60)
+    newDuration = Math.max(1, Math.min(60, newDuration));
+
+    setCustomDurations((prevDurations) => {
+      const updatedDurations = {
+        ...prevDurations,
+        [timerType]: newDuration,
+      };
+      // Save to localStorage
+      localStorage.setItem(timerType, updatedDurations[timerType]);
+      return updatedDurations;
+    });
   };
 
   useEffect(() => {
@@ -58,12 +96,45 @@ const TimerCard = ({ onPomodoroComplete }) => {
       .toString()
       .padStart(2, "0");
     const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${remainingSeconds}`;
+    return `${minutes}:${remainingSeconds}`; // Added missing template literal
   };
 
+  Modal.setAppElement("#root");
   return (
     <div className="timer-card-container">
       <div className={`timer-card ${activeTimer}`}>
+        <div className="settings-icon" onClick={openModal}>
+          <SettingsIcon />
+        </div>
+
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          contentLabel="Timer Settings"
+          className="settings-modal"
+          overlayClassName="settings-modal-overlay"
+        >
+          <div className="settings-content">
+            <span className="close-button" onClick={closeModal}>
+              &times;
+            </span>
+            <h2>Settings</h2>
+            {Object.entries(TIMER_STATES).map(([key, timerType]) => (
+              <div key={key} className="setting-item">
+                <label htmlFor={`${timerType}-duration`}>{timerType}: </label>
+                <input
+                  type="number"
+                  id={`${timerType}-duration`}
+                  value={customDurations[timerType]}
+                  onChange={(e) =>
+                    handleDurationChange(timerType, e.target.value)
+                  }
+                />
+                <span>minutes</span>
+              </div>
+            ))}
+          </div>
+        </Modal>
         <div className="timer-card__buttons">
           <button
             className={`timer-card__button ${

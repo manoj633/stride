@@ -53,11 +53,6 @@
     transition: all 0.3s ease;
 }
 
-.timer-card__button:hover {
-    opacity: 0.8;
-    transform: translateY(-2px);
-}
-
 
 .timer-card__button.active {
     font-weight: bold;
@@ -69,4 +64,56 @@
     margin-bottom: 20px;
     color: white;
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.settings-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: white;
+    /* Or your desired icon color */
+}
+
+.settings-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 5px;
+    outline: none;
+    /* Remove default modal outline */
+}
+
+.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.setting-item {
+    margin-bottom: 10px;
+}
+
+.close-button {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1.5em;
 }
