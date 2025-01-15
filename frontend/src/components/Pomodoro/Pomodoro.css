@@ -2,9 +2,37 @@
 .pomodoro-container {
     width: 100vw;
     height: 100vh;
-    /* Add other styles as needed, like flexbox centering */
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.pomodoro-count {
+    margin-top: 20px;
+    font-size: 2em;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+}
+
+.pomodoro-count::before,
+.pomodoro-count::after {
+    content: " ";
+    display: inline-block;
+    width: 30px;
+    height: 2px;
+    background-color: #fff;
+    margin: 0 10px;
+    vertical-align: middle;
+}
+
+.pomodoro-count::before {
+    transform: rotateZ(-45deg) translateX(-5px);
+}
+
+.pomodoro-count::after {
+    transform: rotateZ(45deg) translateX(5px);
 }

@@ -6,8 +6,7 @@
 }
 
 .timer-button {
-    background-color: #4CAF50;
-    /* Green */
+    background-color: transparent;
     border: none;
     color: white;
     padding: 10px 20px;
@@ -17,19 +16,25 @@
     font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .timer-button.start {
-    background-color: #4CAF50;
-    /* Green */
+    background-color: #4caf50;
+    box-shadow: 0px 4px 8px rgba(76, 175, 80, 0.5);
 }
 
 .timer-button.pause {
     background-color: #f44336;
-    /* Red */
+    box-shadow: 0px 4px 8px rgba(244, 67, 54, 0.5);
 }
 
 .timer-button.reset {
-    background-color: #008CBA;
-    /* Blue */
+    background-color: #008cba;
+    box-shadow: 0px 4px 8px rgba(0, 139, 186, 0.5);
+}
+
+.timer-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
 }
