@@ -7,7 +7,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Modal from "react-modal";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
-import * as am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 const TIMER_STATES = {
   POMODORO: "pomodoro",
@@ -15,7 +14,7 @@ const TIMER_STATES = {
   LONG_BREAK: "longBreak",
 };
 
-const TimerCard = ({ onPomodoroComplete }) => {
+const TimerCard = () => {
   const { activeTimer, setActiveTimer } = useContext(TimerContext);
   const [secondsRemaining, setSecondsRemaining] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
@@ -39,6 +38,21 @@ const TimerCard = ({ onPomodoroComplete }) => {
 
   const chartRef = React.useRef(null);
 
+  const colors = {
+    pomodoro: {
+      elapsed: am5.color(0xcd5c5c), // Indian Red
+      remaining: am5.color(0xffa07a), // Light Salmon
+    },
+    shortBreak: {
+      elapsed: am5.color(0x117a8b), // Dark Cyan
+      remaining: am5.color(0x5bc0de), // Light Cyan
+    },
+    longBreak: {
+      elapsed: am5.color(0x556b2f), // Dark Olive
+      remaining: am5.color(0x9acd32), // Yellow Green
+    },
+  };
+
   useEffect(() => {
     // Create amCharts instance
     const root = am5.Root.new("chartdiv");
@@ -55,8 +69,6 @@ const TimerCard = ({ onPomodoroComplete }) => {
       am5percent.PieSeries.new(root, {
         valueField: "value",
         categoryField: "category",
-        // startAngle: -90,
-        // endAngle: 270,
         alignLabels: false,
       })
     );
@@ -72,7 +84,6 @@ const TimerCard = ({ onPomodoroComplete }) => {
 
     series.labels.template.set("forceHidden", true);
 
-    // Disable or hide tooltips
     series.slices.template.set("tooltipText", "");
 
     series.slices.template.states.create("hover", {
@@ -81,13 +92,13 @@ const TimerCard = ({ onPomodoroComplete }) => {
 
     series.slices.template.adapters.add("fill", (fill, target) => {
       return target.dataItem.get("category") === "Elapsed"
-        ? am5.color(0xff0000) // Red for elapsed
-        : am5.color(0x00ff00); // Green for remaining
+        ? colors[activeTimer].elapsed
+        : colors[activeTimer].remaining;
     });
 
     chartRef.current = { root, chart, series };
 
-    return () => root.dispose(); // Cleanup on unmount
+    return () => root.dispose();
   }, []);
 
   useEffect(() => {
@@ -109,6 +120,15 @@ const TimerCard = ({ onPomodoroComplete }) => {
 
   const handleTimerSelection = (timerType) => {
     setActiveTimer(timerType);
+    if (chartRef.current) {
+      const { series } = chartRef.current;
+      series.slices.template.adapters.add("fill", (fill, target) => {
+        return target.dataItem.get("category") === "Elapsed"
+          ? colors[timerType].elapsed
+          : colors[timerType].remaining;
+      });
+    }
+
     setSecondsRemaining(customDurations[timerType] * 60);
     setIsRunning(false);
   };
