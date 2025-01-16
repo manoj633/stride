@@ -5,6 +5,9 @@ import "./TimerCard.css";
 import { TimerContext } from "./TimerContext";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Modal from "react-modal";
+import * as am5 from "@amcharts/amcharts5";
+import * as am5percent from "@amcharts/amcharts5/percent";
+import * as am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 const TIMER_STATES = {
   POMODORO: "pomodoro",
@@ -33,6 +36,72 @@ const TimerCard = ({ onPomodoroComplete }) => {
       ? parseInt(localStorage.getItem(TIMER_STATES.LONG_BREAK), 10)
       : 15,
   });
+
+  const chartRef = React.useRef(null);
+
+  useEffect(() => {
+    // Create amCharts instance
+    const root = am5.Root.new("chartdiv");
+
+    const chart = root.container.children.push(
+      am5percent.PieChart.new(root, {
+        innerRadius: am5.percent(80),
+        startAngle: -90,
+        endAngle: 270,
+      })
+    );
+
+    const series = chart.series.push(
+      am5percent.PieSeries.new(root, {
+        valueField: "value",
+        categoryField: "category",
+        // startAngle: -90,
+        // endAngle: 270,
+        alignLabels: false,
+      })
+    );
+
+    series.data.setAll([
+      { category: "Elapsed", value: 0 },
+      { category: "Remaining", value: 100 },
+    ]);
+
+    series.slices.template.setAll({
+      cornerRadius: 10,
+    });
+
+    series.labels.template.set("forceHidden", true);
+
+    // Disable or hide tooltips
+    series.slices.template.set("tooltipText", "");
+
+    series.slices.template.states.create("hover", {
+      scale: 1.1,
+    });
+
+    series.slices.template.adapters.add("fill", (fill, target) => {
+      return target.dataItem.get("category") === "Elapsed"
+        ? am5.color(0xff0000) // Red for elapsed
+        : am5.color(0x00ff00); // Green for remaining
+    });
+
+    chartRef.current = { root, chart, series };
+
+    return () => root.dispose(); // Cleanup on unmount
+  }, []);
+
+  useEffect(() => {
+    if (chartRef.current) {
+      const { series } = chartRef.current;
+      const elapsedPercentage =
+        100 - (secondsRemaining / (customDurations[activeTimer] * 60)) * 100;
+
+      series.data.setAll([
+        { category: "Elapsed", value: elapsedPercentage },
+        { category: "Remaining", value: 100 - elapsedPercentage },
+      ]);
+    }
+  }, [secondsRemaining, customDurations, activeTimer]);
 
   useEffect(() => {
     setSecondsRemaining(customDurations[activeTimer] * 60);
@@ -202,7 +271,8 @@ const TimerCard = ({ onPomodoroComplete }) => {
           </button>
         </div>
         <div className="timer-card__display">
-          {formatTime(secondsRemaining)}
+          <div id="chartdiv" style={{ width: "100%", height: "300px" }}></div>
+          <div className="timer-display">{formatTime(secondsRemaining)}</div>
         </div>
         <div className="timer-card__controls">
           <TimerButton

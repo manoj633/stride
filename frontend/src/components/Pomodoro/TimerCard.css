@@ -62,7 +62,9 @@
 }
 
 .timer-card__display {
-    font-size: 3rem;
+    display: flex;
+    justify-content: center;
+    ;
     margin-bottom: 20px;
     color: white;
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
@@ -195,4 +197,38 @@
 
 .pomodoro-count::after {
     transform: rotateZ(45deg) translateX(5px);
+}
+
+#chartdiv {
+    width: 100%;
+    height: 300px;
+    /* Adjust as needed */
+    position: relative;
+    /* To position the timer within */
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.timer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    pointer-events: none;
+    z-index: 2;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Style the chart slices for a gradient effect */
+.am5percent-slice {
+    transition: all 0.3s ease-in-out;
+}
+
+.am5percent-slice:hover {
+    filter: brightness(1.1);
 }
