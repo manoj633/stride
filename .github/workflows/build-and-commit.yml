@@ -1,0 +1,48 @@
+name: Build and Commit Static Files
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.18.0"
+
+      # Step 3: Navigate to the frontend folder and install dependencies
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      # Step 4: Build the application
+      - name: Build application
+        run: |
+          cd frontend
+          npm run build
+
+      # Step 5: Commit the build files back to the main branch
+      - name: Commit and push built files
+        run: |
+          cd frontend
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add dist
+          git commit -m "Auto-build: Static files updated [skip ci]"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
