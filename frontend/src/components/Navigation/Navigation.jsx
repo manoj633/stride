@@ -65,7 +65,7 @@ const Navigation = () => {
       <div className="modern-nav__container">
         <div className="modern-nav__logo">
           <NavLink to="/" className="modern-nav__logo-link">
-            MyBrand
+            Stride
           </NavLink>
         </div>
 
