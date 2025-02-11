@@ -6,21 +6,22 @@ import {
   createTag,
   updateTag,
   deleteTag,
+  setSelectedTag,
 } from "../../store/features/tags/tagSlice";
 import "./TagManager.css";
 
-// Constants and utilities
 const generatePastelColor = () => {
-  const r = Math.floor(Math.random() * 55 + 200)
-    .toString(16)
-    .padStart(2, "0");
-  const g = Math.floor(Math.random() * 55 + 200)
-    .toString(16)
-    .padStart(2, "0");
-  const b = Math.floor(Math.random() * 55 + 200)
-    .toString(16)
-    .padStart(2, "0");
-  return `#${r}${g}${b}`;
+  // Generate random RGB values
+  const r = Math.floor(Math.random() * 55 + 200).toString(16); // 200-255
+  const g = Math.floor(Math.random() * 55 + 200).toString(16); // 200-255
+  const b = Math.floor(Math.random() * 55 + 200).toString(16); // 200-255
+
+  // Ensure each component has 2 digits
+  const rr = r.length === 1 ? "0" + r : r;
+  const gg = g.length === 1 ? "0" + g : g;
+  const bb = b.length === 1 ? "0" + b : b;
+
+  return `#${rr}${gg}${bb}`;
 };
 
 const tagPresets = [
@@ -29,6 +30,26 @@ const tagPresets = [
   { name: "Personal", color: "#bae1ff" },
   { name: "Urgent", color: "#ffffba" },
 ];
+
+const generateTagIcon = (name) => {
+  const icons = {
+    important: "⭐",
+    urgent: "🔥",
+    work: "💼",
+    personal: "👤",
+    home: "🏠",
+    study: "📚",
+    health: "❤️",
+    finance: "💰",
+    today: "📅",
+    "this week": "📆",
+    "this month": "📊",
+    someday: "🔮",
+    recurring: "🔄",
+  };
+  const lowerName = name.toLowerCase();
+  return icons[lowerName] || "🏷️";
+};
 
 const tagCategories = {
   "Task Status": [
@@ -56,185 +77,6 @@ const tagCategories = {
   ],
 };
 
-const generateTagIcon = (name) => {
-  const icons = {
-    important: "⭐",
-    urgent: "🔥",
-    work: "💼",
-    personal: "👤",
-    home: "🏠",
-    study: "📚",
-    health: "❤️",
-    finance: "💰",
-    today: "📅",
-    "this week": "📆",
-    "this month": "📊",
-    someday: "🔮",
-    recurring: "🔄",
-  };
-  return icons[name.toLowerCase()] || "🏷️";
-};
-
-// Sub-components
-const TagStats = ({ totalTags, recentlyUsedCount }) => (
-  <div className="tag-manager__stats">
-    <div className="tag-manager__stat-item">
-      <span className="tag-manager__stat-value">{totalTags}</span>
-      <span className="tag-manager__stat-label">Total Tags</span>
-    </div>
-    <div className="tag-manager__stat-item">
-      <span className="tag-manager__stat-value">{recentlyUsedCount}</span>
-      <span className="tag-manager__stat-label">Recently Used</span>
-    </div>
-  </div>
-);
-
-const TagSearch = ({ filterText, setFilterText, sortBy, setSortBy }) => (
-  <div className="tag-manager__search-container">
-    <input
-      type="text"
-      placeholder="🔍 Search tags..."
-      value={filterText}
-      onChange={(e) => setFilterText(e.target.value)}
-      className="tag-manager__search"
-    />
-    <div className="tag-manager__view-options">
-      <button
-        className={`tag-manager__view-button ${
-          sortBy === "name" ? "active" : ""
-        }`}
-        onClick={() => setSortBy("name")}
-      >
-        A-Z
-      </button>
-      <button
-        className={`tag-manager__view-button ${
-          sortBy === "color" ? "active" : ""
-        }`}
-        onClick={() => setSortBy("color")}
-      >
-        🎨
-      </button>
-    </div>
-  </div>
-);
-
-const TagForm = ({
-  newTag,
-  setNewTag,
-  handleCreateTag,
-  showPresets,
-  setShowPresets,
-}) => (
-  <form className="tag-manager__form" onSubmit={handleCreateTag}>
-    <div className="tag-manager__input-group">
-      <input
-        type="text"
-        className="tag-manager__input"
-        placeholder="Enter new tag name"
-        value={newTag.name}
-        onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
-      />
-      <div className="tag-manager__color-controls">
-        <input
-          type="color"
-          className="tag-manager__color-picker"
-          value={newTag.color}
-          onChange={(e) => setNewTag({ ...newTag, color: e.target.value })}
-        />
-        <button
-          type="button"
-          className="tag-manager__random-color"
-          onClick={() => setNewTag({ ...newTag, color: generatePastelColor() })}
-          title="Generate random color"
-        >
-          🎲
-        </button>
-      </div>
-    </div>
-    <button
-      type="button"
-      className="tag-manager__button tag-manager__button--preset"
-      onClick={() => setShowPresets(!showPresets)}
-    >
-      Presets
-    </button>
-    <button
-      type="submit"
-      className="tag-manager__button tag-manager__button--create"
-      disabled={!newTag.name.trim()}
-    >
-      Add Tag
-    </button>
-  </form>
-);
-
-const TagList = ({
-  tags,
-  editingTag,
-  setEditingTag,
-  handleUpdateTag,
-  handleDeleteTag,
-}) => (
-  <div className="tag-manager__list">
-    {tags.map((tag) => (
-      <div
-        key={tag._id}
-        className="tag-manager__item"
-        style={{
-          backgroundColor:
-            editingTag?._id === tag._id ? editingTag.color : tag.color,
-        }}
-      >
-        {editingTag?._id === tag._id ? (
-          <div className="tag-manager__edit-group">
-            <input
-              type="text"
-              className="tag-manager__edit-input"
-              value={editingTag.name}
-              onChange={(e) =>
-                setEditingTag({ ...editingTag, name: e.target.value })
-              }
-              onBlur={() => handleUpdateTag(tag, true)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && handleUpdateTag(tag, true)
-              }
-              autoFocus
-            />
-            <input
-              type="color"
-              className="tag-manager__color-picker"
-              value={editingTag.color}
-              onChange={(e) => {
-                setEditingTag({ ...editingTag, color: e.target.value });
-                handleUpdateTag(tag, true);
-              }}
-              onBlur={() => handleUpdateTag(tag, true)}
-            />
-          </div>
-        ) : (
-          <span className="tag-manager__name">{tag.name}</span>
-        )}
-        <div className="tag-manager__actions">
-          <button
-            className="tag-manager__button tag-manager__button--edit"
-            onClick={() => setEditingTag(tag)}
-          >
-            Edit
-          </button>
-          <button
-            className="tag-manager__button tag-manager__button--delete"
-            onClick={() => handleDeleteTag(tag._id)}
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-// Main Component
 export const TagManager = () => {
   const dispatch = useAppDispatch();
   const { items: tags, loading, error } = useAppSelector((state) => state.tags);
@@ -243,6 +85,9 @@ export const TagManager = () => {
   const [showPresets, setShowPresets] = useState(false);
   const [filterText, setFilterText] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [tagStats, setTagStats] = useState({ total: 0, recent: 0 });
+  const [showColorPalette, setShowColorPalette] = useState(false);
   const [recentlyUsed, setRecentlyUsed] = useState([]);
 
   useEffect(() => {
@@ -301,29 +146,72 @@ export const TagManager = () => {
 
   const filteredTags = tags
     .filter((tag) => tag.name.toLowerCase().includes(filterText.toLowerCase()))
-    .sort((a, b) =>
-      sortBy === "name"
-        ? a.name.localeCompare(b.name)
-        : a.color.localeCompare(b.color)
-    );
+    .sort((a, b) => {
+      if (sortBy === "name") {
+        return a.name.localeCompare(b.name);
+      }
+      return a.color.localeCompare(b.color);
+    });
 
   if (loading)
-    return <div className="tag-manager__loading">Loading tags...</div>;
-  if (error) return <div className="tag-manager__error">⚠️ {error}</div>;
+    return (
+      <div className="tag-manager__loading">
+        <div className="spinner"></div>
+        <span>Loading tags...</span>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="tag-manager__error">
+        <span className="error-icon">⚠️</span>
+        <span>{error}</span>
+      </div>
+    );
 
   return (
     <div className="tag-manager">
       <div className="tag-manager__dashboard">
-        <TagStats
-          totalTags={tags.length}
-          recentlyUsedCount={recentlyUsed.length}
-        />
-        <TagSearch
-          filterText={filterText}
-          setFilterText={setFilterText}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-        />
+        <div className="tag-manager__stats">
+          <div className="tag-manager__stat-item">
+            <span className="tag-manager__stat-value">{tags.length}</span>
+            <span className="tag-manager__stat-label">Total Tags</span>
+          </div>
+          <div className="tag-manager__stat-item">
+            <span className="tag-manager__stat-value">
+              {recentlyUsed.length}
+            </span>
+            <span className="tag-manager__stat-label">Recently Used</span>
+          </div>
+        </div>
+
+        <div className="tag-manager__search-container">
+          <input
+            type="text"
+            placeholder="🔍 Search tags..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="tag-manager__search"
+          />
+          <div className="tag-manager__view-options">
+            <button
+              className={`tag-manager__view-button ${
+                sortBy === "name" ? "active" : ""
+              }`}
+              onClick={() => setSortBy("name")}
+            >
+              A-Z
+            </button>
+            <button
+              className={`tag-manager__view-button ${
+                sortBy === "color" ? "active" : ""
+              }`}
+              onClick={() => setSortBy("color")}
+            >
+              🎨
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="tag-manager__categories">
@@ -335,8 +223,14 @@ export const TagManager = () => {
                 <button
                   key={preset.name}
                   className="tag-manager__preset-button"
-                  style={{ backgroundColor: preset.color }}
-                  onClick={() => setNewTag(preset)}
+                  style={{
+                    backgroundColor: preset.color,
+                    opacity: activeCategory === category ? 1 : 0.7,
+                  }}
+                  onClick={() => {
+                    setNewTag(preset);
+                    setActiveCategory(category);
+                  }}
                 >
                   {generateTagIcon(preset.name)}
                   <span>{preset.name}</span>
@@ -347,19 +241,55 @@ export const TagManager = () => {
         ))}
       </div>
 
-      <TagForm
-        newTag={newTag}
-        setNewTag={setNewTag}
-        handleCreateTag={handleCreateTag}
-        showPresets={showPresets}
-        setShowPresets={setShowPresets}
-      />
+      <form className="tag-manager__form" onSubmit={handleCreateTag}>
+        <div className="tag-manager__input-group">
+          <input
+            type="text"
+            className="tag-manager__input"
+            placeholder="Enter new tag name"
+            value={newTag.name}
+            onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
+          />
+          <div className="tag-manager__color-controls">
+            <input
+              type="color"
+              className="tag-manager__color-picker"
+              value={newTag.color}
+              onChange={(e) => setNewTag({ ...newTag, color: e.target.value })}
+            />
+            <button
+              type="button"
+              className="tag-manager__random-color"
+              onClick={() =>
+                setNewTag({ ...newTag, color: generatePastelColor() })
+              }
+              title="Generate random color"
+            >
+              🎲
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="tag-manager__button tag-manager__button--preset"
+          onClick={() => setShowPresets(!showPresets)}
+        >
+          Presets
+        </button>
+        <button
+          type="submit"
+          className="tag-manager__button tag-manager__button--create"
+          disabled={!newTag.name.trim()}
+        >
+          Add Tag
+        </button>
+      </form>
 
       {showPresets && (
         <div className="tag-manager__presets">
-          {tagPresets.map((preset) => (
+          {tagPresets.map((preset, index) => (
             <button
-              key={preset.name}
+              key={index}
               className="tag-manager__preset-item"
               style={{ backgroundColor: preset.color }}
               onClick={() => handlePresetSelect(preset)}
@@ -370,13 +300,75 @@ export const TagManager = () => {
         </div>
       )}
 
-      <TagList
-        tags={filteredTags}
-        editingTag={editingTag}
-        setEditingTag={setEditingTag}
-        handleUpdateTag={handleUpdateTag}
-        handleDeleteTag={handleDeleteTag}
-      />
+      <div className="tag-manager__list">
+        {filteredTags.map((tag) => (
+          <div
+            key={tag._id}
+            className="tag-manager__item"
+            style={{
+              backgroundColor:
+                editingTag && editingTag._id === tag._id
+                  ? editingTag.color
+                  : tag.color,
+            }}
+          >
+            {editingTag && editingTag._id === tag._id ? (
+              <div className="tag-manager__edit-group">
+                <input
+                  type="text"
+                  className="tag-manager__edit-input"
+                  value={editingTag.name}
+                  onChange={(e) =>
+                    setEditingTag({ ...editingTag, name: e.target.value })
+                  }
+                  onBlur={(e) => {
+                    if (
+                      !e.relatedTarget?.classList.contains(
+                        "tag-manager__color-picker"
+                      )
+                    ) {
+                      handleUpdateTag(tag, true);
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleUpdateTag(tag, true);
+                    }
+                  }}
+                  autoFocus
+                />
+                <input
+                  type="color"
+                  className="tag-manager__color-picker"
+                  value={editingTag.color}
+                  onChange={(e) => {
+                    setEditingTag({ ...editingTag, color: e.target.value });
+                    handleUpdateTag(tag, true);
+                  }}
+                  onBlur={() => handleUpdateTag(tag, true)}
+                />
+              </div>
+            ) : (
+              <span className="tag-manager__name">{tag.name}</span>
+            )}
+
+            <div className="tag-manager__actions">
+              <button
+                className="tag-manager__button tag-manager__button--edit"
+                onClick={() => setEditingTag(tag)}
+              >
+                Edit
+              </button>
+              <button
+                className="tag-manager__button tag-manager__button--delete"
+                onClick={() => handleDeleteTag(tag._id)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
