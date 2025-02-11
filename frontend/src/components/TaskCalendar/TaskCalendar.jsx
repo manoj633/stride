@@ -1,13 +1,13 @@
 // src/components/TaskCalendar/TaskCalendar.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
-
 import HeatMap from "./HeatMap.jsx";
-
-// Import the slice actions
 import {
   fetchGoals,
   setSelectedGoal,
@@ -23,34 +23,24 @@ import {
   setSelectedSubtask,
   updateSubtask,
 } from "../../store/features/subtasks/subtaskSlice";
-
 import "./TaskCalendar.css";
 
-const COLORS = [
-  { id: "high", bg: "#ffe6e6", label: "High Priority" },
-  { id: "medium", bg: "#fff8e6", label: "Medium Priority" },
-  { id: "low", bg: "#e6f8e6", label: "Low Priority" },
-  { id: "default", bg: "transparent", label: "Default" },
-];
+const COLORS = {
+  high: "#f87171", // Red
+  medium: "#fbbf24", // Yellow
+  low: "#86efac", // Green
+  default: "#cbd5e1",
+};
 
 const TaskCalendar = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-
+  const calendarRef = useRef(null);
   const goals = useAppSelector((state) => state.goals.items);
   const tasks = useAppSelector((state) => state.tasks.items);
   const subtasks = useAppSelector((state) => state.subtasks.items);
-
-  const [calendarItems, setCalendarItems] = useState({});
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [draggedTask, setDraggedTask] = useState(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [view, setView] = useState("weekly");
-  const calendarGridRef = useRef(null);
-
-  useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window);
-  }, []);
+  const [events, setEvents] = useState([]);
+  const [view, setView] = useState("timeGridWeek");
 
   useEffect(() => {
     dispatch(fetchGoals());
@@ -59,402 +49,263 @@ const TaskCalendar = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    const itemsByDate = {};
+    const newEvents = [];
 
-    goals.forEach((goal) => {
-      // Create start and end dates
-      const startDate = new Date(goal.duration.startDate);
-      const endDate = new Date(goal.duration.endDate);
+    const addEvents = (items, type) => {
+      items.forEach((item) => {
+        const start =
+          type === "subtask"
+            ? new Date(item.dueDate)
+            : new Date(item.startDate);
+        const end = type === "subtask" ? start : new Date(item.endDate);
+        end.setDate(end.getDate() + 1); // FullCalendar excludes end date
 
-      // Loop through each day between start and end
-      for (
-        let date = startDate;
-        date <= endDate;
-        date = new Date(date.setDate(date.getDate() + 1))
-      ) {
-        const dateStr = date.toISOString().split("T")[0];
-        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-        itemsByDate[dateStr].push({
-          id: `goal-${goal._id}`,
-          text: goal.title,
-          type: "goal",
-          priority: goal.priority,
-          completed: goal.completed,
-          color: goal.priority.toLowerCase(),
-          originalItem: goal,
+        newEvents.push({
+          id: `${type}-${item._id}`,
+          title: item.title || item.name,
+          start,
+          end,
+          allDay: true,
+          extendedProps: {
+            type,
+            priority: item.priority,
+            completed: item.completed,
+            originalItem: item,
+          },
         });
-      }
-    });
-
-    tasks.forEach((task) => {
-      const startDate = new Date(task.startDate);
-      const endDate = new Date(task.endDate);
-
-      // Create array of dates between start and end
-      for (
-        let date = startDate;
-        date <= endDate;
-        date = new Date(date.setDate(date.getDate() + 1))
-      ) {
-        const dateStr = date.toISOString().split("T")[0];
-
-        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-        itemsByDate[dateStr].push({
-          id: `task-${task._id}`,
-          text: task.name,
-          type: "task",
-          priority: task.priority,
-          completed: task.completed,
-          color: task.priority.toLowerCase(),
-          originalItem: task,
-        });
-      }
-    });
-
-    subtasks.forEach((subtask) => {
-      const dateStr = new Date(subtask.dueDate).toISOString().split("T")[0];
-      if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-      itemsByDate[dateStr].push({
-        id: `subtask-${subtask._id}`,
-        text: subtask.name,
-        type: "subtask",
-        priority: subtask.priority,
-        completed: subtask.completed,
-        color: subtask.priority.toLowerCase(),
-        originalItem: subtask,
       });
-    });
+    };
 
-    setCalendarItems(itemsByDate);
+    addEvents(goals, "goal");
+    addEvents(tasks, "task");
+    addEvents(subtasks, "subtask");
+
+    setEvents(newEvents);
   }, [goals, tasks, subtasks]);
 
-  const toggleItem = (date, item) => {
-    const [type, id] = item.id.split("-");
-    console.log(item);
+  const handleEventClick = (clickInfo) => {
+    const { type, originalItem } = clickInfo.event.extendedProps;
+    const id = clickInfo.event.id.split("-")[1];
 
-    // Update the completion status based on item type
-    switch (type) {
-      case "subtask":
-        const updatedSubtask = {
-          ...item.originalItem,
-          completed: !item.originalItem.completed,
-        };
-        dispatch(updateSubtask({ id: id, subtaskData: updatedSubtask }))
-          .then(() => {
-            if (item.originalItem.taskId) {
-              dispatch(
-                updateTaskCompletion({
-                  taskId: item.originalItem.taskId,
-                  subtasks: subtasks,
-                })
-              )
-                .then(() => {
-                  // If task has goalId, update goal completion
-                  if (item.originalItem.goalId) {
-                    dispatch(
-                      updateGoalCompletion({
-                        goalId: item.originalItem.goalId,
-                        subtasks: subtasks,
-                      })
-                    )
-                      .then(() => {
-                        toast.success("Subtask updated successfully");
-                      })
-                      .catch((error) => {
-                        console.error(
-                          "Failed to update goal completion:",
-                          error
-                        );
-                      });
-                  } else {
-                    navigate(-1); // Navigate back if no goal update needed
-                  }
-                })
-                .catch((error) => {
-                  console.error("Failed to update task completion:", error);
-                });
-            } else {
-              navigate(-1); // Navigate back if no task update needed
-            }
-          })
-          .catch((error) => {
-            console.error("Failed to update subtask:", error);
-            toast.error("Failed to update subtask");
-          });
-        break;
-      default:
-        console.warn("Unknown item type:", type);
-    }
-
-    // Update local state
-    const dateStr = date.toISOString().split("T")[0];
-    setCalendarItems((prev) => ({
-      ...prev,
-      [dateStr]: prev[dateStr].map((i) =>
-        i.id === item.id ? { ...i, completed: !i.completed } : i
-      ),
-    }));
-  };
-
-  const getDaysInWeek = (date) => {
-    const start = new Date(date);
-    start.setDate(start.getDate() - start.getDay());
-
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(start);
-      day.setDate(start.getDate() + i);
-      days.push(day);
-    }
-    return days;
-  };
-
-  const formatDate = (date) => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return `${months[date.getMonth()]} ${date.getDate()}`;
-  };
-
-  const handleItemClick = (item) => {
-    console.log("triggerd");
-    const [type, id] = item.id.split("-");
     switch (type) {
       case "goal":
-        dispatch(setSelectedGoal(item.originalItem));
+        dispatch(setSelectedGoal(originalItem));
         navigate(`/goals/${id}`);
         break;
       case "task":
-        dispatch(setSelectedTask(item.originalItem));
+        dispatch(setSelectedTask(originalItem));
         navigate(`/tasks/${id}`);
         break;
       case "subtask":
-        dispatch(setSelectedSubtask(item.originalItem));
+        dispatch(setSelectedSubtask(originalItem));
         navigate(`/subtasks/${id}`);
         break;
     }
   };
 
-  const handleDragStart = (date, item) => {
-    setDraggedTask({ item, fromDate: date });
+  const handleEventDrop = async (dropInfo) => {
+    const { event, oldEvent } = dropInfo;
+    const [type, id] = event.id.split("-");
+
+    try {
+      const newDate = event.start;
+      console.log(newDate);
+      const updateData = { dueDate: newDate };
+
+      if (type === "subtask") {
+        await dispatch(
+          updateSubtask({
+            id,
+            subtaskData: {
+              ...event.extendedProps.originalItem,
+              dueDate: newDate,
+            },
+          })
+        );
+
+        try {
+          // Assuming you have an API route like '/api/subtasks/:id'
+          const response = await fetch(`/api/subtasks/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ dueDate: newDate }), // Sending the new date to the backend
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to update subtask on the server");
+          }
+        } catch (error) {
+          console.error("Error updating subtask on server:", error);
+          // Handle error (e.g., revert the drag on the calendar)
+          event.setStart(oldEvent.start);
+          toast.error("Failed to update subtask");
+        }
+      }
+      // Add similar logic for tasks/goals if needed
+
+      toast.success("Item updated successfully");
+    } catch (error) {
+      console.error("Failed to update item:", error);
+      event.setStart(oldEvent.start);
+      toast.error("Failed to update item");
+    }
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
+  const handleCheckboxChange = async (event, subTaskId) => {
+    const subtask = subtasks.find((st) => st._id === subTaskId);
+    const updatedSubtask = { ...subtask, completed: !subtask.completed };
+
+    try {
+      await dispatch(
+        updateSubtask({ id: subTaskId, subtaskData: updatedSubtask })
+      );
+      setEvents(
+        events.map((evt) =>
+          evt.id === event.id
+            ? {
+                ...evt,
+                extendedProps: {
+                  ...evt.extendedProps,
+                  completed: !evt.extendedProps.completed,
+                },
+              }
+            : evt
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update subtask:", error);
+      toast.error("Failed to update subtask");
+    }
   };
 
-  const handleDrop = (toDate) => {
-    if (!draggedTask) return;
+  const renderEventContent = (eventInfo) => {
+    const {
+      title,
+      extendedProps: { type, priority, completed },
+    } = eventInfo.event;
+    const eventClasses = ["fc-event-content"];
 
-    const fromDateStr = draggedTask.fromDate.toISOString().split("T")[0];
-    const toDateStr = toDate.toISOString().split("T")[0];
+    if (completed) {
+      eventClasses.push("completed");
+    }
 
-    if (fromDateStr === toDateStr) return;
+    const backgroundColor = completed
+      ? COLORS.default
+      : COLORS[priority.toLowerCase()];
 
-    setCalendarItems((prev) => ({
-      ...prev,
-      [fromDateStr]: prev[fromDateStr].filter(
-        (item) => item.id !== draggedTask.item.id
-      ),
-      [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
-    }));
-
-    setDraggedTask(null);
-  };
-
-  const navigateWeek = (direction) => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + direction * 7);
-    setCurrentDate(newDate);
+    return (
+      <div
+        className={eventClasses.join(" ")}
+        style={{ backgroundColor, color: "black" }}
+      >
+        {type === "subtask" && (
+          <input
+            type="checkbox"
+            checked={completed}
+            onChange={(e) => {
+              e.stopPropagation();
+              handleCheckboxChange(
+                eventInfo.event,
+                eventInfo.event.id.split("-")[1]
+              );
+            }}
+            className="task-checkbox"
+          />
+        )}
+        <span className="task-title" style={{ whiteSpace: "normal" }}>
+          {title}
+        </span>
+      </div>
+    );
   };
 
   const generateHeatmapData = () => {
     const heatmapData = {};
-
-    // Iterate over the calendarItems to get task counts for each date
     for (const dateStr in calendarItems) {
       if (calendarItems.hasOwnProperty(dateStr)) {
-        // Calculate task count for the day (considering only subtasks for now)
         const taskCount = calendarItems[dateStr].filter(
           (item) => item.type === "subtask"
         ).length;
-
         heatmapData[dateStr] = { value: taskCount };
       }
     }
-
     return heatmapData;
-  };
-
-  const handleKeyDown = (e) => {
-    switch (e.key) {
-      case "ArrowLeft":
-        navigateWeek(-1);
-        break;
-      case "ArrowRight":
-        navigateWeek(1);
-        break;
-    }
-  };
-
-  useEffect(() => {
-    // event listener for arrow key presses
-    window.addEventListener("keydown", handleKeyDown);
-
-    // Clean up the event listener
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleKeyDown]); // Listen for changes to handleKeyDown
-
-  const days = getDaysInWeek(currentDate);
-
-  const calculateDayProgress = (items) => {
-    if (
-      !items ||
-      items.filter((item) => item.type === "subtask").length === 0
-    ) {
-      return 0; // No items, 0% progress
-    }
-
-    const totalItems = items.filter((item) => item.type === "subtask").length;
-    const completedItems = items.filter(
-      (item) => item.completed && item.type === "subtask"
-    ).length;
-
-    return (completedItems / totalItems) * 100;
   };
 
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        {view === "weekly" ? (
-          <h1>Weekly Overview</h1>
-        ) : (
-          <h1>Monthly Overview</h1>
-        )}
+        <h1>
+          {view === "timeGridWeek" ? "Weekly Overview" : "Monthly Overview"}
+        </h1>
         <div className="view-switch">
           <button
-            onClick={() => setView("weekly")}
-            className={view === "weekly" ? "active" : ""}
+            onClick={() => setView("timeGridWeek")}
+            className={view === "timeGridWeek" ? "active" : ""}
           >
             Weekly
           </button>
           <button
-            onClick={() => setView("monthly")}
-            className={view === "monthly" ? "active" : ""}
+            onClick={() => setView("dayGridMonth")}
+            className={view === "dayGridMonth" ? "active" : ""}
           >
             Monthly
-          </button>
-        </div>
-        <div className="navigation-buttons">
-          <button onClick={() => navigateWeek(-1)} className="nav-button">
-            <ChevronLeft />
-          </button>
-          <button onClick={() => navigateWeek(1)} className="nav-button">
-            <ChevronRight />
           </button>
         </div>
       </div>
 
       <div className="calendar-content">
-        {view === "weekly" && ( // Conditionally render weekly or monthly view
-          <div
-            className="calendar-grid"
-            ref={calendarGridRef}
-            tabIndex={0} // Making the grid focusable
-          >
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="day-header">
-                {day}
-              </div>
-            ))}
+        {view === "dayGridMonth" ? (
+          <HeatMap data={generateHeatmapData()} />
+        ) : (
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            dayHeaderFormat={{
+              weekday: "short", // Short day name (e.g., "Sun")
+              day: "numeric", // Day of the month (e.g., "25")
+              month: "short", // Short month name (e.g., "Feb")
+            }}
+            initialView="timeGridWeek"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "",
+            }}
+            locales={[
+              {
+                code: "en", // Assuming you're using English
+                allDayText: "All day", // Change the label here
+              },
+            ]}
+            events={events}
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            eventContent={renderEventContent}
+            eventClassNames={({ event: calendarEvent }) => {
+              const {
+                extendedProps: { type, priority, completed },
+              } = calendarEvent;
+              const eventClasses = [];
 
-            {days.map((date) => {
-              const dateStr = date.toISOString().split("T")[0];
-              const dayItems = calendarItems[dateStr] || [];
-              const isToday = new Date().toDateString() === date.toDateString();
-              const dayProgress = calculateDayProgress(dayItems);
+              // Add class based on priority
+              eventClasses.push(`priority-${priority.toLowerCase()}`);
 
-              return (
-                <div
-                  key={dateStr}
-                  className={`calendar-cell ${isToday ? "today" : ""}`}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(date)}
-                >
-                  <div className="date-header">
-                    <div className="date-info">
-                      <div
-                        className="day-progress-circle"
-                        style={{ "--progress": `${dayProgress}%` }}
-                      >
-                        <span className="percentage">
-                          {Math.round(dayProgress)}%
-                        </span>
-                      </div>
-                      <div className="date-number">{formatDate(date)}</div>
-                    </div>
-                  </div>
-
-                  <div className="calendar-task-list">
-                    {dayItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`task-item type-${item.type} ${
-                          isTouchDevice ? "touch-device" : ""
-                        }`}
-                        data-priority={item.priority.toLowerCase()}
-                        style={{
-                          backgroundColor: COLORS.find(
-                            (c) => c.id === item.color
-                          )?.bg,
-                        }}
-                        onClick={() => handleItemClick(item)}
-                        draggable={!isTouchDevice}
-                        onDragStart={() =>
-                          !isTouchDevice && handleDragStart(date, item)
-                        }
-                      >
-                        {item.type === "subtask" ? (
-                          <input
-                            type="checkbox"
-                            checked={item.completed}
-                            className="task-checkbox"
-                            onChange={() => toggleItem(date, item)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : (
-                          ""
-                        )}
-
-                        <span
-                          className={`task-text ${
-                            item.completed ? "completed" : ""
-                          }`}
-                        >
-                          {item.type.toUpperCase()} - {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+              return eventClasses;
+            }}
+            editable={true}
+            droppable={true}
+            nowIndicator={true}
+            eventDisplay="block"
+            height="auto"
+            allDaySlot={true} // Ensure all-day slot is enabled
+            slotDuration={"24:00:00"} // Force all day
+            slotMinTime={"00:00:00"} // Set the minimum time to midnight
+            slotMaxTime={"00:00:00"} // Set the maximum time to midnight
+          />
         )}
-        {view === "monthly" && <HeatMap data={generateHeatmapData()} />}
       </div>
     </div>
   );
