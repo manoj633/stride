@@ -587,3 +587,36 @@
         overflow-y: auto;
     }
 }
+
+.calendar-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    /* Add spacing below the filters */
+    padding: 1rem;
+    /* Add padding to the filter container */
+    border-radius: var(--radius-md);
+    background-color: var(--secondary-color);
+    /* Light background for contrast */
+}
+
+.calendar-filters label {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-right: 0.5rem;
+}
+
+.calendar-filters select,
+.calendar-filters input[type="checkbox"] {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+}
+
+.calendar-filters select:focus,
+.calendar-filters input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
