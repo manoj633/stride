@@ -46,35 +46,52 @@ const TaskCalendar = () => {
   const [draggedTask, setDraggedTask] = useState(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [view, setView] = useState("weekly");
-  const calendarGridRef = useRef(null);
+  // const calendarGridRef = useRef(null);
+
+  // Filtering State
+  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const [showCompleted, setShowCompleted] = useState(true);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsTouchDevice("ontouchstart" in window);
   }, []);
 
   useEffect(() => {
-    dispatch(fetchGoals());
-    dispatch(fetchTasks());
-    dispatch(fetchSubtasks());
+    const fetchData = async () => {
+      setIsLoading(true); // Start loading
+      await dispatch(fetchGoals());
+      await dispatch(fetchTasks());
+      await dispatch(fetchSubtasks());
+      setIsLoading(false); // Data fetched, stop loading
+    };
+
+    fetchData();
   }, [dispatch]);
 
   useEffect(() => {
     const itemsByDate = {};
 
-    goals.forEach((goal) => {
-      // Create start and end dates
-      const startDate = new Date(goal.duration.startDate);
-      const endDate = new Date(goal.duration.endDate);
+    const addItemToCalendar = (item, startDate, endDate = startDate) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-      // Loop through each day between start and end
       for (
-        let date = startDate;
-        date <= endDate;
-        date = new Date(date.setDate(date.getDate() + 1))
+        let date = new Date(start);
+        date <= end;
+        date.setDate(date.getDate() + 1)
       ) {
         const dateStr = date.toISOString().split("T")[0];
         if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-        itemsByDate[dateStr].push({
+        itemsByDate[dateStr].push(item);
+      }
+    };
+
+    goals.forEach((goal) => {
+      addItemToCalendar(
+        {
           id: `goal-${goal._id}`,
           text: goal.title,
           type: "goal",
@@ -82,24 +99,15 @@ const TaskCalendar = () => {
           completed: goal.completed,
           color: goal.priority.toLowerCase(),
           originalItem: goal,
-        });
-      }
+        },
+        goal.duration.startDate,
+        goal.duration.endDate
+      );
     });
 
     tasks.forEach((task) => {
-      const startDate = new Date(task.startDate);
-      const endDate = new Date(task.endDate);
-
-      // Create array of dates between start and end
-      for (
-        let date = startDate;
-        date <= endDate;
-        date = new Date(date.setDate(date.getDate() + 1))
-      ) {
-        const dateStr = date.toISOString().split("T")[0];
-
-        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-        itemsByDate[dateStr].push({
+      addItemToCalendar(
+        {
           id: `task-${task._id}`,
           text: task.name,
           type: "task",
@@ -107,22 +115,25 @@ const TaskCalendar = () => {
           completed: task.completed,
           color: task.priority.toLowerCase(),
           originalItem: task,
-        });
-      }
+        },
+        task.startDate,
+        task.endDate
+      );
     });
 
     subtasks.forEach((subtask) => {
-      const dateStr = new Date(subtask.dueDate).toISOString().split("T")[0];
-      if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-      itemsByDate[dateStr].push({
-        id: `subtask-${subtask._id}`,
-        text: subtask.name,
-        type: "subtask",
-        priority: subtask.priority,
-        completed: subtask.completed,
-        color: subtask.priority.toLowerCase(),
-        originalItem: subtask,
-      });
+      addItemToCalendar(
+        {
+          id: `subtask-${subtask._id}`,
+          text: subtask.name,
+          type: "subtask",
+          priority: subtask.priority,
+          completed: subtask.completed,
+          color: subtask.priority.toLowerCase(),
+          originalItem: subtask,
+        },
+        subtask.dueDate
+      );
     });
 
     setCalendarItems(itemsByDate);
@@ -130,7 +141,6 @@ const TaskCalendar = () => {
 
   const toggleItem = (date, item) => {
     const [type, id] = item.id.split("-");
-    console.log(item);
 
     // Update the completion status based on item type
     switch (type) {
@@ -228,7 +238,6 @@ const TaskCalendar = () => {
   };
 
   const handleItemClick = (item) => {
-    console.log("triggerd");
     const [type, id] = item.id.split("-");
     switch (type) {
       case "goal":
@@ -262,13 +271,80 @@ const TaskCalendar = () => {
 
     if (fromDateStr === toDateStr) return;
 
-    setCalendarItems((prev) => ({
-      ...prev,
-      [fromDateStr]: prev[fromDateStr].filter(
-        (item) => item.id !== draggedTask.item.id
-      ),
-      [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
-    }));
+    // Update the original item's date
+    const updatedItem = {
+      ...draggedTask.item.originalItem,
+      dueDate: toDateStr, // Assuming you want to update dueDate on drop
+    };
+
+    // Determine the item type and dispatch the appropriate update action
+    switch (draggedTask.item.type) {
+      case "goal":
+        dispatch(
+          updateGoalCompletion({
+            goalId: updatedItem._id,
+            goalData: updatedItem,
+          })
+        )
+          .then(() => {
+            // Update calendarItems after successful update
+            setCalendarItems((prev) => ({
+              ...prev,
+              [fromDateStr]: prev[fromDateStr].filter(
+                (item) => item.id !== draggedTask.item.id
+              ),
+              [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
+            }));
+          })
+          .catch((error) => {
+            console.error("Failed to update goal:", error);
+          });
+        break;
+      case "task":
+        dispatch(
+          updateTaskCompletion({
+            taskId: updatedItem._id,
+            taskData: updatedItem,
+          })
+        )
+          .then(() => {
+            // Update calendarItems after successful update
+            setCalendarItems((prev) => ({
+              ...prev,
+              [fromDateStr]: prev[fromDateStr].filter(
+                (item) => item.id !== draggedTask.item.id
+              ),
+              [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
+            }));
+          })
+          .catch((error) => {
+            console.error("Failed to update task:", error);
+          });
+        break;
+      case "subtask":
+        dispatch(
+          updateSubtask({
+            subtaskId: updatedItem._id,
+            subtaskData: updatedItem,
+          })
+        )
+          .then(() => {
+            // Update calendarItems after successful update
+            setCalendarItems((prev) => ({
+              ...prev,
+              [fromDateStr]: prev[fromDateStr].filter(
+                (item) => item.id !== draggedTask.item.id
+              ),
+              [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
+            }));
+          })
+          .catch((error) => {
+            console.error("Failed to update subtask:", error);
+          });
+        break;
+      default:
+        console.warn("Unknown item type:", draggedTask.item.type);
+    }
 
     setDraggedTask(null);
   };
@@ -336,6 +412,22 @@ const TaskCalendar = () => {
     return (completedItems / totalItems) * 100;
   };
 
+  // Filtering Logic
+  const filteredItems = Object.fromEntries(
+    Object.entries(calendarItems).map(([date, items]) => [
+      date,
+      items.filter((item) => {
+        const matchesPriority =
+          selectedPriority === "all" ||
+          item.priority.toLowerCase() === selectedPriority;
+        const matchesType =
+          selectedType === "all" || item.type === selectedType;
+        const matchesCompletion = showCompleted || !item.completed;
+        return matchesPriority && matchesType && matchesCompletion;
+      }),
+    ])
+  );
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
@@ -368,12 +460,53 @@ const TaskCalendar = () => {
         </div>
       </div>
 
+      <div className="calendar-filters">
+        {/* Priority Filter */}
+        <label htmlFor="priority-select">Priority:</label>
+        <select
+          id="priority-select"
+          value={selectedPriority}
+          onChange={(e) => setSelectedPriority(e.target.value)}
+        >
+          <option value="all">All</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+
+        {/* Type Filter */}
+        <label htmlFor="type-select">Type:</label>
+        <select
+          id="type-select"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+        >
+          <option value="all">All</option>
+          <option value="goal">Goals</option>
+          <option value="task">Tasks</option>
+          <option value="subtask">Subtasks</option>
+        </select>
+
+        {/* Show Completed Filter */}
+        <label htmlFor="show-completed">
+          <input
+            type="checkbox"
+            id="show-completed"
+            checked={showCompleted}
+            onChange={(e) => setShowCompleted(e.target.checked)}
+          />
+          Show Completed
+        </label>
+      </div>
+
       <div className="calendar-content">
-        {view === "weekly" && ( // Conditionally render weekly or monthly view
+        {isLoading ? (
+          <div>Loading calendar...</div>
+        ) : view === "weekly" ? (
           <div
             className="calendar-grid"
-            ref={calendarGridRef}
-            tabIndex={0} // Making the grid focusable
+            // ref={calendarGridRef}
+            tabIndex={0}
           >
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
               <div key={day} className="day-header">
@@ -383,7 +516,7 @@ const TaskCalendar = () => {
 
             {days.map((date) => {
               const dateStr = date.toISOString().split("T")[0];
-              const dayItems = calendarItems[dateStr] || [];
+              const dayItems = filteredItems[dateStr] || [];
               const isToday = new Date().toDateString() === date.toDateString();
               const dayProgress = calculateDayProgress(dayItems);
 
@@ -453,8 +586,9 @@ const TaskCalendar = () => {
               );
             })}
           </div>
+        ) : (
+          <HeatMap data={generateHeatmapData()} />
         )}
-        {view === "monthly" && <HeatMap data={generateHeatmapData()} />}
       </div>
     </div>
   );
