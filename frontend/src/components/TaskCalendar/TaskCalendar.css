@@ -590,33 +590,85 @@
 
 .calendar-filters {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     align-items: center;
-    margin-bottom: 1rem;
-    /* Add spacing below the filters */
-    padding: 1rem;
-    /* Add padding to the filter container */
-    border-radius: var(--radius-md);
-    background-color: var(--secondary-color);
-    /* Light background for contrast */
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
 }
 
 .calendar-filters label {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-right: 0.5rem;
+    white-space: nowrap;
 }
 
-.calendar-filters select,
-.calendar-filters input[type="checkbox"] {
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
+/* Style the select elements */
+.calendar-filters select {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background-color: #F4F4F4;
+    /* Lighter, neutral grey background */
+    color: var(--text-primary);
     font-size: 0.875rem;
+    font-weight: 500;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236B6B76'%3E%3Cpath fill-rule='evenodd' d='M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.2em;
+    transition: all var(--transition-fast);
 }
 
-.calendar-filters select:focus,
-.calendar-filters input[type="checkbox"]:focus {
+/* Apply hover styles separately */
+.calendar-filters select:hover {
+    cursor: pointer;
+}
+
+.calendar-filters select:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+/* Style the checkbox and its label */
+.calendar-filters input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xs);
+    background-color: transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.calendar-filters input[type="checkbox"]:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1em;
+}
+
+.calendar-filters input[type="checkbox"]:hover {
+    border-color: var(--primary-color);
+}
+
+.calendar-filters input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.calendar-filters label[for="show-completed"] {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
