@@ -37,82 +37,72 @@ const SubtaskDescription = () => {
       completed: !subtask.completed,
     };
 
-    dispatch(updateSubtask({ id: subtaskId, subtaskData: updatedSubtask }))
-      .then(() => {
-        if (subtask.taskId) {
-          dispatch(
-            updateTaskCompletion({
-              taskId: subtask.taskId,
-              subtasks: allSubtasks,
-            })
-          )
-            .then(() => {
-              // If task has goalId, update goal completion
-              if (subtask.goalId) {
-                dispatch(
-                  updateGoalCompletion({
-                    goalId: subtask.goalId,
-                    subtasks: allSubtasks,
-                  })
-                )
-                  .then(() => {
-                    navigate(-1); // Navigate back after all updates are complete
-                  })
-                  .catch((error) => {
-                    console.error("Failed to update goal completion:", error);
-                  });
-              } else {
-                navigate(-1); // Navigate back if no goal update needed
-              }
-            })
-            .catch((error) => {
-              console.error("Failed to update task completion:", error);
-            });
-        } else {
-          navigate(-1); // Navigate back if no task update needed
+    toast
+      .promise(
+        (async () => {
+          await dispatch(
+            updateSubtask({ id: subtaskId, subtaskData: updatedSubtask })
+          );
+          if (subtask.taskId) {
+            await dispatch(
+              updateTaskCompletion({
+                taskId: subtask.taskId,
+                subtasks: allSubtasks,
+              })
+            );
+            // If task has goalId, update goal completion
+            if (subtask.goalId) {
+              await dispatch(
+                updateGoalCompletion({
+                  goalId: subtask.goalId,
+                  subtasks: allSubtasks,
+                })
+              );
+            }
+          }
+        })(),
+        {
+          pending: "Updating subtask...",
+          success: "Subtask updated successfully!",
+          error: "Failed to update subtask",
         }
-      })
-      .catch((error) => {
-        console.error("Failed to update subtask:", error);
-        toast.error("Failed to update subtask");
+      )
+      .finally(() => {
+        navigate(-1); // Navigate back after all updates are complete
       });
   };
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this subtask?")) {
-      dispatch(deleteSubtask(subtaskId))
-        .then(() => {
-          toast.success("Subtask deleted successfully!");
-          if (subtask.taskId) {
-            dispatch(
-              updateTaskCompletion({
-                taskId: subtask.taskId,
-                subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
-              })
-            )
-              .then(() => {
-                if (subtask.goalId) {
-                  dispatch(
-                    updateGoalCompletion({
-                      goalId: subtask.goalId,
-                      subtasks: allSubtasks.filter(
-                        (st) => st._id !== subtaskId
-                      ),
-                    })
-                  );
-                }
-                navigate(-1);
-              })
-              .catch((error) => {
-                console.error("Failed to update task completion:", error);
-              });
-          } else {
-            navigate(-1);
+      toast
+        .promise(
+          (async () => {
+            await dispatch(deleteSubtask(subtaskId));
+            if (subtask.taskId) {
+              await dispatch(
+                updateTaskCompletion({
+                  taskId: subtask.taskId,
+                  subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
+                })
+              );
+              if (subtask.goalId) {
+                await dispatch(
+                  updateGoalCompletion({
+                    goalId: subtask.goalId,
+                    subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
+                  })
+                );
+              }
+            }
+          })(),
+          {
+            pending: "Deleting subtask...",
+            success: "Subtask deleted successfully!",
+            error: "Failed to delete subtask",
           }
-        })
-        .catch((error) => {
-          console.error("Failed to delete subtask:", error);
-          toast.error("Failed to delete subtask");
+        )
+        .finally(() => {
+          navigate(-1);
         });
     }
   };
