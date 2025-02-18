@@ -15,10 +15,10 @@ const TaskList = ({ tasks: propTasks }) => {
   const error = useSelector((state) => state.tasks.error);
 
   useEffect(() => {
-    if (!propTasks) {
+    if (!propTasks && allTasks.length === 0) {
       dispatch(fetchTasks());
     }
-  }, [dispatch, propTasks]);
+  }, [dispatch, propTasks, allTasks.length]);
 
   useEffect(() => {
     if (error === "Request failed with status code 401") {
