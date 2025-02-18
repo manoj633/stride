@@ -28,8 +28,10 @@ const SubtaskDescription = () => {
   const error = useSelector((state) => state.subtasks.error);
 
   useEffect(() => {
-    dispatch(fetchSubtaskById(subtaskId));
-  }, [dispatch, subtaskId]);
+    if (!subtask) {
+      dispatch(fetchSubtaskById(subtaskId));
+    }
+  }, [dispatch, subtaskId, subtask]);
 
   const handleCheckboxChange = () => {
     const updatedSubtask = {
