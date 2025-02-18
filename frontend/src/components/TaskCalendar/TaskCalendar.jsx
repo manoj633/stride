@@ -62,14 +62,20 @@ const TaskCalendar = () => {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true); // Start loading
-      await dispatch(fetchGoals());
-      await dispatch(fetchTasks());
-      await dispatch(fetchSubtasks());
+      if (goals.length === 0) {
+        await dispatch(fetchGoals());
+      }
+      if (tasks.length === 0) {
+        await dispatch(fetchTasks());
+      }
+      if (subtasks.length === 0) {
+        await dispatch(fetchSubtasks());
+      }
       setIsLoading(false); // Data fetched, stop loading
     };
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, goals.length, tasks.length, subtasks.length]);
 
   useEffect(() => {
     const itemsByDate = {};
