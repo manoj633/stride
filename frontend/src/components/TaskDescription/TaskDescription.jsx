@@ -32,9 +32,13 @@ const TaskDescription = () => {
 
   // Fetch data
   useEffect(() => {
-    dispatch(fetchTasks());
-    dispatch(fetchSubtasks());
-  }, [dispatch]);
+    if (!task) {
+      dispatch(fetchTasks());
+    }
+    if (subtasks.length === 0) {
+      dispatch(fetchSubtasks());
+    }
+  }, [dispatch, task, subtasks.length]);
 
   // Chart effect
   useEffect(() => {
