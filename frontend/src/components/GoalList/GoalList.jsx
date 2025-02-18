@@ -29,9 +29,11 @@ const GoalList = () => {
   const stats = useAppSelector(selectGoalStats);
 
   useEffect(() => {
-    dispatch(fetchGoals());
+    if (goals.length === 0) {
+      dispatch(fetchGoals());
+    }
     dispatch(fetchTags());
-  }, [dispatch]);
+  }, [dispatch, goals.length]);
 
   useEffect(() => {
     if (error === "Request failed with status code 401") {
