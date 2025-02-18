@@ -58,11 +58,15 @@ const GoalDescription = () => {
 
   // Effects
   useEffect(() => {
-    dispatch(fetchGoals());
-    dispatch(fetchTasks());
+    if (!goal) {
+      dispatch(fetchGoals());
+    }
+    if (tasks.length === 0) {
+      dispatch(fetchTasks());
+    }
     dispatch(fetchTags());
     dispatch(fetchGoalComments(goalId));
-  }, [dispatch, goalId]);
+  }, [dispatch, goalId, goal, tasks.length]);
 
   useEffect(() => {
     if (goal) {
