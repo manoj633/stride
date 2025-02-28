@@ -2,6 +2,8 @@
 
 Stride is a personal goal-tracking application designed to empower you on your journey towards achieving your aspirations. With its intuitive interface and powerful features, Stride helps you stay organized, motivated, and on track to reach your full potential.
 
+**Try Stride Now:** [https://stride-qd71.onrender.com/](https://stride-qd71.onrender.com/)
+
 ## Key Features
 
 - **Effortless Goal Management:** Create, edit, and organize your personal goals with ease. Break down large goals into smaller, manageable subtasks for a clear roadmap to success.
