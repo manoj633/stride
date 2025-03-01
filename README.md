@@ -1,6 +1,6 @@
 ## Stride: Achieve Your Goals, One Step at a Time
 
-Stride is a personal goal-tracking application designed to empower you on your journey towards achieving your aspirations. With its intuitive interface and powerful features, Stride helps you stay organized, motivated, and on track to reach your full potential.
+Stride is an application for monitoring personal goals that is intended to empower you as you work towards your goals. Stride's user-friendly UI and robust features keep you motivated, organised, and on course to realise your greatest potential.
 
 **Try Stride Now:** [https://stride-qd71.onrender.com/](https://stride-qd71.onrender.com/)
 
@@ -53,7 +53,8 @@ Ready to take your first stride? Follow these simple steps to set up the applica
      npm start
      ```
 
-Now you're ready to conquer your goals! Access Stride in your web browser.
+Now you're ready to conquer your goals! Ac
+cess Stride in your web browser.
 
 ## Technology Stack
 
