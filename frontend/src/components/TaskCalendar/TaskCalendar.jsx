@@ -467,42 +467,43 @@ const TaskCalendar = () => {
       </div>
 
       <div className="calendar-filters">
-        {/* Priority Filter */}
-        <label htmlFor="priority-select">Priority:</label>
-        <select
-          id="priority-select"
-          value={selectedPriority}
-          onChange={(e) => setSelectedPriority(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
+        <div className="filter-group">
+          <label htmlFor="priority-select">Priority:</label>
+          <select
+            id="priority-select"
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
 
-        {/* Type Filter */}
-        <label htmlFor="type-select">Type:</label>
-        <select
-          id="type-select"
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="goal">Goals</option>
-          <option value="task">Tasks</option>
-          <option value="subtask">Subtasks</option>
-        </select>
+        <div className="filter-group">
+          <label htmlFor="type-select">Type:</label>
+          <select
+            id="type-select"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="goal">Goals</option>
+            <option value="task">Tasks</option>
+            <option value="subtask">Subtasks</option>
+          </select>
+        </div>
 
-        {/* Show Completed Filter */}
-        <label htmlFor="show-completed">
+        <div className="filter-group">
           <input
             type="checkbox"
             id="show-completed"
             checked={showCompleted}
             onChange={(e) => setShowCompleted(e.target.checked)}
           />
-          Show Completed
-        </label>
+          <label htmlFor="show-completed">Show Completed</label>
+        </div>
       </div>
 
       <div className="calendar-content">
