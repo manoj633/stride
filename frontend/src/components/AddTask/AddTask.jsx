@@ -57,9 +57,9 @@ const AddTask = ({ goalId, onTaskAdded }) => {
 
     try {
       toast.promise(dispatch(createTask(taskData)).unwrap(), {
-        pending: "Creating your task...",
-        success: "Task created successfully!",
-        error: "Failed to create task 🤯",
+        pending: "Creating your task... ⏳",
+        success: "Task created successfully! 🚀",
+        error: "Failed to create task 😭",
       });
     } catch (error) {
       console.error("Failed to create task:", error);
@@ -68,86 +68,112 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     navigate(-1);
   };
 
-  if (loading) return <div>Loading ...</div>;
+  if (loading) return <div>Loading tags...</div>;
 
   return (
-    <div className="add-task">
-      <h1 className="add-task__title">Add a Task</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={taskData.name}
-          onChange={(e) => setTaskData({ ...taskData, name: e.target.value })}
-          placeholder="Task name"
-          className="add-task__input"
-          required
-        />
-
-        <textarea
-          value={taskData.description}
-          onChange={(e) =>
-            setTaskData({ ...taskData, description: e.target.value })
-          }
-          placeholder="Description"
-          className="add-task__input add-task__textarea"
-        />
-        <select
-          value={taskData.goalId}
-          onChange={handleGoalChange}
-          className="add-task__select"
-          required
-        >
-          <option value="">Select a Goal</option>
-          {goals.map((goal) => (
-            <option key={goal._id} value={goal._id}>
-              {goal.title}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={taskData.priority}
-          onChange={(e) =>
-            setTaskData({ ...taskData, priority: e.target.value })
-          }
-          className="add-task__select"
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-
-        <div className="add-task__date-group">
-          <input
-            type="date"
-            value={taskData.startDate}
-            min={minStartDate}
-            max={maxEndDate}
-            onChange={(e) =>
-              setTaskData({ ...taskData, startDate: e.target.value })
-            }
-            className="add-task__date"
-            required
-            disabled={!taskData.goalId}
-          />
-          <input
-            type="date"
-            value={taskData.endDate}
-            min={taskData.startDate || minStartDate}
-            max={maxEndDate}
-            onChange={(e) =>
-              setTaskData({ ...taskData, endDate: e.target.value })
-            }
-            className="add-task__date"
-            required
-            disabled={!taskData.startDate}
-          />
-        </div>
-
-        <button type="submit" className="add-task__button">
-          Add Task
-        </button>
-      </form>
+    <div className="add-task-container">
+      <div className="add-task">
+        <h1>🚀 Add New Task</h1>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="name">Task Name:</label>
+            <input
+              type="text"
+              id="name"
+              value={taskData.name}
+              onChange={(e) =>
+                setTaskData({ ...taskData, name: e.target.value })
+              }
+              placeholder="Ex: Prepare for Presentation"
+              className="add-task__input"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="description">Description:</label>
+            <textarea
+              id="description"
+              value={taskData.description}
+              onChange={(e) =>
+                setTaskData({ ...taskData, description: e.target.value })
+              }
+              placeholder="Tell us more about your task..."
+              className="add-task__input add-task__textarea"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="goalId">Goal:</label>
+            <select
+              id="goalId"
+              value={taskData.goalId}
+              onChange={handleGoalChange}
+              className="add-task__select"
+              required
+            >
+              <option value="">Select a Goal</option>
+              {goals.map((goal) => (
+                <option key={goal._id} value={goal._id}>
+                  {goal.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="priority">Priority:</label>
+              <select
+                id="priority"
+                value={taskData.priority}
+                onChange={(e) =>
+                  setTaskData({ ...taskData, priority: e.target.value })
+                }
+                className="add-task__select"
+              >
+                <option value="High">🔥 High</option>
+                <option value="Medium">💧 Medium</option>
+                <option value="Low">🍃 Low</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="startDate">Start Date:</label>
+              <input
+                type="date"
+                id="startDate"
+                value={taskData.startDate}
+                min={minStartDate}
+                max={maxEndDate}
+                onChange={(e) =>
+                  setTaskData({ ...taskData, startDate: e.target.value })
+                }
+                className="add-task__date"
+                required
+                disabled={!taskData.goalId}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="endDate">End Date:</label>
+              <input
+                type="date"
+                id="endDate"
+                value={taskData.endDate}
+                min={taskData.startDate || minStartDate}
+                max={maxEndDate}
+                onChange={(e) =>
+                  setTaskData({ ...taskData, endDate: e.target.value })
+                }
+                className="add-task__date"
+                required
+                disabled={!taskData.startDate}
+              />
+            </div>
+          </div>
+          <button type="submit" className="add-task__button">
+            🚀 Add Task
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
