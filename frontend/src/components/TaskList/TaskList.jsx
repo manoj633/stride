@@ -9,7 +9,6 @@ const TaskList = ({ tasks: propTasks }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Get tasks from Redux store
   const allTasks = useSelector((state) => state.tasks.items);
   const loading = useSelector((state) => state.tasks.loading);
   const error = useSelector((state) => state.tasks.error);
@@ -26,8 +25,6 @@ const TaskList = ({ tasks: propTasks }) => {
     }
   }, [error, navigate]);
 
-  // If tasks are passed as props (from GoalDescription), use those
-  // Otherwise, filter tasks from Redux store for current month
   const tasks =
     propTasks ||
     (() => {
@@ -39,7 +36,6 @@ const TaskList = ({ tasks: propTasks }) => {
         const taskStartDate = new Date(task.startDate);
         const taskEndDate = new Date(task.endDate);
 
-        // Check if either the start date or the end date falls within the current month
         const startsInCurrentMonth =
           taskStartDate >= startOfMonth && taskStartDate <= endOfMonth;
         const endsInCurrentMonth =
@@ -52,31 +48,26 @@ const TaskList = ({ tasks: propTasks }) => {
   if (loading && !propTasks) {
     return (
       <div className="task-list">
-        <div className="task-list--loading"></div>
-        <div className="task-list--loading"></div>
-        <div className="task-list--loading"></div>
+        <div className="task-list__loading-placeholder" />
+        <div className="task-list__loading-placeholder" />
+        <div className="task-list__loading-placeholder" />
       </div>
     );
   }
 
-  // Empty state handling
   if (tasks.length === 0) {
-    const handleNavigateToAdd = () => {
-      navigate("/tasks/add");
-    };
-
     return (
       <div className="task-list">
         <div
-          className="task-list__empty task-list__empty--clickable"
-          onClick={handleNavigateToAdd}
+          className="task-list__empty"
+          onClick={() => navigate("/tasks/add")}
         >
-          <div className="task-list__empty-content">
-            <div className="task-list__empty-text">
-              No tasks found for today
-            </div>
-            <div className="task-list__empty-action">Click to add a task</div>
-          </div>
+          <p className="task-list__empty-text">
+            No tasks yet! ✨ Time to get productive! 🚀
+          </p>
+          <p className="task-list__empty-action">
+            Click here to add your first task! ➕
+          </p>
         </div>
       </div>
     );
@@ -85,28 +76,58 @@ const TaskList = ({ tasks: propTasks }) => {
   return (
     <div className="task-list">
       {tasks.map((task) => (
-        <div key={task._id} className="task-list__item">
-          <Link to={`/tasks/${task._id}`} className="task-list__link">
+        <Link
+          key={task._id}
+          to={`/tasks/${task._id}`}
+          className="task-list__item-link"
+        >
+          <div className="task-list__item">
             <div className="task-list__content">
-              <h3 className="task-list__title">{task.name}</h3>
+              <h3 className="task-list__title">
+                {task.name}
+                {task.priority === "High" && <span> 🔥</span>}
+              </h3>
               {task.description && (
                 <p className="task-list__description">{task.description}</p>
               )}
-              <div className="task-list__meta">
-                <span
-                  className="task-list__priority"
-                  data-priority={task.priority.toLowerCase()}
-                >
-                  {task.priority}
-                </span>
-                <span className="task-list__date">{task.dueDate}</span>
-                <span className="task-list__progress">
+            </div>
+            <div className="task-list__meta">
+              <span
+                className={`task-list__priority ${
+                  task.priority.toLowerCase() === "high"
+                    ? "high"
+                    : task.priority.toLowerCase() === "medium"
+                    ? "medium"
+                    : "low"
+                }`}
+              >
+                {task.priority}
+              </span>
+              <span className="task-list__date">{task.dueDate}</span>
+              <div className="task-list__progress-container">
+                <span className="task-list__progress-label">
                   {task.completionPercentage}%
                 </span>
+                <div className="task-list__progress-bar">
+                  <div
+                    className="task-list__progress-bar-fill"
+                    style={{
+                      width: `${task.completionPercentage}%`,
+                      backgroundColor:
+                        task.completionPercentage === 100
+                          ? "#4ade80"
+                          : task.priority.toLowerCase() === "high"
+                          ? "#f87171"
+                          : task.priority.toLowerCase() === "medium"
+                          ? "#fbb6ce"
+                          : "#cbd5e1",
+                    }}
+                  ></div>
+                </div>
               </div>
             </div>
-          </Link>
-        </div>
+          </div>
+        </Link>
       ))}
     </div>
   );
