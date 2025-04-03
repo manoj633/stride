@@ -36,7 +36,7 @@ connectDB();
 const app = express();
 app.use(
   cors({
-    origin: "https://stride-qd71.onrender.com/",
+    origin: "https://stride-qd71.onrender.com",
     credentials: true,
   })
 );
