@@ -9,7 +9,6 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Redux selectors
   const allSubtasks = useSelector((state) => state.subtasks.items);
   const loading = useSelector((state) => state.subtasks.loading);
   const error = useSelector((state) => state.subtasks.error);
@@ -26,7 +25,6 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
     }
   }, [error, navigate]);
 
-  // Use propSubtasks if provided, otherwise filter today's subtasks from Redux store
   const subtasks =
     propSubtasks ||
     (() => {
@@ -44,28 +42,28 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
     })();
 
   if (loading && !propSubtasks) {
-    return <div className="subtask-list">Loading...</div>;
+    return (
+      <div className="subtask-list">
+        <div className="subtask-list__loading-placeholder" />
+        <div className="subtask-list__loading-placeholder" />
+        <div className="subtask-list__loading-placeholder" />
+      </div>
+    );
   }
 
   if (subtasks.length === 0) {
-    const handleNavigateToAdd = () => {
-      navigate("/tasks/add");
-    };
-
     return (
       <div className="subtask-list">
         <div
-          className="subtask-list__empty subtask-list__empty--clickable"
-          onClick={handleNavigateToAdd}
+          className="subtask-list__empty"
+          onClick={() => navigate("/tasks/add")}
         >
-          <div className="subtask-list__empty-content">
-            <div className="subtask-list__empty-text">
-              No subtasks found for today
-            </div>
-            <div className="subtask-list__empty-action">
-              Click to add a task
-            </div>
-          </div>
+          <p className="subtask-list__empty-text">
+            No subtasks yet! ✨ Time to get productive! 🚀
+          </p>
+          <p className="subtask-list__empty-action">
+            Click here to add your first task! ➕
+          </p>
         </div>
       </div>
     );
@@ -73,62 +71,48 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
 
   return (
     <div className="subtask-list">
-      {subtasks.length === 0 ? (
-        <div
-          className="subtask-list__empty"
-          onClick={() => navigate("/subtasks/add")}
+      {subtasks.map((subtask) => (
+        <Link
+          key={subtask._id}
+          to={`/subtasks/${subtask._id}`}
+          className="subtask-list__item-link"
         >
-          <div className="subtask-list__empty-content">
-            <div className="subtask-list__empty-icon">📝</div>
-            <div className="subtask-list__empty-text">
-              Nothing planned for today
-            </div>
-            <div className="subtask-list__empty-action">
-              <span className="plus-icon">+</span> Add new task
-            </div>
-          </div>
-        </div>
-      ) : (
-        subtasks.map((subtask) => (
           <div
-            key={subtask._id}
             className={`subtask-list__item ${
               subtask.completed ? "subtask-list__item--completed" : ""
             }`}
           >
-            <Link
-              to={`/subtasks/${subtask._id}`}
-              className="subtask-list__link"
-            >
-              <div className="subtask-list__checkbox">
-                <div className="checkbox-circle"></div>
-              </div>
-              <div className="subtask-list__content">
-                <span className="subtask-list__name">{subtask.name}</span>
-                <div className="subtask-list__meta">
-                  <span
-                    className={`subtask-list__status ${
-                      subtask.completed
-                        ? "subtask-list__status--completed"
-                        : "subtask-list__status--pending"
-                    }`}
-                  >
-                    {subtask.completed ? "Completed" : "Pending"}
-                  </span>
-                  {subtask.dueDate && (
-                    <span className="subtask-list__date">
-                      {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                      })}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
+            <div className="subtask-list__content">
+              <h3 className="subtask-list__title">
+                {subtask.name}
+                {subtask.priority === "High" && <span> 🔥</span>}
+              </h3>
+              {subtask.description && (
+                <p className="subtask-list__description">
+                  {subtask.description}
+                </p>
+              )}
+            </div>
+            <div className="subtask-list__meta">
+              <span
+                className={`subtask-list__status ${
+                  subtask.completed ? "completed" : "pending"
+                }`}
+              >
+                {subtask.completed ? "Completed" : "Pending"}
+              </span>
+              {subtask.dueDate && (
+                <span className="subtask-list__date">
+                  {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </span>
+              )}
+            </div>
           </div>
-        ))
-      )}
+        </Link>
+      ))}
     </div>
   );
 };
