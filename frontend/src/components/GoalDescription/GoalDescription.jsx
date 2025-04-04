@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import { toast } from "react-toastify";
+import { Types } from "mongoose";
 
 import TagModal from "../TagModal/TagModal";
 import Header from "./Header";
@@ -146,9 +147,13 @@ const GoalDescription = () => {
   const handleAddComment = async () => {
     if (comment.trim()) {
       try {
+        const userInfoString = localStorage.getItem("userInfo");
+        const userInfo = JSON.parse(userInfoString);
+        const userId = new Types.ObjectId(userInfo._id);
+
         await toast.promise(
           dispatch(
-            createComment({ goalId, text: comment.trim(), authorId: "1" })
+            createComment({ goalId, text: comment.trim(), authorId: userId })
           ).unwrap(),
           {
             pending: "Adding comment...",
