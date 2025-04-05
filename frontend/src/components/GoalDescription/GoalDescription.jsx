@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import { toast } from "react-toastify";
-import { Types } from "mongoose";
 
 import TagModal from "../TagModal/TagModal";
 import Header from "./Header";
@@ -149,7 +148,7 @@ const GoalDescription = () => {
       try {
         const userInfoString = localStorage.getItem("userInfo");
         const userInfo = JSON.parse(userInfoString);
-        const userId = new Types.ObjectId(userInfo._id);
+        const userId = userInfo._id;
 
         await toast.promise(
           dispatch(
