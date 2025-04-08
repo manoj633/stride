@@ -17,7 +17,7 @@ export const useGoalListLogic = (goals) => {
   // Add missing state declarations
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [sortBy, setSortBy] = useState("dueDate");
+  const [sortBy, setSortBy] = useState("thisMonth");
   const [viewType, setViewType] = useState("list");
   const [selectedGoals, setSelectedGoals] = useState([]);
 
@@ -47,6 +47,28 @@ export const useGoalListLogic = (goals) => {
           return isOverdue && matchesSearch;
         }
         return matchesSearch;
+      })
+      .filter((goal) => {
+        // New filtering logic for this week, this month, and this year
+        const now = new Date();
+        const goalDate = new Date(goal.duration.endDate);
+        switch (sortBy) {
+          case "thisWeek":
+            const startOfWeek = new Date(
+              now.setDate(now.getDate() - now.getDay())
+            );
+            const endOfWeek = new Date(now.setDate(startOfWeek.getDate() + 6));
+            return goalDate >= startOfWeek && goalDate <= endOfWeek;
+          case "thisMonth":
+            return (
+              goalDate.getMonth() === now.getMonth() &&
+              goalDate.getFullYear() === now.getFullYear()
+            );
+          case "thisYear":
+            return goalDate.getFullYear() === now.getFullYear();
+          default:
+            return true; // No additional filtering for other sort options
+        }
       })
       .sort((a, b) => {
         // Apply different sorting strategies

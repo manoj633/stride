@@ -116,6 +116,7 @@ const GoalList = () => {
               setFilterStatus={setFilterStatus}
               setSortBy={setSortBy}
               setViewType={setViewType}
+              sortBy={sortBy}
             />
             {selectedGoals?.length > 0 && (
               <BulkActions

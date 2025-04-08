@@ -6,6 +6,7 @@ export const SearchAndFilters = ({
   setFilterStatus,
   setSortBy,
   setViewType,
+  sortBy,
 }) => (
   <div className="enhanced-goals__controls">
     <input
@@ -29,6 +30,7 @@ export const SearchAndFilters = ({
       <select
         className="enhanced-goals__sort-select"
         onChange={(e) => setSortBy(e.target.value)}
+        value={sortBy}
       >
         <option value="dueDate">Due Date</option>
         <option value="priority">Priority</option>
@@ -36,6 +38,9 @@ export const SearchAndFilters = ({
         <option value="alphabetical">Alphabetical</option>
         <option value="created">Creation Date</option>
         <option value="lastModified">Last Modified</option>
+        <option value="thisWeek">This Week</option>
+        <option value="thisMonth">This Month</option>
+        <option value="thisYear">This Year</option>
       </select>
 
       <select
