@@ -50,7 +50,7 @@ const TaskCalendar = () => {
 
   // Filtering State
   const [selectedPriority, setSelectedPriority] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
+  const [selectedType, setSelectedType] = useState("subtask");
   const [showCompleted, setShowCompleted] = useState(true);
 
   const [isLoading, setIsLoading] = useState(true);
