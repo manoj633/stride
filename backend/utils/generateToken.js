@@ -5,8 +5,11 @@ const generateToken = (res, userId) => {
   //A secret stored in .env
   //expires in
   const token = jwt.sign({ userId }, process.env.JWT_KEY, {
-    expiresIn: "30d",
+    expiresIn: "24h",
   });
+
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 24);
 
   //Set JWT as HTTP only cookie
   res.cookie("jwt", token, {
@@ -14,6 +17,7 @@ const generateToken = (res, userId) => {
     secure: process.env.NODE_ENV !== "development",
     sameSite: "strict",
     maxAge: 30 * 24 * 60 * 60 * 1000,
+    expiresAt: expiresAt.toISOString(),
   });
 };
 
