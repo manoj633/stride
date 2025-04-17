@@ -144,6 +144,38 @@ const updateUser = asyncHandler(async (req, res) => {
   res.send("update users");
 });
 
+//@desc     Refresh User Token
+//@route    PUT /api/users/refresh-token
+//@access   Private
+const refreshToken = async (req, res) => {
+  const token = req.cookies.jwt;
+
+  if (!token) {
+    return res.status(401).json({ message: "Not authorized!" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+
+    // Generate a new token
+    const newToken = jwt.sign({ userId: decoded.userId }, process.env.JWT_KEY, {
+      expiresIn: "24h",
+    });
+
+    // Set new token in cookie
+    res.cookie("jwt", newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    return res.status(200).json({ message: "Token refreshed" });
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+};
+
 export {
   authUser,
   registerUser,
@@ -154,4 +186,5 @@ export {
   getUserById,
   deleteUser,
   updateUser,
+  refreshToken,
 };

@@ -10,9 +10,19 @@ const extractUser = (req, res, next) => {
   try {
     // Decode the token and extract the user ID
     const decoded = jwt.verify(token, process.env.JWT_KEY);
-    req.userId = decoded.userId; // Attach the userId to the request object
-    next(); // Call the next middleware/controller
+
+    // Check if token is expired
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp < currentTime) {
+      return res
+        .status(401)
+        .json({ message: "Token expired, please login again" });
+    }
+
+    req.userId = decoded.userId;
+    next();
   } catch (error) {
+    console.error("JWT Verification Error:", error.message);
     return res.status(401).json({ message: "Not authorized, token failed!" });
   }
 };
