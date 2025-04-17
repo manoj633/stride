@@ -1,0 +1,262 @@
+/* CommentsSection.css - Tweek.so inspired style */
+
+.goal-description__comments {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 32px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.03);
+    grid-column: 1 / -1;
+    /* Span across both columns in the parent grid */
+    border: 1px solid #ebeff5;
+}
+
+.goal-description__comments h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #373f4a;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ebeff5;
+    display: flex;
+    align-items: center;
+}
+
+.goal-description__comments h3::before {
+    content: "✏️";
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+.comment-input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+    background-color: #f8fafd;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #ebeff5;
+}
+
+.comment-input textarea {
+    padding: 14px;
+    border: 1px solid #e0e6ed;
+    border-radius: 6px;
+    resize: vertical;
+    min-height: 90px;
+    margin-bottom: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background-color: #ffffff;
+    color: #373f4a;
+}
+
+.comment-input textarea:focus {
+    outline: none;
+    border-color: #50aef9;
+    box-shadow: 0 0 0 2px rgba(80, 174, 249, 0.15);
+}
+
+.comment-input textarea::placeholder {
+    color: #a2aab6;
+    font-size: 0.95rem;
+}
+
+.comment-input button {
+    align-self: flex-end;
+    background-color: #50aef9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 2px rgba(80, 174, 249, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.comment-input button:hover {
+    background-color: #3e9fe6;
+    box-shadow: 0 2px 5px rgba(80, 174, 249, 0.3);
+}
+
+.comment-input button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(80, 174, 249, 0.2);
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.comment-item {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 1px solid #f0f4f8;
+    position: relative;
+}
+
+.comment-item:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: #50aef9;
+    border-radius: 8px 0 0 8px;
+    opacity: 0.7;
+}
+
+.comment-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.comment-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-text {
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+    word-break: break-word;
+    color: #373f4a;
+    font-size: 0.95rem;
+    font-weight: 400;
+}
+
+.comment-link {
+    color: #50aef9;
+    text-decoration: none;
+    word-break: break-all;
+    font-weight: 500;
+    transition: color 0.15s;
+    border-bottom: 1px dotted rgba(80, 174, 249, 0.3);
+    padding-bottom: 1px;
+}
+
+.comment-link:hover {
+    color: #3e9fe6;
+    border-bottom: 1px solid #50aef9;
+}
+
+.comment-date {
+    font-size: 0.8rem;
+    color: #8a94a6;
+    align-self: flex-end;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background-color: #f0f4f8;
+}
+
+.no-comments {
+    color: #8a94a6;
+    font-style: normal;
+    text-align: center;
+    padding: 24px 0;
+    background-color: #f8fafd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+/* Add a gentle slide in animation for new comments */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comment-item {
+    animation: slideIn 0.2s ease-out forwards;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .goal-description__comments {
+        padding: 18px;
+        margin-top: 20px;
+    }
+
+    .comment-input button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .comment-item {
+        padding: 14px;
+    }
+}
+
+/* Add these to your CommentsSection.css file */
+
+.section-emoji {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+.button-emoji {
+    margin-right: 6px;
+    font-size: 0.9rem;
+}
+
+.empty-emoji {
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+.comment-emoji {
+    font-size: 1.1rem;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.comment-header {
+    margin-bottom: 8px;
+}
+
+.date-emoji {
+    margin-right: 4px;
+    font-size: 0.8rem;
+}
+
+.link-emoji {
+    font-size: 0.85rem;
+}
+
+/* Hover effects for emojis to add subtle interactivity */
+.comment-item:hover .comment-emoji {
+    transform: rotate(5deg);
+    transition: transform 0.3s ease;
+}
+
+.button-emoji {
+    transition: transform 0.2s ease;
+}
+
+button:hover .button-emoji {
+    transform: scale(1.2);
+}

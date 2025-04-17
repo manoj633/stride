@@ -44,32 +44,6 @@
     color: white;
 }
 
-.goal-description__comments {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid #e0e0e0;
-}
-
-.comment-input {
-    margin-bottom: 1rem;
-}
-
-.comment-input textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    resize: vertical;
-}
-
-.comment-item {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-}
-
 .goal-description__collaborators {
     margin-top: 2rem;
 }
