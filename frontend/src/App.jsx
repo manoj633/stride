@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { store } from "./store/store";
@@ -27,9 +27,83 @@ import {
   TimerProvider,
 } from "./components/Pomodoro/TimerContext";
 
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { useNavigate } from "react-router-dom";
+import { checkTokenExpiration } from "./store/features/auth/authSlice";
+
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
   const location = useLocation();
+
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkTokenInterval = setInterval(() => {
+      // Check if user is logged in
+      const { userInfo } = useAppSelector((state) => state.user);
+      if (userInfo) {
+        // Call your refresh token endpoint
+        fetch("/api/users/refresh-token", {
+          method: "POST",
+          credentials: "include", // To send cookies
+        }).catch((err) => {
+          console.error("Failed to refresh token:", err);
+          // If refresh fails, log out the user
+          dispatch(logout());
+          navigate("/login");
+        });
+      }
+    }, 15 * 60 * 1000); // Check every 15 minutes
+
+    return () => clearInterval(checkTokenInterval);
+  }, []);
+
+  useEffect(() => {
+    // Listen for storage events (localStorage changes from other tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === "userInfo" && !e.newValue) {
+        // User logged out in another tab
+        dispatch(logout());
+        navigate("/login");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [dispatch, navigate]);
+
+  useEffect(() => {
+    // Check token validity on app load
+    const isExpired = dispatch(checkTokenExpiration());
+    if (isExpired) {
+      navigate("/login");
+    }
+
+    // Check token periodically
+    const tokenCheckInterval = setInterval(() => {
+      const isExpired = dispatch(checkTokenExpiration());
+      if (isExpired) {
+        navigate("/login");
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    // Listen for storage events (to sync across tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === "userInfo" && !e.newValue) {
+        // User logged out in another tab
+        dispatch(clearCredentials());
+        navigate("/login");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      clearInterval(tokenCheckInterval);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [dispatch, navigate]);
 
   const mainClass = `main-content ${
     location.pathname === "/pomodoro" ? activeTimer : ""
