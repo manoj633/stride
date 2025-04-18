@@ -23,31 +23,35 @@ const router = express.Router();
 router.route("/").get(extractUser, getGoals).post(extractUser, createGoal);
 
 // Get, update, or delete goal by id
-router.route("/:id").get(getGoalById).put(updateGoal).delete(deleteGoal);
+router
+  .route("/:id")
+  .get(extractUser, getGoalById)
+  .put(extractUser, updateGoal)
+  .delete(extractUser, deleteGoal);
 
 // Partially update goal completion
-router.route("/:id/completion").put(updateGoalCompletion);
+router.route("/:id/completion").put(extractUser, updateGoalCompletion);
 
 // Add or remove collaborator
 router
   .route("/:id/collaborators")
-  .put(addCollaborator) // To add a collaborator
-  .delete(removeCollaborator); // To remove a collaborator
+  .put(extractUser, addCollaborator) // To add a collaborator
+  .delete(extractUser, removeCollaborator); // To remove a collaborator
 
 // Add or remove tag
 router
   .route("/:id/tags")
-  .put(addTag) // To add a tag
-  .delete(removeTag); // To remove a tag
+  .put(extractUser, addTag) // To add a tag
+  .delete(extractUser, removeTag); // To remove a tag
 
 // Add or remove comment
 router
   .route("/:id/comments")
-  .put(addComment) // To add a comment
-  .delete(removeComment); // To remove a comment
+  .put(extractUser, addComment) // To add a comment
+  .delete(extractUser, removeComment); // To remove a comment
 
-router.route("/:id/status").patch(updateGoalStatus);
+router.route("/:id/status").patch(extractUser, updateGoalStatus);
 
-router.route("/:id/archive").post(archiveGoal);
+router.route("/:id/archive").post(extractUser, archiveGoal);
 
 export default router;

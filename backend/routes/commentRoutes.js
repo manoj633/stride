@@ -5,11 +5,15 @@ import {
   updateComment,
   deleteComment,
 } from "../controllers/commentController.js";
+import extractUser from "../utils/extractUser.js";
 
 const router = express.Router();
 
-router.route("/").post(createComment);
-router.route("/goal/:goalId").get(getGoalComments);
-router.route("/:commentId").put(updateComment).delete(deleteComment);
+router.route("/").post(extractUser, createComment);
+router.route("/goal/:goalId").get(extractUser, getGoalComments);
+router
+  .route("/:commentId")
+  .put(extractUser, updateComment)
+  .delete(extractUser, deleteComment);
 
 export default router;
