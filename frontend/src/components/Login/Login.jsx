@@ -96,6 +96,11 @@ const Login = () => {
                   Register
                 </Link>
               </span>
+              <span className="login__footer-text">
+                <Link to="/forgot-password" className="login__link">
+                  Forgot Password?
+                </Link>
+              </span>
             </div>
           </div>
         </div>
