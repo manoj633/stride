@@ -10,6 +10,8 @@ import {
   deleteUser,
   updateUser,
   refreshToken,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 
@@ -28,5 +30,7 @@ router
   .delete(protect, admin, deleteUser)
   .put(protect, admin, updateUser);
 router.post("/refresh-token", refreshToken);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;
