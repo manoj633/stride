@@ -30,6 +30,8 @@ import {
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { useNavigate } from "react-router-dom";
 import { checkTokenExpiration } from "./store/features/auth/authSlice";
+import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
@@ -129,6 +131,8 @@ const App = () => {
           <Route path="/register" Component={Register} />
           <Route path="/profile" Component={Profile} />
           <Route path="/pomodoro" Component={Pomodoro} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Routes>
       </main>
       <ToastContainer />
