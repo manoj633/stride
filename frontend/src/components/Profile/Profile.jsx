@@ -1,3 +1,4 @@
+// Updated Profile.jsx without password fields but with proper styling
 import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks.js";
 import { toast } from "react-toastify";
@@ -8,8 +9,6 @@ import { useNavigate } from "react-router-dom";
 const Profile = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ const Profile = () => {
 
   useEffect(() => {
     if (userInfo) {
-      console.log(userInfo);
       setName(userInfo.name);
       setEmail(userInfo.email);
     }
@@ -25,17 +23,12 @@ const Profile = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
     try {
       const res = await dispatch(
         updateProfile({
           _id: userInfo._id,
           name,
           email,
-          password,
         })
       ).unwrap();
       toast.success("Profile updated successfully");
@@ -45,106 +38,86 @@ const Profile = () => {
     }
   };
 
+  // Get first letter of name for avatar
+  const getInitial = () => {
+    return name ? name.charAt(0).toUpperCase() : "U";
+  };
+
   return (
     <div className="profile">
       <div className="profile__container">
         <div className="profile__sidebar">
           <div className="profile__header">
-            <div className="profile__avatar">
-              {userInfo?.name.charAt(0).toUpperCase()}
-            </div>
+            <div className="profile__avatar">{getInitial()}</div>
             <div className="profile__header-info">
-              <h2 className="profile__title">User Profile </h2>
-              <p className="profile__subtitle">Manage your account settings</p>
+              <h2 className="profile__title">Profile Settings</h2>
+              <p className="profile__subtitle">
+                Manage your account information
+              </p>
             </div>
-            {userInfo?.isAdmin && (
-              <span className="profile__admin-badge">Admin Account</span>
-            )}
           </div>
+
+          {userInfo?.isAdmin && (
+            <div className="profile__admin-badge">Administrator</div>
+          )}
 
           <form className="profile__form" onSubmit={submitHandler}>
             <div className="profile__form-group">
-              <label className="profile__label">
-                <span className="profile__label-text">Name</span>
-                <div className="profile__input-wrapper">
-                  <input
-                    className="profile__input"
-                    type="text"
-                    placeholder="Enter name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <span className="profile__input-icon">👤</span>
-                </div>
-              </label>
+              <label className="profile__label">Name</label>
+              <div className="profile__input-wrapper">
+                <input
+                  className="profile__input"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
             <div className="profile__form-group">
-              <label className="profile__label">
-                <span className="profile__label-text">Email</span>
-                <div className="profile__input-wrapper">
-                  <input
-                    className="profile__input"
-                    type="email"
-                    placeholder="Enter email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <span className="profile__input-icon">✉️</span>
-                </div>
-              </label>
+              <label className="profile__label">Email Address</label>
+              <div className="profile__input-wrapper">
+                <input
+                  className="profile__input"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
             <div className="profile__form-group">
-              <label className="profile__label">
-                <span className="profile__label-text">Password</span>
-                <div className="profile__input-wrapper">
-                  <input
-                    className="profile__input"
-                    type="password"
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <span className="profile__input-icon">🔒</span>
-                </div>
-              </label>
-            </div>
-
-            <div className="profile__form-group">
-              <label className="profile__label">
-                <span className="profile__label-text">Confirm Password</span>
-                <div className="profile__input-wrapper">
-                  <input
-                    className="profile__input"
-                    type="password"
-                    placeholder="Confirm password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                  <span className="profile__input-icon">🔒</span>
-                </div>
-              </label>
+              <p className="profile__label">Password Management</p>
+              <a
+                href="/forgot-password"
+                className="profile__button"
+                style={{ textDecoration: "none", textAlign: "center" }}
+              >
+                Reset Password
+              </a>
             </div>
 
             <button
+              type="submit"
               className={`profile__button ${
                 loading ? "profile__button--loading" : ""
               }`}
-              type="submit"
               disabled={loading}
             >
-              {loading ? (
-                <span className="profile__button-content">
-                  <span className="profile__spinner"></span>
-                  Updating...
-                </span>
-              ) : (
-                <span className="profile__button-content">
-                  <span className="profile__button-icon">💾</span>
-                  Update Profile
-                </span>
-              )}
+              <div className="profile__button-content">
+                {loading ? (
+                  <>
+                    <span className="profile__spinner"></span>
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  "Update Profile"
+                )}
+              </div>
             </button>
           </form>
         </div>

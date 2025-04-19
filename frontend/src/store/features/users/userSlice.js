@@ -49,6 +49,7 @@ export const updateProfile = createAsyncThunk(
   "users/profile/update",
   async (userData, { rejectWithValue }) => {
     try {
+      // Only send the fields that are actually provided
       const { data } = await userAPI.updateProfile(userData);
       setUserToStorage(data);
       return data;
