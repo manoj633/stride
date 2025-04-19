@@ -26,6 +26,7 @@ const Register = () => {
     }
   }, [userInfo, redirect, navigate]);
 
+  // In frontend/src/components/Register/Register.jsx
   const submitHandler = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -34,7 +35,13 @@ const Register = () => {
     }
     try {
       const res = await dispatch(register({ name, email, password })).unwrap();
-      navigate(redirect);
+      // Check if 2FA setup data is returned
+      if (res.twoFactorAuthSetup) {
+        // Navigate to 2FA setup page
+        navigate("/two-factor-setup");
+      } else {
+        navigate(redirect);
+      }
     } catch (error) {
       toast.error(error?.data?.message || error.error);
     }
