@@ -1,156 +1,199 @@
+// src/components/Navigation/NavigationDrawer.jsx
 import React, { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { FaUser } from "react-icons/fa";
-import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
-import { logout } from "../../store/features/users/userSlice.js";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../store/features/users/userSlice";
+import {
+  FiHome,
+  FiTarget,
+  FiCheckSquare,
+  FiList,
+  FiCalendar,
+  FiClock,
+  FiTag,
+  FiUser,
+  FiPlusCircle,
+  FiLogOut,
+  FiMenu,
+  FiX,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
 import "./Navigation.css";
 
-const Navigation = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+const NavigationDrawer = () => {
+  const [isOpen, setIsOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const { userInfo } = useSelector((state) => state.user);
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { userInfo } = useAppSelector((state) => state.user);
+  const location = useLocation();
+  const dispatch = useDispatch();
 
-  const logoutHandler = async () => {
-    try {
-      await dispatch(logout()).unwrap();
-      navigate("/login");
-    } catch (error) {
-      console.log(error);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Initial check
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
+  const toggleDrawer = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const closeDrawer = () => {
+    if (isMobile) {
+      setIsOpen(false);
     }
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+  if (!userInfo) {
+    return null; // Don't show nav when not logged in
+  }
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const mainNavItems = [
+    { path: "/", label: "Dashboard", icon: <FiHome /> },
+    { path: "/goals", label: "Goals", icon: <FiTarget /> },
+    { path: "/tasks", label: "Tasks", icon: <FiCheckSquare /> },
+    { path: "/subtasks", label: "Subtasks", icon: <FiList /> },
+    { path: "/calendar", label: "Calendar", icon: <FiCalendar /> },
+    { path: "/pomodoro", label: "Pomodoro", icon: <FiClock /> },
+    { path: "/tags/manage", label: "Tags", icon: <FiTag /> },
+    { path: "/profile", label: "Profile", icon: <FiUser /> },
+  ];
 
-  const navLinks = [
-    { path: "/", label: "Calendar" },
-    {
-      path: "/goals",
-      label: "Goals",
-      children: [
-        { path: "/goals/add", label: "Add Goal" },
-        { path: "/goals/", label: "View Goals" },
-      ],
-    },
-    {
-      path: "/tasks",
-      label: "Tasks",
-      children: [
-        { path: "/tasks/add", label: "Add Task" },
-        { path: "/tasks/", label: "View Tasks" },
-      ],
-    },
-    {
-      path: "/subtasks",
-      label: "Subtasks",
-      children: [
-        { path: "/subtasks/add", label: "Add Subtask" },
-        { path: "/subtasks/", label: "View Subtasks" },
-      ],
-    },
-    { path: "/tags/manage", label: "Tags" },
+  const quickAddItems = [
+    { path: "/goals/add", label: "Add Goal", color: "#4285f4" },
+    { path: "/tasks/add", label: "Add Task", color: "#34a853" },
+    { path: "/subtasks/add", label: "Add Subtask", color: "#fbbc05" },
   ];
 
   return (
-    <nav className={`modern-nav ${isScrolled ? "modern-nav--scrolled" : ""}`}>
-      <div className="modern-nav__container">
-        <div className="modern-nav__logo">
-          <NavLink to="/" className="modern-nav__logo-link">
-            Stride
-          </NavLink>
-        </div>
-
-        <button
-          className="modern-nav__mobile-toggle"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
+    <>
+      {/* Mobile toggle button */}
+      {isMobile && (
+        <button className="nav-drawer__toggle" onClick={toggleDrawer}>
+          {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
+      )}
 
-        <div
-          className={`modern-nav__menu ${
-            isMobileMenuOpen ? "modern-nav__menu--open" : ""
-          }`}
+      {/* Collapse/Expand button for desktop */}
+      {!isMobile && (
+        <button
+          className={`nav-drawer__collapse-btn ${isOpen ? "" : "collapsed"}`}
+          onClick={toggleDrawer}
         >
-          {navLinks.map(({ path, label, children }) => (
-            <div key={path} className="modern-nav__item">
-              {children ? (
-                <div className="modern-nav__dropdown">
-                  <NavLink
-                    to={path}
-                    className={({ isActive }) =>
-                      `modern-nav__link ${
-                        isActive ? "modern-nav__link--active" : ""
-                      }`
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {label}
-                  </NavLink>
-                  <div className="modern-nav__dropdown-content">
-                    {children.map((child) => (
-                      <NavLink
-                        key={child.path}
-                        to={child.path}
-                        className="modern-nav__dropdown-item"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {child.label}
-                      </NavLink>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <NavLink
-                  to={path}
-                  className={({ isActive }) =>
-                    `modern-nav__link ${
-                      isActive ? "modern-nav__link--active" : ""
-                    }`
-                  }
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {label}
-                </NavLink>
-              )}
-            </div>
-          ))}
-          {userInfo ? (
-            <div className="modern-nav__user">
-              <span className="modern-nav__user-name">{userInfo.name}</span>
-              <div className="modern-nav__user-dropdown">
-                <NavLink to="/profile" className="modern-nav__dropdown-item">
-                  Profile
-                </NavLink>
-                <button
-                  className="modern-nav__dropdown-item"
-                  onClick={logoutHandler}
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          ) : (
-            <NavLink to="/login" className="modern-nav__link">
-              <FaUser /> Sign In
-            </NavLink>
+          {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
+        </button>
+      )}
+
+      {/* Backdrop for mobile */}
+      {isMobile && isOpen && (
+        <div className="nav-drawer__backdrop" onClick={closeDrawer}></div>
+      )}
+
+      {/* Main navigation drawer */}
+      <nav className={`nav-drawer ${isOpen ? "open" : "closed"}`}>
+        <div className="nav-drawer__header">
+          <h1 className="nav-drawer__title">Stride</h1>
+          {isMobile && (
+            <button className="nav-drawer__close" onClick={closeDrawer}>
+              <FiX size={20} />
+            </button>
           )}
         </div>
-      </div>
-    </nav>
+
+        <div className="nav-drawer__user">
+          <div className="nav-drawer__avatar">
+            {userInfo.name.charAt(0).toUpperCase()}
+          </div>
+          {isOpen && (
+            <div className="nav-drawer__user-info">
+              <div className="nav-drawer__username">{userInfo.name}</div>
+              <div className="nav-drawer__email">{userInfo.email}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Quick add section */}
+        {isOpen && (
+          <div className="nav-drawer__quick-add">
+            {quickAddItems.map((item) => (
+              <button
+                key={item.path}
+                className="nav-drawer__quick-add-btn"
+                style={{ backgroundColor: item.color }}
+                onClick={() => {
+                  navigate(item.path);
+                  closeDrawer();
+                }}
+              >
+                <FiPlusCircle size={16} />
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Main navigation links */}
+        <ul className="nav-drawer__links">
+          {mainNavItems.map((item) => (
+            <li key={item.path}>
+              <a
+                href={item.path}
+                className={`nav-drawer__link ${
+                  isActive(item.path) ? "active" : ""
+                } ${!isOpen ? "collapsed" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(item.path);
+                  closeDrawer();
+                }}
+                title={!isOpen ? item.label : ""}
+              >
+                <span className="nav-drawer__icon">{item.icon}</span>
+                {isOpen && (
+                  <span className="nav-drawer__label">{item.label}</span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div className="nav-drawer__footer">
+          <button
+            className={`nav-drawer__logout ${!isOpen ? "collapsed" : ""}`}
+            onClick={handleLogout}
+            title={!isOpen ? "Logout" : ""}
+          >
+            <FiLogOut />
+            {isOpen && <span>Logout</span>}
+          </button>
+        </div>
+      </nav>
+
+      {/* Main content class helper */}
+      <div
+        className={`main-content-wrapper ${
+          isOpen ? "drawer-open" : "drawer-closed"
+        }`}
+      ></div>
+    </>
   );
 };
 
-export default Navigation;
+export default NavigationDrawer;

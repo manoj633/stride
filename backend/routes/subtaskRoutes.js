@@ -19,9 +19,9 @@ router
 router
   .route("/:id")
   .get(extractUser, getSubtaskById)
-  .put(updateSubtask)
-  .delete(deleteSubtask);
+  .put(extractUser, updateSubtask)
+  .delete(extractUser, deleteSubtask);
 
-router.route("/:id/complete").patch(markSubtaskAsCompleted);
+router.route("/:id/complete").patch(extractUser, markSubtaskAsCompleted);
 
 export default router;

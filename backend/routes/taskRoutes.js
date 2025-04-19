@@ -18,10 +18,10 @@ router.route("/").get(extractUser, getTasks).post(extractUser, createTask);
 router
   .route("/:id")
   .get(extractUser, getTaskById)
-  .put(updateTask)
-  .delete(deleteTask);
+  .put(extractUser, updateTask)
+  .delete(extractUser, deleteTask);
 
 // Partially update task completion
-router.route("/:id/completion").put(updateTaskCompletion);
+router.route("/:id/completion").put(extractUser, updateTaskCompletion);
 
 export default router;

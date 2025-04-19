@@ -6,7 +6,7 @@ import logger from "../utils/logger.js";
 /**
  * * Description: Fetch all tasks
  * * route: /api/tasks
- * * access: Public
+ * * access: Private
  */
 const getTasks = asyncHandler(async (req, res) => {
   logger.info("Fetching all tasks", { endpoint: "/api/tasks" });
@@ -18,7 +18,7 @@ const getTasks = asyncHandler(async (req, res) => {
 /**
  * * Description: Fetch task by id
  * * route: /api/tasks/:id
- * * access: Public
+ * * access: Private
  */
 const getTaskById = asyncHandler(async (req, res) => {
   logger.info("Fetching task by id", {
@@ -46,7 +46,7 @@ const getTaskById = asyncHandler(async (req, res) => {
 /**
  * * Description: Create a new task
  * * route: /api/tasks
- * * access: Public
+ * * access: Private
  */
 const createTask = asyncHandler(async (req, res) => {
   logger.info("Creating new task", {
@@ -83,7 +83,7 @@ const createTask = asyncHandler(async (req, res) => {
 /**
  * * Description: Update an existing task
  * * route: /api/tasks/:id
- * * access: Public
+ * * access: Private
  */
 const updateTask = asyncHandler(async (req, res) => {
   logger.info("Updating task", {
@@ -129,7 +129,7 @@ const updateTask = asyncHandler(async (req, res) => {
 /**
  * * Description: Delete a task by id
  * * route: /api/tasks/:id
- * * access: Public
+ * * access: Private
  */
 const deleteTask = asyncHandler(async (req, res) => {
   logger.info("Deleting task", {
@@ -153,7 +153,7 @@ const deleteTask = asyncHandler(async (req, res) => {
 /**
  * * Description: Partially update a task's completion status or completion percentage
  * * route: /api/tasks/:id/completion
- * * access: Public
+ * * access: Private
  */
 const updateTaskCompletion = asyncHandler(async (req, res) => {
   logger.info("Updating task completion status", {
