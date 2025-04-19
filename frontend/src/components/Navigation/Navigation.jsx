@@ -119,7 +119,7 @@ const NavigationDrawer = () => {
 
         <div className="nav-drawer__user">
           <div className="nav-drawer__avatar">
-            {userInfo.name.charAt(0).toUpperCase()}
+            {userInfo?.name?.charAt(0)?.toUpperCase() || ""}
           </div>
           {isOpen && (
             <div className="nav-drawer__user-info">
