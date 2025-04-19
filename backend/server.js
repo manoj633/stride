@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import { sanitizeInput } from "./middleware/sanitize.js";
-import limiter from "./middleware/rateLimiter.js";
+import { limiter } from "./middleware/rateLimiter.js";
 import logger from "./utils/logger.js";
 
 // Routes
