@@ -1,11 +1,15 @@
-import React, { useContext, useState } from "react";
+// src/components/Pomodoro/Pomodoro.jsx
+import React from "react";
 import TimerCard from "./TimerCard";
-import "./Pomodoro.css"; // Import a CSS file for styling this component
+import "./Pomodoro.css";
 
 const Pomodoro = () => {
   return (
     <div className="pomodoro-container">
-      <TimerCard />
+      <div className="pomodoro-wrapper">
+        <h1 className="pomodoro-title">Focus Timer</h1>
+        <TimerCard />
+      </div>
     </div>
   );
 };

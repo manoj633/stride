@@ -3,13 +3,13 @@
 }
 
 .main-content.pomodoro {
-    background-color: #f08080;
+    background-color: #f8f8f8;
 }
 
 .main-content.shortBreak {
-    background-color: #17a2b8;
+    background-color: #e7f5fd;
 }
 
 .main-content.longBreak {
-    background-color: #808000;
+    background-color: #eeedf7;
 }
