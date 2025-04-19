@@ -2,6 +2,8 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Task from "../models/taskModel.js";
 import logger from "../utils/logger.js";
+import Subtask from "../models/subtaskModel.js";
+import Goal from "../models/goalModel.js";
 
 /**
  * * Description: Fetch all tasks
@@ -140,9 +142,23 @@ const deleteTask = asyncHandler(async (req, res) => {
   const task = await Task.findById(req.params.id);
 
   if (task) {
+    // Delete all subtasks associated with this task
+    await Subtask.deleteMany({ taskId: req.params.id });
+    logger.debug("Deleted subtasks for task", { taskId: req.params.id });
+
+    // Delete the task itself
     await Task.deleteOne({ _id: req.params.id });
     logger.debug("Task deleted successfully", { taskId: req.params.id });
-    res.json({ message: "Task removed" });
+
+    // Update the completion percentage of the parent goal
+    if (task.goalId) {
+      await updateGoalCompletionPercentage(task.goalId);
+    }
+
+    res.json({
+      message: "Task and all related subtasks removed",
+      goalId: task.goalId,
+    });
   } else {
     logger.error("Task not found for deletion", { taskId: req.params.id });
     res.status(404);
@@ -204,6 +220,51 @@ const updateTaskCompletion = asyncHandler(async (req, res) => {
     throw error;
   }
 });
+
+// Helper function to update goal completion percentage
+const updateGoalCompletionPercentage = async (goalId) => {
+  try {
+    // Find all tasks for this goal
+    const tasks = await Task.find({ goalId });
+
+    if (tasks.length === 0) {
+      // If no tasks left, set completion to 0
+      await Goal.findByIdAndUpdate(goalId, {
+        completionPercentage: 0,
+        completed: false,
+      });
+      return;
+    }
+    // Calculate the average completion percentage
+    const totalPercentage = tasks.reduce(
+      (sum, task) => sum + task.completionPercentage,
+      0
+    );
+    const averagePercentage =
+      tasks.length > 0 ? totalPercentage / tasks.length : 0;
+
+    // Count completed tasks
+    const completedTasks = tasks.filter((task) => task.completed).length;
+    const isCompleted = tasks.length > 0 && completedTasks === tasks.length;
+
+    // Update the goal
+    await Goal.findByIdAndUpdate(goalId, {
+      completionPercentage: Math.round(averagePercentage),
+      completed: isCompleted,
+    });
+
+    logger.debug("Updated goal completion percentage", {
+      goalId,
+      completionPercentage: Math.round(averagePercentage),
+      completed: isCompleted,
+    });
+  } catch (error) {
+    logger.error("Error updating goal completion percentage", {
+      goalId,
+      error: error.message,
+    });
+  }
+};
 
 export {
   getTasks,
