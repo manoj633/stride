@@ -1,6 +1,8 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Goal from "../models/goalModel.js";
 import logger from "../utils/logger.js";
+import Task from "../models/taskModel.js";
+import Subtask from "../models/subtaskModel.js";
 
 /**
  * * Description: Fetch all goals
@@ -122,9 +124,37 @@ const deleteGoal = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
 
   if (goal) {
+    const tasks = await Task.find({ goalId: req.params.id });
+
+    // Get all task IDs for subtask deletion
+    const taskIds = tasks.map((task) => task._id);
+
+    // Delete all subtasks associated with those tasks
+    if (taskIds.length > 0) {
+      await Subtask.deleteMany({ taskId: { $in: taskIds } });
+      logger.debug("Deleted subtasks for goal's tasks", {
+        goalId: req.params.id,
+        taskCount: taskIds.length,
+      });
+    }
+
+    // Delete all tasks associated with this goal
+    await Task.deleteMany({ goalId: req.params.id });
+    logger.debug("Deleted tasks for goal", {
+      goalId: req.params.id,
+      taskCount: tasks.length,
+    });
+
     await Goal.deleteOne({ _id: req.params.id });
     logger.debug("Goal deleted successfully", { goalId: req.params.id });
-    res.json({ message: "Goal removed" });
+    res.json({
+      message: "Goal and all related tasks and subtasks removed",
+      deletedTasksCount: tasks.length,
+      deletedSubtasksCount:
+        taskIds.length > 0
+          ? await Subtask.countDocuments({ taskId: { $in: taskIds } })
+          : 0,
+    });
   } else {
     logger.error("Goal not found for deletion", { goalId: req.params.id });
     res.status(404);

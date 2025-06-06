@@ -15,6 +15,7 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import { sanitizeInput } from "./middleware/sanitize.js";
 import { limiter } from "./middleware/rateLimiter.js";
 import logger from "./utils/logger.js";
+import { initScheduler } from "./utils/scheduler.js";
 
 // Routes
 import goalRoutes from "./routes/goalRoutes.js";
@@ -34,6 +35,7 @@ const port = process.env.PORT || 5000;
 connectDB();
 
 const app = express();
+initScheduler();
 app.use(
   cors({
     origin: "https://stride-qd71.onrender.com",
