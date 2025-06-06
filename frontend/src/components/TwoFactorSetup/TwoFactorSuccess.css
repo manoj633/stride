@@ -1,7 +1,10 @@
+/* TwoFactorSuccess.css */
 .two-factor-success {
     padding: 2rem;
     max-width: 700px;
     margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+
 }
 
 .two-factor-success__container {
@@ -11,156 +14,117 @@
     padding: 2rem;
 }
 
-.two-factor-success__header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.two-factor-success__icon {
-    font-size: 4rem;
-    color: #2ecc71;
-    margin-bottom: 1rem;
-}
-
 .two-factor-success__title {
     font-size: 1.8rem;
     color: #333;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 
-.two-factor-success__subtitle {
-    color: #666;
-    font-size: 1.1rem;
+.two-factor-success__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
-.two-factor-success__backup-codes {
-    background-color: #f8f9fa;
-    border-radius: 6px;
+.two-factor-success__main {
     padding: 1.5rem;
-    margin-bottom: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 6px;
 }
 
-.two-factor-success__backup-header {
+.two-factor-success__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.two-factor-success__status-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #4caf50;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    font-size: 30px;
+    color: white;
     margin-bottom: 1rem;
 }
 
-.two-factor-success__backup-header h2 {
+.two-factor-success__backup-section {
+    margin-top: 1rem;
+}
+
+.two-factor-success__backup-section h2 {
     font-size: 1.3rem;
+    margin-bottom: 1rem;
     color: #444;
 }
 
-.two-factor-success__backup-header svg {
-    color: #3498db;
-    font-size: 1.3rem;
-}
-
-.two-factor-success__backup-info {
-    margin-bottom: 1.5rem;
-    color: #555;
-}
-
-.two-factor-success__codes-container {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.two-factor-success__info {
+    margin: 1.5rem 0;
     padding: 1rem;
-    margin-bottom: 1rem;
+    background-color: #f0f7ff;
+    border-left: 4px solid #4a90e2;
+    border-radius: 0 4px 4px 0;
+}
+
+.two-factor-success__info h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
 }
 
 .two-factor-success__codes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.8rem;
-    margin-bottom: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 1.5rem 0;
 }
 
 .two-factor-success__code {
     font-family: monospace;
-    background-color: #f0f0f0;
-    padding: 0.5rem;
-    border-radius: 3px;
+    font-size: 1.1rem;
+    padding: 0.8rem;
+    background-color: #e6e6e6;
+    border-radius: 4px;
     text-align: center;
-    font-size: 1rem;
     letter-spacing: 1px;
 }
 
 .two-factor-success__copy-button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    width: 100%;
-    padding: 0.6rem;
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
+    margin-bottom: 1.5rem;
 }
 
 .two-factor-success__copy-button:hover {
-    background-color: #e4e4e4;
+    background-color: #e6e6e6;
 }
 
-.two-factor-success__warning {
+.two-factor-success__actions {
+    margin-top: 2rem;
     display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.8rem;
-    background-color: #fef9e7;
-    border-left: 4px solid #f39c12;
-    border-radius: 0 4px 4px 0;
+    justify-content: center;
 }
 
-.two-factor-success__warning svg {
-    color: #f39c12;
-    font-size: 1.2rem;
-    margin-top: 0.1rem;
-}
-
-.two-factor-success__warning p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-.two-factor-success__no-backup {
-    background-color: #eee;
-    padding: 1.5rem;
-    border-radius: 6px;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.two-factor-success__next-steps {
-    background-color: #e8f4f8;
-    padding: 1.5rem;
-    border-radius: 6px;
-}
-
-.two-factor-success__next-steps h3 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: #2980b9;
-}
-
-.two-factor-success__next-steps ul {
-    margin-bottom: 1.5rem;
-    padding-left: 1.5rem;
-}
-
-.two-factor-success__next-steps li {
-    margin-bottom: 0.5rem;
-    color: #444;
-}
-
-.two-factor-success__continue-button {
+.two-factor-success__button {
     width: 100%;
     padding: 0.8rem;
-    background-color: #3498db;
+    background-color: #4a90e2;
     color: white;
     border: none;
     border-radius: 4px;
@@ -170,20 +134,12 @@
     transition: background-color 0.2s;
 }
 
-.two-factor-success__continue-button:hover {
-    background-color: #2980b9;
+.two-factor-success__button:hover {
+    background-color: #3a7bc8;
 }
 
-@media (max-width: 600px) {
-    .two-factor-success__codes-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .two-factor-success {
+@media (min-width: 768px) {
+    .two-factor-success__backup-section {
         padding: 1rem;
-    }
-
-    .two-factor-success__container {
-        padding: 1.5rem;
     }
 }
