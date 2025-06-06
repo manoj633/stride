@@ -37,6 +37,7 @@ const TaskCalendar = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
+  const { userInfo } = useAppSelector((state) => state.user);
   const goals = useAppSelector((state) => state.goals.items);
   const tasks = useAppSelector((state) => state.tasks.items);
   const subtasks = useAppSelector((state) => state.subtasks.items);
@@ -144,6 +145,13 @@ const TaskCalendar = () => {
 
     setCalendarItems(itemsByDate);
   }, [goals, tasks, subtasks]);
+
+  useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (!userInfo) {
+      navigate("/login");
+    }
+  }, [userInfo, navigate]);
 
   const toggleItem = (date, item) => {
     const [type, id] = item.id.split("-");
