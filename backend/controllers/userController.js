@@ -3,6 +3,10 @@ import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
 import PasswordReset from "../models/passwordResetModel.js";
 import sendEmail from "../utils/emailService.js";
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 //@desc     Auth User & get token
 //@route    POST /api/users/login
@@ -11,14 +15,28 @@ const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
+
   if (user && (await user.matchPassword(password))) {
-    generateToken(res, user._id);
+    // Check if 2FA is enabled
+    if (user.isTwoFactorEnabled) {
+      // Only return minimal information to indicate 2FA is needed
+      return res.status(200).json({
+        _id: user._id,
+        email: user.email,
+        requiresTwoFactor: true,
+      });
+    }
+
+    // Standard login flow (no 2FA)
+    const accessToken = generateToken(res, user._id);
 
     res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+      accessToken,
     });
   } else {
     res.status(401);
@@ -43,15 +61,38 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password,
+    isTwoFactorEnabled: true,
   });
 
+  // Generate a 2FA secret for the new user
+  const secret = speakeasy.generateSecret({
+    name: `Stride:${user.email}`,
+  });
+
+  // Store the secret
+  user.twoFactorSecret = secret.base32;
+  await user.save();
+
+  // Return the QR code URL along with user data
+  const qrCodeUrl = speakeasy.otpauthURL({
+    secret: secret.ascii,
+    label: `Stride:${user.email}`,
+    issuer: "Stride",
+  });
+
+  const accessToken = generateToken(res, user._id);
+
   if (user) {
-    generateToken(res, user._id);
-    res.status(200).json({
+    res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      accessToken,
+      twoFactorAuthSetup: {
+        qrCodeUrl,
+        secret: secret.base32,
+      },
     });
   } else {
     res.status(400);
@@ -394,6 +435,164 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Password reset successful" });
 });
 
+// Generate 2FA setup information for a user
+const generateTwoFactorSecret = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Generate a secret
+  const secret = speakeasy.generateSecret({
+    name: `Stride:${user.email}`, // This will show in the Authenticator app
+  });
+
+  // Store the secret temporarily without activating 2FA yet
+  user.twoFactorSecret = secret.base32;
+  await user.save();
+
+  // Generate QR code
+  const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
+
+  res.status(200).json({
+    message: "2FA setup started",
+    qrCodeUrl,
+    secret: secret.base32, // For manual entry if needed
+  });
+});
+
+// Verify and enable 2FA for a user
+// In backend/controllers/userController.js
+// In backend/controllers/userController.js
+const verifyAndEnableTwoFactor = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Verify the token against the stored secret
+  const verified = speakeasy.totp.verify({
+    secret: user.twoFactorSecret,
+    encoding: "base32",
+    token: token, // The token from the authenticator app
+  });
+
+  if (!verified) {
+    res.status(400);
+    throw new Error("Invalid verification code");
+  }
+
+  // Enable 2FA for the user
+  user.isTwoFactorEnabled = true;
+
+  // Generate backup codes
+  const backupCodes = [];
+  for (let i = 0; i < 10; i++) {
+    const code = crypto.randomBytes(4).toString("hex");
+    backupCodes.push(await bcrypt.hash(code, 10));
+  }
+
+  user.twoFactorBackupCodes = backupCodes;
+  await user.save();
+
+  // Return unhashed backup codes to user
+  const unhashed = [];
+  for (let i = 0; i < 10; i++) {
+    unhashed.push(crypto.randomBytes(4).toString("hex"));
+  }
+
+  res.status(200).json({
+    message: "2FA enabled successfully",
+    backupCodes: unhashed,
+  });
+});
+
+// Disable 2FA for a user
+const disableTwoFactor = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Re-verify password for security
+  const isPasswordValid = await user.matchPassword(password);
+  if (!isPasswordValid) {
+    res.status(401);
+    throw new Error("Invalid password");
+  }
+
+  // Disable 2FA
+  user.isTwoFactorEnabled = false;
+  user.twoFactorSecret = null;
+  user.twoFactorBackupCodes = [];
+  await user.save();
+
+  res.status(200).json({ message: "2FA disabled successfully" });
+});
+
+// Validate 2FA during login
+const validateTwoFactorAuth = asyncHandler(async (req, res) => {
+  const { email, token, isBackupCode } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  let validToken = false;
+
+  if (isBackupCode) {
+    // Validate backup code
+    for (let i = 0; i < user.twoFactorBackupCodes.length; i++) {
+      const isValid = await bcrypt.compare(token, user.twoFactorBackupCodes[i]);
+      if (isValid) {
+        // Remove used backup code
+        user.twoFactorBackupCodes.splice(i, 1);
+        await user.save();
+        validToken = true;
+        break;
+      }
+    }
+  } else {
+    // Validate TOTP token
+    validToken = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token: token,
+      window: 1, // Allow 1 time step (±30 seconds) for clock drift
+    });
+  }
+
+  if (!validToken) {
+    res.status(401);
+    throw new Error("Invalid authentication code");
+  }
+
+  // Generate token and send response (similar to your regular login)
+  const accessToken = generateToken(res, user._id);
+
+  res.status(200).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    isTwoFactorEnabled: user.isTwoFactorEnabled,
+    accessToken,
+  });
+});
+
 export {
   authUser,
   registerUser,
@@ -407,4 +606,8 @@ export {
   refreshToken,
   forgotPassword,
   resetPassword,
+  generateTwoFactorSecret,
+  verifyAndEnableTwoFactor,
+  disableTwoFactor,
+  validateTwoFactorAuth,
 };

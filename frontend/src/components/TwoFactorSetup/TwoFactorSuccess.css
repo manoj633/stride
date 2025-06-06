@@ -1,0 +1,145 @@
+/* TwoFactorSuccess.css */
+.two-factor-success {
+    padding: 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+
+}
+
+.two-factor-success__container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+.two-factor-success__title {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.two-factor-success__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.two-factor-success__main {
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+}
+
+.two-factor-success__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.two-factor-success__status-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #4caf50;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.two-factor-success__backup-section {
+    margin-top: 1rem;
+}
+
+.two-factor-success__backup-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #444;
+}
+
+.two-factor-success__info {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: #f0f7ff;
+    border-left: 4px solid #4a90e2;
+    border-radius: 0 4px 4px 0;
+}
+
+.two-factor-success__info h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.two-factor-success__codes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 1.5rem 0;
+}
+
+.two-factor-success__code {
+    font-family: monospace;
+    font-size: 1.1rem;
+    padding: 0.8rem;
+    background-color: #e6e6e6;
+    border-radius: 4px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.two-factor-success__copy-button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.two-factor-success__copy-button:hover {
+    background-color: #e6e6e6;
+}
+
+.two-factor-success__actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.two-factor-success__button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.two-factor-success__button:hover {
+    background-color: #3a7bc8;
+}
+
+@media (min-width: 768px) {
+    .two-factor-success__backup-section {
+        padding: 1rem;
+    }
+}

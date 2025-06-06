@@ -7,10 +7,14 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     isAdmin: { type: Boolean, required: true, default: false },
+    isTwoFactorEnabled: { type: Boolean, default: true },
+    twoFactorSecret: { type: String, default: null },
+    twoFactorBackupCodes: [{ type: String }], // For backup/recovery
   },
   { timestamps: true }
 );
 
+// Keep existing methods
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

@@ -67,4 +67,17 @@ export const userAPI = {
   getUserById: (id) => axiosInstance.get(`/users/${id}`),
   updateUser: (id, userData) => axiosInstance.put(`/users/${id}`, userData),
   deleteUser: (id) => axiosInstance.delete(`/users/${id}`),
+
+  // 2FA methods
+  generateTwoFactorSecret: () =>
+    axiosInstance.post("/users/two-factor/generate"),
+
+  verifyAndEnableTwoFactor: (data) =>
+    axiosInstance.post("/users/two-factor/verify", data),
+
+  disableTwoFactor: (data) =>
+    axiosInstance.post("/users/two-factor/disable", data),
+
+  validateTwoFactorAuth: (data) =>
+    axiosInstance.post("/users/two-factor/validate", data),
 };

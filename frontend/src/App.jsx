@@ -32,6 +32,9 @@ import { useNavigate } from "react-router-dom";
 import { checkTokenExpiration } from "./store/features/auth/authSlice";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
 import ResetPassword from "./components/ResetPassword/ResetPassword";
+import TwoFactorVerify from "./components/TwoFactorSetup/TwoFactorVerify";
+import TwoFactorSetup from "./components/TwoFactorSetup/TwoFactorSetup";
+import TwoFactorSuccess from "./components/TwoFactorSetup/TwoFactorSuccess";
 
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
@@ -133,6 +136,9 @@ const App = () => {
           <Route path="/pomodoro" Component={Pomodoro} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/two-factor-verify" element={<TwoFactorVerify />} />
+          <Route path="/two-factor-setup" element={<TwoFactorSetup />} />
+          <Route path="/two-factor-success" element={<TwoFactorSuccess />} />
         </Routes>
       </main>
       <ToastContainer />

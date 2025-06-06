@@ -27,22 +27,23 @@ const Login = () => {
     }
   }, [userInfo, redirect, navigate]);
 
+  // In your Login.jsx component, update the login handler
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log("entered");
-
     try {
-      //login with BE
       const res = await dispatch(login({ email, password })).unwrap();
-      console.log(res);
-      //dispatch setCredentials for local store user data
-      //   dispatch(setCredentials({ ...res }));
-      console.log("loggedIn");
-      navigate(redirect);
+
+      // Check if 2FA is required
+      if (res.requiresTwoFactor) {
+        // Redirect to 2FA verification page with email
+        navigate("/two-factor-verify", { state: { email } });
+      } else {
+        // No 2FA required, proceed normally
+        navigate(redirect);
+      }
     } catch (error) {
       toast.error(error?.data?.message || error.error);
     }
-    console.log("submit");
   };
 
   return (
