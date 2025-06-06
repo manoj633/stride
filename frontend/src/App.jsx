@@ -36,6 +36,12 @@ import TwoFactorVerify from "./components/TwoFactorSetup/TwoFactorVerify";
 import TwoFactorSetup from "./components/TwoFactorSetup/TwoFactorSetup";
 import TwoFactorSuccess from "./components/TwoFactorSetup/TwoFactorSuccess";
 
+import ReactGA from "react-ga4";
+
+ReactGA.initialize("G-TEK9P0HRHD"); // Replace with your ID
+
+import AnalyticsTracker from "./utils/AnalyticsTracker";
+
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
   const location = useLocation();
@@ -117,6 +123,7 @@ const App = () => {
   return (
     <>
       <Navigation />
+      <AnalyticsTracker />
       <main className={mainClass}>
         <Routes>
           <Route path="/" Component={TaskCalendar} />
