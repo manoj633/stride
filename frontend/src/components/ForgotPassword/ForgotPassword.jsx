@@ -1,12 +1,18 @@
 // frontend/src/components/ForgotPassword/ForgotPassword.jsx
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+
+import { useDispatch } from "react-redux";
+import { logout } from "../../store/features/users/userSlice";
+
 import "./ForgotPassword.css";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +32,8 @@ const ForgotPassword = () => {
       if (!response.ok) {
         throw new Error(data.message || "Something went wrong");
       }
+
+      dispatch(logout());
 
       setEmailSent(true);
       toast.success("Password reset email sent successfully!");
