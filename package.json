@@ -11,7 +11,8 @@
     "dev": "concurrently \"npm run server\" \"npm run client\" ",
     "data:import": "node backend/seeder.js",
     "data:destroy": "node backend/seeder.js -d",
-    "build": "npm install && cd ./frontend && npm install"
+    "build": "npm install && cd ./frontend && npm install",
+    "generate-reports": "node backend/scripts/triggerWeeklyReports.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
   "homepage": "https://github.com/manoj633/stride#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "chartjs-node-canvas": "^5.0.0",
     "colors": "^1.4.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -35,6 +37,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.10.1",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
