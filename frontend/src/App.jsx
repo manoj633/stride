@@ -49,18 +49,16 @@ const App = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  const { userInfo } = useAppSelector((state) => state.user);
+
   useEffect(() => {
     const checkTokenInterval = setInterval(() => {
-      // Check if user is logged in
-      const { userInfo } = useAppSelector((state) => state.user);
       if (userInfo) {
-        // Call your refresh token endpoint
         fetch("/api/users/refresh-token", {
           method: "POST",
-          credentials: "include", // To send cookies
+          credentials: "include",
         }).catch((err) => {
           console.error("Failed to refresh token:", err);
-          // If refresh fails, log out the user
           dispatch(logout());
           navigate("/login");
         });
@@ -68,7 +66,7 @@ const App = () => {
     }, 15 * 60 * 1000); // Check every 15 minutes
 
     return () => clearInterval(checkTokenInterval);
-  }, []);
+  }, [userInfo, dispatch, navigate]);
 
   useEffect(() => {
     // Listen for storage events (localStorage changes from other tabs)
@@ -126,21 +124,21 @@ const App = () => {
       <AnalyticsTracker />
       <main className={mainClass}>
         <Routes>
-          <Route path="/" Component={TaskCalendar} />
-          <Route path="/goals/:goalId" Component={GoalDescription} />
-          <Route path="/goals/add" Component={AddGoal} />
-          <Route path="/goals" Component={GoalList} />
-          <Route path="/tasks/:taskId" Component={TaskDescription} />
-          <Route path="/tasks/add" Component={AddTask} />
-          <Route path="/tasks" Component={TaskList} />
-          <Route path="/subtasks/:subtaskId" Component={SubtaskDescription} />
-          <Route path="/subtasks/add" Component={AddSubTask} />
-          <Route path="/subtasks" Component={SubtaskList} />
-          <Route path="/tags/manage" Component={TagManager} />
-          <Route path="/login" Component={Login} />
-          <Route path="/register" Component={Register} />
-          <Route path="/profile" Component={Profile} />
-          <Route path="/pomodoro" Component={Pomodoro} />
+          <Route path="/" element={<TaskCalendar />} />
+          <Route path="/goals/:goalId" element={<GoalDescription />} />
+          <Route path="/goals/add" element={<AddGoal />} />
+          <Route path="/goals" element={<GoalList />} />
+          <Route path="/tasks/:taskId" element={<TaskDescription />} />
+          <Route path="/tasks/add" element={<AddTask />} />
+          <Route path="/tasks" element={<TaskList />} />
+          <Route path="/subtasks/:subtaskId" element={<SubtaskDescription />} />
+          <Route path="/subtasks/add" element={<AddSubTask />} />
+          <Route path="/subtasks" element={<SubtaskList />} />
+          <Route path="/tags/manage" element={<TagManager />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/pomodoro" element={<Pomodoro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/two-factor-verify" element={<TwoFactorVerify />} />
