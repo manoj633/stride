@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 import HeatMap from "./HeatMap.jsx";
+import DayPopover from "./DayPopover";
 import {
   fetchGoals,
   setSelectedGoal,
@@ -125,6 +126,7 @@ const TaskCalendar = () => {
   const [isLoading, setIsLoading] = useState(true);
   // State for month/year in monthly view
   const [monthDate, setMonthDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
 
   // Detect touch device
   useEffect(() => {
@@ -610,6 +612,7 @@ const TaskCalendar = () => {
                 ).length;
                 const isToday =
                   new Date().toDateString() === date.toDateString();
+                const items = filteredItems[dateStr] || [];
 
                 // Calculate heat level
                 const heatLevel =
@@ -630,6 +633,8 @@ const TaskCalendar = () => {
                       isToday ? "today" : ""
                     }`}
                     title={`${formatDate(date)}: ${count} subtasks`}
+                    onClick={() => setSelectedDay({ date, items })}
+                    style={{ cursor: "pointer" }}
                   >
                     <div className="heatmap-date-container">
                       <span className="heatmap-date">{date.getDate()}</span>
@@ -689,6 +694,13 @@ const TaskCalendar = () => {
           </div>
         )}
       </div>
+      {selectedDay && (
+        <DayPopover
+          date={selectedDay.date}
+          items={selectedDay.items}
+          onClose={() => setSelectedDay(null)}
+        />
+      )}
     </div>
   );
 };
