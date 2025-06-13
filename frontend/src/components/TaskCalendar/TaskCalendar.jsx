@@ -128,10 +128,10 @@ const TaskCalendar = () => {
   const [monthDate, setMonthDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [heatmapScale, setHeatmapScale] = useState([
-    { max: 0, color: "#f8f9fa" },    // 0 tasks
-    { max: 2, color: "#b3ffb3" },    // 1-2 tasks
-    { max: 4, color: "#ffd699" },    // 3-4 tasks
-    { max: 6, color: "#ffb3b3" },    // 5-6 tasks
+    { max: 0, color: "#f8f9fa" }, // 0 tasks
+    { max: 2, color: "#b3ffb3" }, // 1-2 tasks
+    { max: 4, color: "#ffd699" }, // 3-4 tasks
+    { max: 6, color: "#ffb3b3" }, // 5-6 tasks
     { max: Infinity, color: "#ff8080" }, // 7+ tasks
   ]);
 
@@ -617,11 +617,14 @@ const TaskCalendar = () => {
                 const count = (filteredItems[dateStr] || []).filter(
                   (item) => item.type === "subtask"
                 ).length;
-                const isToday = new Date().toDateString() === date.toDateString();
+                const isToday =
+                  new Date().toDateString() === date.toDateString();
                 const items = filteredItems[dateStr] || [];
 
                 // Find the scale/color for this count
-                const scaleIdx = heatmapScale.findIndex(level => count <= level.max);
+                const scaleIdx = heatmapScale.findIndex(
+                  (level) => count <= level.max
+                );
                 const cellColor = heatmapScale[scaleIdx]?.color || "#f8f9fa";
 
                 return (
@@ -660,8 +663,10 @@ const TaskCalendar = () => {
                   <span className="legend-label">
                     {idx === 0
                       ? `0`
-                      : `${heatmapScale[idx - 1].max + 1}-${level.max === Infinity ? "+" : level.max}`
-                    } tasks
+                      : `${heatmapScale[idx - 1].max + 1}-${
+                          level.max === Infinity ? "+" : level.max
+                        }`}{" "}
+                    tasks
                   </span>
                 </div>
               ))}
@@ -686,16 +691,17 @@ const TaskCalendar = () => {
               <input
                 type="number"
                 min={idx === 0 ? 0 : heatmapScale[idx - 1].max + 1}
-                max={idx < heatmapScale.length - 1 ? heatmapScale[idx + 1].max : 99}
+                max={
+                  idx < heatmapScale.length - 1 ? heatmapScale[idx + 1].max : 99
+                }
                 value={level.max === Infinity ? "" : level.max}
-                onChange={e => {
-                  const val = e.target.value === "" ? Infinity : parseInt(e.target.value, 10);
-                  setHeatmapScale(scale =>
-                    scale.map((l, i) =>
-                      i === idx
-                        ? { ...l, max: val }
-                        : l
-                    )
+                onChange={(e) => {
+                  const val =
+                    e.target.value === ""
+                      ? Infinity
+                      : parseInt(e.target.value, 10);
+                  setHeatmapScale((scale) =>
+                    scale.map((l, i) => (i === idx ? { ...l, max: val } : l))
                   );
                 }}
                 style={{
@@ -703,26 +709,31 @@ const TaskCalendar = () => {
                   marginRight: 4,
                   border: "1px solid #ccc",
                   borderRadius: 4,
-                  padding: "2px 4px"
+                  padding: "2px 4px",
                 }}
                 disabled={idx === heatmapScale.length - 1}
               />
               <input
                 type="color"
                 value={level.color}
-                onChange={e => {
-                  setHeatmapScale(scale =>
+                onChange={(e) => {
+                  setHeatmapScale((scale) =>
                     scale.map((l, i) =>
-                      i === idx
-                        ? { ...l, color: e.target.value }
-                        : l
+                      i === idx ? { ...l, color: e.target.value } : l
                     )
                   );
                 }}
-                style={{ width: 28, height: 18, border: "none", verticalAlign: "middle" }}
+                style={{
+                  width: 28,
+                  height: 18,
+                  border: "none",
+                  verticalAlign: "middle",
+                }}
               />
               {idx < heatmapScale.length - 1 && (
-                <span style={{ fontSize: 12, color: "#888", marginLeft: 2 }}>to</span>
+                <span style={{ fontSize: 12, color: "#888", marginLeft: 2 }}>
+                  to
+                </span>
               )}
             </span>
           ))}
