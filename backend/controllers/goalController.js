@@ -95,9 +95,13 @@ const updateGoal = asyncHandler(async (req, res) => {
       collaborators: req.body.collaborators || goal.collaborators,
       tags: req.body.tags || goal.tags,
       completionPercentage:
-        req.body.completionPercentage ?? goal.completionPercentage,
+        typeof req.body.completionPercentage !== "undefined"
+          ? req.body.completionPercentage
+          : goal.completionPercentage,
       completed:
-        req.body.completed !== undefined ? req.body.completed : goal.completed,
+        typeof req.body.completed !== "undefined"
+          ? req.body.completed
+          : goal.completed,
     });
 
     const updatedGoal = await goal.save();
