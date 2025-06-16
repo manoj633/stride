@@ -3,6 +3,7 @@ import Goal from "../models/goalModel.js";
 import logger from "../utils/logger.js";
 import Task from "../models/taskModel.js";
 import Subtask from "../models/subtaskModel.js";
+import Comment from "../models/commentModel.js";
 
 /**
  * * Description: Fetch all goals
@@ -145,6 +146,13 @@ const deleteGoal = asyncHandler(async (req, res) => {
       });
     }
 
+    // Delete all comments associated with this goal (fix for #15)
+    const deletedComments = await Comment.deleteMany({ goalId: req.params.id });
+    logger.debug("Deleted comments for goal", {
+      goalId: req.params.id,
+      deletedCommentsCount: deletedComments.deletedCount,
+    });
+
     // Delete all tasks associated with this goal
     await Task.deleteMany({ goalId: req.params.id });
     logger.debug("Deleted tasks for goal", {
@@ -155,9 +163,10 @@ const deleteGoal = asyncHandler(async (req, res) => {
     await Goal.deleteOne({ _id: req.params.id });
     logger.debug("Goal deleted successfully", { goalId: req.params.id });
     res.json({
-      message: "Goal and all related tasks and subtasks removed",
+      message: "Goal and all related tasks, subtasks, and comments removed",
       deletedTasksCount: tasks.length,
       deletedSubtasksCount,
+      deletedCommentsCount: deletedComments.deletedCount,
     });
   } else {
     logger.error("Goal not found for deletion", { goalId: req.params.id });
