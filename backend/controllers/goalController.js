@@ -133,12 +133,15 @@ const deleteGoal = asyncHandler(async (req, res) => {
     // Get all task IDs for subtask deletion
     const taskIds = tasks.map((task) => task._id);
 
-    // Delete all subtasks associated with those tasks
+    // Count subtasks before deletion (fix for #11)
+    let deletedSubtasksCount = 0;
     if (taskIds.length > 0) {
+      deletedSubtasksCount = await Subtask.countDocuments({ taskId: { $in: taskIds } });
       await Subtask.deleteMany({ taskId: { $in: taskIds } });
       logger.debug("Deleted subtasks for goal's tasks", {
         goalId: req.params.id,
         taskCount: taskIds.length,
+        deletedSubtasksCount,
       });
     }
 
@@ -154,10 +157,7 @@ const deleteGoal = asyncHandler(async (req, res) => {
     res.json({
       message: "Goal and all related tasks and subtasks removed",
       deletedTasksCount: tasks.length,
-      deletedSubtasksCount:
-        taskIds.length > 0
-          ? await Subtask.countDocuments({ taskId: { $in: taskIds } })
-          : 0,
+      deletedSubtasksCount,
     });
   } else {
     logger.error("Goal not found for deletion", { goalId: req.params.id });
