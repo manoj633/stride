@@ -1,6 +1,7 @@
 // utils/scheduler.js
 import cron from "node-cron";
 import { generateAndSendWeeklyReports } from "./weeklyReportGenerator.js";
+import { sendGoalReminders } from "./goalReminder.js";
 import logger from "./logger.js";
 
 export const initScheduler = () => {
@@ -16,5 +17,19 @@ export const initScheduler = () => {
     }
   });
 
-  logger.info("Scheduler initialized with weekly report generation");
+  // Schedule goal reminders - runs every day at 7:00 AM
+  cron.schedule("0 7 * * *", async () => {
+    logger.info("Running scheduled goal reminders");
+    try {
+      await sendGoalReminders();
+    } catch (error) {
+      logger.error("Error in scheduled goal reminders", {
+        error: error.message,
+      });
+    }
+  });
+
+  logger.info(
+    "Scheduler initialized with weekly report generation and daily goal reminders"
+  );
 };

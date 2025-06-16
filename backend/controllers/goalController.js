@@ -137,7 +137,9 @@ const deleteGoal = asyncHandler(async (req, res) => {
     // Count subtasks before deletion (fix for #11)
     let deletedSubtasksCount = 0;
     if (taskIds.length > 0) {
-      deletedSubtasksCount = await Subtask.countDocuments({ taskId: { $in: taskIds } });
+      deletedSubtasksCount = await Subtask.countDocuments({
+        taskId: { $in: taskIds },
+      });
       await Subtask.deleteMany({ taskId: { $in: taskIds } });
       logger.debug("Deleted subtasks for goal's tasks", {
         goalId: req.params.id,
