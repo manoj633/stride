@@ -30,9 +30,12 @@
 
 .notif-dropdown {
     position: absolute;
+    left: 0;
     right: 0;
-    top: 32px;
-    width: 320px;
+    margin: 0 -200px;
+    top: 36px;
+    min-width: 240px;
+    max-width: 95%;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(52, 152, 219, 0.13);
@@ -80,11 +83,11 @@
 }
 
 .notif-dropdown ul {
-    list-style: none;
+    max-height: 300px;
+    overflow-y: auto;
     margin: 0;
     padding: 0;
-    max-height: 260px;
-    overflow-y: auto;
+    list-style: none;
 }
 
 .notif-dropdown li {
@@ -116,4 +119,13 @@
 .notif-meta {
     font-size: 0.88em;
     color: #7f8c8d;
+}
+
+@media (max-width: 500px) {
+    .notif-dropdown {
+        min-width: 95vw;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+    }
 }

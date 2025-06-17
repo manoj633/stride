@@ -2,12 +2,14 @@ import React, { useEffect, useState, useRef } from "react";
 import { FiBell } from "react-icons/fi";
 import axios from "axios";
 import "./NotificationBell.css";
+import { useNavigate } from "react-router-dom";
 
 const NotificationBell = ({ onClick }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const bellRef = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -59,7 +61,23 @@ const NotificationBell = ({ onClick }) => {
             ))}
           </ul>
           <div className="notif-dropdown-footer">
-            <a href="/notifications">View all</a>
+            <button
+              className="notif-view-all-btn"
+              onClick={() => {
+                setOpen(false);
+                navigate("/notifications");
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#4285f4",
+                cursor: "pointer",
+                padding: 0,
+                fontSize: "1em",
+              }}
+            >
+              View all
+            </button>
           </div>
         </div>
       )}
