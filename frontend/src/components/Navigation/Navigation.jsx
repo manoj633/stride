@@ -20,6 +20,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import "./Navigation.css";
+import NotificationBell from "../Notifications/NotificationBell";
 
 const NavigationDrawer = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -110,6 +111,7 @@ const NavigationDrawer = () => {
       <nav className={`nav-drawer ${isOpen ? "open" : "closed"}`}>
         <div className="nav-drawer__header">
           <h1 className="nav-drawer__title">Stride</h1>
+          <NotificationBell />
           {isMobile && (
             <button className="nav-drawer__close" onClick={closeDrawer}>
               <FiX size={20} />

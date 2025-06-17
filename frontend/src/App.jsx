@@ -15,6 +15,7 @@ import AddSubTask from "./components/AddSubTask/AddSubTask";
 import SubtaskDescription from "./components/SubtaskDescription/SubtaskDescription";
 import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
 import { TagManager } from "./components/TagsManager/TagManager";
+import Notifications from "./components/Notifications/Notifications";
 
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -144,6 +145,7 @@ const App = () => {
           <Route path="/two-factor-verify" element={<TwoFactorVerify />} />
           <Route path="/two-factor-setup" element={<TwoFactorSetup />} />
           <Route path="/two-factor-success" element={<TwoFactorSuccess />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </main>
       <ToastContainer />
