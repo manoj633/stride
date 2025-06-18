@@ -129,6 +129,7 @@ const GoalList = () => {
             <button
               className="enhanced-goals__export-btn"
               onClick={exportGoals}
+              aria-label="Export all goals"
             >
               Export Goals
             </button>

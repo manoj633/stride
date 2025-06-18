@@ -61,6 +61,12 @@ const TaskList = ({ tasks: propTasks }) => {
         <div
           className="task-list__empty"
           onClick={() => navigate("/tasks/add")}
+          role="button"
+          tabIndex={0}
+          aria-label="Add your first task"
+          onKeyPress={(e) => {
+            if (e.key === "Enter" || e.key === " ") navigate("/tasks/add");
+          }}
         >
           <p className="task-list__empty-text">
             No tasks yet! ✨ Time to get productive! 🚀
@@ -80,6 +86,9 @@ const TaskList = ({ tasks: propTasks }) => {
           key={task._id}
           to={`/tasks/${task._id}`}
           className="task-list__item-link"
+          aria-label={`View details for task: ${task.name}${
+            task.priority === "High" ? ", high priority" : ""
+          }`}
         >
           <div className="task-list__item">
             <div className="task-list__content">
@@ -100,12 +109,21 @@ const TaskList = ({ tasks: propTasks }) => {
                     ? "medium"
                     : "low"
                 }`}
+                aria-label={`Priority: ${task.priority}`}
               >
                 {task.priority}
               </span>
-              <span className="task-list__date">{task.dueDate}</span>
+              <span
+                className="task-list__date"
+                aria-label={`Due date: ${task.dueDate}`}
+              >
+                {task.dueDate}
+              </span>
               <div className="task-list__progress-container">
-                <span className="task-list__progress-label">
+                <span
+                  className="task-list__progress-label"
+                  aria-label={`Completion: ${task.completionPercentage}%`}
+                >
                   {task.completionPercentage}%
                 </span>
                 <div className="task-list__progress-bar">
@@ -122,6 +140,7 @@ const TaskList = ({ tasks: propTasks }) => {
                           ? "#fbb6ce"
                           : "#cbd5e1",
                     }}
+                    aria-label={`Progress bar: ${task.completionPercentage}% complete`}
                   ></div>
                 </div>
               </div>

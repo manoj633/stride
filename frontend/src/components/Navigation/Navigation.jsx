@@ -87,7 +87,11 @@ const NavigationDrawer = () => {
     <>
       {/* Mobile toggle button */}
       {isMobile && (
-        <button className="nav-drawer__toggle" onClick={toggleDrawer}>
+        <button
+          className="nav-drawer__toggle"
+          onClick={toggleDrawer}
+          aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+        >
           {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
       )}
@@ -97,6 +101,9 @@ const NavigationDrawer = () => {
         <button
           className={`nav-drawer__collapse-btn ${isOpen ? "" : "collapsed"}`}
           onClick={toggleDrawer}
+          aria-label={
+            isOpen ? "Collapse navigation drawer" : "Expand navigation drawer"
+          }
         >
           {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
         </button>
@@ -137,15 +144,17 @@ const NavigationDrawer = () => {
             {quickAddItems.map((item) => (
               <button
                 key={item.path}
-                className="nav-drawer__quick-add-btn"
+                className="nav-drawer__quick-add"
                 style={{ backgroundColor: item.color }}
                 onClick={() => {
                   navigate(item.path);
                   closeDrawer();
                 }}
+                aria-label={item.label}
+                role="menuitem"
               >
-                <FiPlusCircle size={16} />
-                {item.label}
+                <FiPlusCircle />
+                <span>{item.label}</span>
               </button>
             ))}
           </div>
@@ -155,35 +164,34 @@ const NavigationDrawer = () => {
         <ul className="nav-drawer__links">
           {mainNavItems.map((item) => (
             <li key={item.path}>
-              <a
-                href={item.path}
-                className={`nav-drawer__link ${
-                  isActive(item.path) ? "active" : ""
-                } ${!isOpen ? "collapsed" : ""}`}
-                onClick={(e) => {
-                  e.preventDefault();
+              <button
+                key={item.path}
+                className={`nav-drawer__item${
+                  isActive(item.path) ? " active" : ""
+                }`}
+                onClick={() => {
                   navigate(item.path);
                   closeDrawer();
                 }}
-                title={!isOpen ? item.label : ""}
+                aria-label={item.label}
+                aria-current={isActive(item.path) ? "page" : undefined}
+                role="menuitem"
               >
-                <span className="nav-drawer__icon">{item.icon}</span>
-                {isOpen && (
-                  <span className="nav-drawer__label">{item.label}</span>
-                )}
-              </a>
+                {item.icon}
+                <span className="nav-drawer__label">{item.label}</span>
+              </button>
             </li>
           ))}
         </ul>
 
         <div className="nav-drawer__footer">
           <button
-            className={`nav-drawer__logout ${!isOpen ? "collapsed" : ""}`}
+            className="nav-drawer__logout"
             onClick={handleLogout}
-            title={!isOpen ? "Logout" : ""}
+            aria-label="Log out"
           >
             <FiLogOut />
-            {isOpen && <span>Logout</span>}
+            <span>Logout</span>
           </button>
         </div>
       </nav>

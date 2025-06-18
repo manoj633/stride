@@ -122,6 +122,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               placeholder="Ex: Research Topic"
               className="add-subtask__input"
               required
+              aria-label="Subtask name"
             />
           </div>
           <div className="form-group">
@@ -134,6 +135,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               }
               placeholder="Tell us more about your subtask..."
               className="add-subtask__input add-subtask__textarea"
+              aria-label="Subtask description"
             />
           </div>
           <div className="form-group">
@@ -145,6 +147,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
                 setFormData({ ...formData, priority: e.target.value })
               }
               className="add-subtask__select"
+              aria-label="Subtask priority"
             >
               <option value="High">🔥 High</option>
               <option value="Medium">💧 Medium</option>
@@ -159,6 +162,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               onChange={handleGoalChange}
               className="add-subtask__select"
               required
+              aria-label="Goal for subtask"
             >
               <option value="">Select a Goal</option>
               {goals.map((goal) => (
@@ -177,6 +181,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               className="add-subtask__select"
               required
               disabled={!formData.goalId}
+              aria-label="Task for subtask"
             >
               <option value="">Select a Task</option>
               {availableTasks.map((task) => (
@@ -200,6 +205,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               min={taskDateRange.minDate}
               max={taskDateRange.maxDate}
               disabled={!formData.taskId}
+              aria-label="Subtask due date"
             />
             {formData.taskId && !taskDateRange.minDate && (
               <p className="add-subtask__warning">
@@ -207,7 +213,11 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               </p>
             )}
           </div>
-          <button type="submit" className="add-subtask__button">
+          <button
+            type="submit"
+            className="add-subtask__button"
+            aria-label="Add new subtask"
+          >
             🚀 Add Subtask
           </button>
         </form>

@@ -138,13 +138,22 @@ const SubtaskDescription = () => {
             checked={subtask.completed}
             onChange={handleCheckboxChange}
             id="subtask-status"
+            aria-label={
+              subtask.completed
+                ? "Mark subtask as incomplete"
+                : "Mark subtask as complete"
+            }
           />
           <label htmlFor="subtask-status" className="subtask__status-label">
             {subtask.completed ? "Completed" : "Mark as complete"}
           </label>
         </div>
         <h2 className="subtask__title">{subtask.name}</h2>
-        <button onClick={handleDelete} className="subtask__delete-btn">
+        <button
+          onClick={handleDelete}
+          className="subtask__delete-btn"
+          aria-label="Delete subtask"
+        >
           Delete Subtask
         </button>
       </div>

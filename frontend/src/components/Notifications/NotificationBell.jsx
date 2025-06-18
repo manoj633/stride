@@ -36,9 +36,20 @@ const NotificationBell = ({ onClick }) => {
 
   return (
     <div className="notif-bell-wrapper" ref={bellRef}>
-      <button className="notif-bell-btn" onClick={() => setOpen((o) => !o)}>
+      <button
+        className="notif-bell-btn"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Show notifications"
+      >
         <FiBell size={22} />
-        {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
+        {unreadCount > 0 && (
+          <span
+            className="notif-badge"
+            aria-label={`${unreadCount} unread notifications`}
+          >
+            {unreadCount}
+          </span>
+        )}
       </button>
       {open && (
         <div className="notif-dropdown">
@@ -46,7 +57,7 @@ const NotificationBell = ({ onClick }) => {
           {notifications.length === 0 && (
             <div className="notif-empty">No notifications</div>
           )}
-          <ul>
+          <ul role="list" aria-label="Recent notifications">
             {notifications.map((n) => (
               <li key={n._id} className={n.isRead ? "read" : "unread"}>
                 <div className="notif-title">{n.title}</div>
@@ -75,6 +86,7 @@ const NotificationBell = ({ onClick }) => {
                 padding: 0,
                 fontSize: "1em",
               }}
+              aria-label="View all notifications"
             >
               View all
             </button>

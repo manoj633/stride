@@ -192,6 +192,7 @@ export const TagManager = () => {
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
             className="tag-manager__search"
+            aria-label="Search tags"
           />
           <div className="tag-manager__view-options">
             <button
@@ -199,6 +200,7 @@ export const TagManager = () => {
                 sortBy === "name" ? "active" : ""
               }`}
               onClick={() => setSortBy("name")}
+              aria-label="Sort tags by name"
             >
               A-Z
             </button>
@@ -207,6 +209,7 @@ export const TagManager = () => {
                 sortBy === "color" ? "active" : ""
               }`}
               onClick={() => setSortBy("color")}
+              aria-label="Sort tags by color"
             >
               🎨
             </button>
@@ -264,6 +267,7 @@ export const TagManager = () => {
                 setNewTag({ ...newTag, color: generatePastelColor() })
               }
               title="Generate random color"
+              aria-label="Generate random color"
             >
               🎲
             </button>
@@ -273,6 +277,7 @@ export const TagManager = () => {
           type="button"
           className="tag-manager__button tag-manager__button--preset"
           onClick={() => setShowPresets(!showPresets)}
+          aria-label="Show or hide tag presets"
         >
           Presets
         </button>
@@ -280,6 +285,7 @@ export const TagManager = () => {
           type="submit"
           className="tag-manager__button tag-manager__button--create"
           disabled={!newTag.name.trim()}
+          aria-label="Add new tag"
         >
           Add Tag
         </button>
@@ -293,6 +299,7 @@ export const TagManager = () => {
               className="tag-manager__preset-item"
               style={{ backgroundColor: preset.color }}
               onClick={() => handlePresetSelect(preset)}
+              aria-label={`Select preset tag ${preset.name}`}
             >
               {preset.name}
             </button>
@@ -356,6 +363,7 @@ export const TagManager = () => {
               <button
                 className="tag-manager__button tag-manager__button--edit"
                 onClick={() => setEditingTag(tag)}
+                aria-label={`Edit tag ${tag.name}`}
               >
                 Edit
               </button>

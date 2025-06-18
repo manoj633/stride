@@ -96,6 +96,7 @@ const TwoFactorSetup = () => {
                   pattern="[0-9]*"
                   inputMode="numeric"
                   maxLength="6"
+                  aria-label="Authenticator app 6-digit code input"
                 />
               </div>
               <button
@@ -104,6 +105,7 @@ const TwoFactorSetup = () => {
                   loading ? "two-factor-setup__button--loading" : ""
                 }`}
                 disabled={loading}
+                aria-label="Verify and enable two factor authentication"
               >
                 {loading ? "Verifying..." : "Verify & Enable 2FA"}
               </button>

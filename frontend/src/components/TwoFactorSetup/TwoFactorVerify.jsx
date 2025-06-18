@@ -74,6 +74,9 @@ const TwoFactorVerify = () => {
               onChange={(e) => setToken(e.target.value)}
               autoFocus
               required
+              aria-label={
+                isBackupCode ? "Backup code input" : "Verification code input"
+              }
             />
           </div>
 
@@ -82,6 +85,11 @@ const TwoFactorVerify = () => {
               type="button"
               className="two-factor-verify__switch-button"
               onClick={() => setIsBackupCode(!isBackupCode)}
+              aria-label={
+                isBackupCode
+                  ? "Switch to authenticator app"
+                  : "Switch to backup code"
+              }
             >
               {isBackupCode
                 ? "Use authenticator app instead"
@@ -95,6 +103,7 @@ const TwoFactorVerify = () => {
             }`}
             type="submit"
             disabled={isLoading}
+            aria-label="Verify two factor code"
           >
             {isLoading ? "Verifying..." : "Verify"}
           </button>

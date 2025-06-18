@@ -48,7 +48,12 @@ const Profile = () => {
       <div className="profile__container">
         <div className="profile__sidebar">
           <div className="profile__header">
-            <div className="profile__avatar">{getInitial()}</div>
+            <div
+              className="profile__avatar"
+              aria-label={`User avatar, initial ${getInitial()}`}
+            >
+              {getInitial()}
+            </div>
             <div className="profile__header-info">
               <h2 className="profile__title">Profile Settings</h2>
               <p className="profile__subtitle">
@@ -72,6 +77,7 @@ const Profile = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  aria-label="Profile name"
                 />
               </div>
             </div>
@@ -86,6 +92,7 @@ const Profile = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  aria-label="Profile email address"
                 />
               </div>
             </div>
@@ -107,6 +114,7 @@ const Profile = () => {
                 loading ? "profile__button--loading" : ""
               }`}
               disabled={loading}
+              aria-label="Update profile"
             >
               <div className="profile__button-content">
                 {loading ? (

@@ -8,10 +8,15 @@ const TimerButton = ({ isRunning, onStartPause, onReset }) => {
       <button
         className={`timer-button ${isRunning ? "pause" : "start"}`}
         onClick={onStartPause}
+        aria-label={isRunning ? "Pause timer" : "Start timer"}
       >
         {isRunning ? "Pause" : "Start"}
       </button>
-      <button className="timer-button reset" onClick={onReset}>
+      <button
+        className="timer-button reset"
+        onClick={onReset}
+        aria-label="Reset timer"
+      >
         Reset
       </button>
     </div>

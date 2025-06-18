@@ -57,6 +57,9 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
         <div
           className="subtask-list__empty"
           onClick={() => navigate("/tasks/add")}
+          role="button"
+          tabIndex={0}
+          aria-label="Add your first task"
         >
           <p className="subtask-list__empty-text">
             No subtasks yet! ✨ Time to get productive! 🚀
@@ -76,6 +79,7 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
           key={subtask._id}
           to={`/subtasks/${subtask._id}`}
           className="subtask-list__item-link"
+          aria-label={`View details for subtask ${subtask.name}`}
         >
           <div
             className={`subtask-list__item ${

@@ -87,6 +87,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
               placeholder="Ex: Prepare for Presentation"
               className="add-task__input"
               required
+              aria-label="Task name"
             />
           </div>
           <div className="form-group">
@@ -99,6 +100,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
               }
               placeholder="Tell us more about your task..."
               className="add-task__input add-task__textarea"
+              aria-label="Task description"
             />
           </div>
           <div className="form-group">
@@ -109,6 +111,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
               onChange={handleGoalChange}
               className="add-task__select"
               required
+              aria-label="Goal for task"
             >
               <option value="">Select a Goal</option>
               {goals.map((goal) => (
@@ -128,6 +131,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
                   setTaskData({ ...taskData, priority: e.target.value })
                 }
                 className="add-task__select"
+                aria-label="Task priority"
               >
                 <option value="High">🔥 High</option>
                 <option value="Medium">💧 Medium</option>
@@ -150,6 +154,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
                 className="add-task__date"
                 required
                 disabled={!taskData.goalId}
+                aria-label="Task start date"
               />
             </div>
             <div className="form-group">
@@ -166,10 +171,15 @@ const AddTask = ({ goalId, onTaskAdded }) => {
                 className="add-task__date"
                 required
                 disabled={!taskData.startDate}
+                aria-label="Task end date"
               />
             </div>
           </div>
-          <button type="submit" className="add-task__button">
+          <button
+            type="submit"
+            className="add-task__button"
+            aria-label="Add new task"
+          >
             🚀 Add Task
           </button>
         </form>

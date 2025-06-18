@@ -26,6 +26,7 @@ const TimerCard = () => {
         <button
           className={`timer-tab ${activeTimer === "pomodoro" ? "active" : ""}`}
           onClick={() => switchTimer("pomodoro")}
+          aria-label="Switch to Pomodoro focus timer"
         >
           Focus
         </button>
@@ -34,6 +35,7 @@ const TimerCard = () => {
             activeTimer === "shortBreak" ? "active short-break" : ""
           }`}
           onClick={() => switchTimer("shortBreak")}
+          aria-label="Switch to short break timer"
         >
           Short Break
         </button>
@@ -42,6 +44,7 @@ const TimerCard = () => {
             activeTimer === "longBreak" ? "active long-break" : ""
           }`}
           onClick={() => switchTimer("longBreak")}
+          aria-label="Switch to long break timer"
         >
           Long Break
         </button>
@@ -53,15 +56,27 @@ const TimerCard = () => {
 
       <div className="timer-controls">
         {!isActive ? (
-          <button className="timer-button start" onClick={startTimer}>
+          <button
+            className="timer-button start"
+            onClick={startTimer}
+            aria-label="Start timer"
+          >
             <FiPlay /> Start
           </button>
         ) : (
-          <button className="timer-button pause" onClick={pauseTimer}>
+          <button
+            className="timer-button pause"
+            onClick={pauseTimer}
+            aria-label="Pause timer"
+          >
             <FiPause /> Pause
           </button>
         )}
-        <button className="timer-button reset" onClick={resetTimer}>
+        <button
+          className="timer-button reset"
+          onClick={resetTimer}
+          aria-label="Reset timer"
+        >
           <FiRefreshCw /> Reset
         </button>
       </div>

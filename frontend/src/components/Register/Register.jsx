@@ -60,6 +60,7 @@ const Register = () => {
               placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              aria-label="Name"
             />
           </div>
 
@@ -71,6 +72,7 @@ const Register = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              aria-label="Email address"
             />
           </div>
 
@@ -82,6 +84,7 @@ const Register = () => {
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              aria-label="Password"
             />
           </div>
 
@@ -93,6 +96,7 @@ const Register = () => {
               placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              aria-label="Confirm password"
             />
           </div>
 
@@ -102,8 +106,9 @@ const Register = () => {
             }`}
             type="submit"
             disabled={loading}
+            aria-label="Register new account"
           >
-            {loading ? "Creating account..." : "Sign Up"}
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 

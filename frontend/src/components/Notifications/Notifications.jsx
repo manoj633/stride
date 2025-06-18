@@ -62,6 +62,7 @@ const Notifications = () => {
           <button
             className="retry-button"
             onClick={() => window.location.reload()}
+            aria-label="Retry loading notifications"
           >
             Try Again
           </button>
@@ -92,7 +93,11 @@ const Notifications = () => {
         )}
 
         <AnimatePresence>
-          <ul className="notifications-list">
+          <ul
+            className="notifications-list"
+            role="list"
+            aria-label="All notifications"
+          >
             {notifications.map((n) => (
               <motion.li
                 key={n._id}

@@ -67,6 +67,7 @@ const TwoFactorSuccess = () => {
                 <button
                   className="two-factor-success__copy-button"
                   onClick={handleCopyToClipboard}
+                  aria-label="Copy all backup codes to clipboard"
                 >
                   {copiedToClipboard ? (
                     <>
@@ -85,6 +86,7 @@ const TwoFactorSuccess = () => {
               <button
                 className="two-factor-success__button"
                 onClick={() => navigate("/dashboard")}
+                aria-label="Continue to dashboard"
               >
                 Continue to Dashboard
               </button>

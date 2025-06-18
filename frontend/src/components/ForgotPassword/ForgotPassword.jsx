@@ -68,6 +68,7 @@ const ForgotPassword = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                aria-label="Email address for password reset"
               />
             </div>
 
@@ -77,6 +78,7 @@ const ForgotPassword = () => {
               }`}
               type="submit"
               disabled={isSubmitting}
+              aria-label="Send password reset link"
             >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
             </button>

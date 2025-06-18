@@ -83,6 +83,7 @@ const AddGoal = () => {
               onChange={(e) => setGoal({ ...goal, title: e.target.value })}
               required
               placeholder="Ex: Conquer Mount Everest"
+              aria-label="Goal title"
             />
           </div>
           <div className="form-group">
@@ -95,6 +96,7 @@ const AddGoal = () => {
               }
               required
               placeholder="Tell us more about your goal..."
+              aria-label="Goal description"
             />
           </div>
 
@@ -105,6 +107,7 @@ const AddGoal = () => {
                 id="category"
                 value={goal.category}
                 onChange={(e) => setGoal({ ...goal, category: e.target.value })}
+                aria-label="Goal category"
               >
                 <option value="Education">📚 Education</option>
                 <option value="Health">❤️ Health</option>
@@ -120,6 +123,7 @@ const AddGoal = () => {
                 id="priority"
                 value={goal.priority}
                 onChange={(e) => setGoal({ ...goal, priority: e.target.value })}
+                aria-label="Goal priority"
               >
                 <option value="High">🔥 High</option>
                 <option value="Medium">💧 Medium</option>
@@ -145,6 +149,7 @@ const AddGoal = () => {
                   })
                 }
                 required
+                aria-label="Goal start date"
               />
             </div>
             <div className="form-group">
@@ -163,6 +168,7 @@ const AddGoal = () => {
                   })
                 }
                 required
+                aria-label="Goal end date"
               />
             </div>
           </div>
@@ -182,6 +188,7 @@ const AddGoal = () => {
                   ),
                 })
               }
+              aria-label="Goal tags"
             >
               {tags.map((tag) => (
                 <option key={tag._id} value={tag._id}>
@@ -190,7 +197,9 @@ const AddGoal = () => {
               ))}
             </select>
           </div>
-          <button type="submit">🚀 Add Goal</button>
+          <button type="submit" aria-label="Add new goal">
+            🚀 Add Goal
+          </button>
         </form>
       </div>
     </div>

@@ -64,6 +64,7 @@ const Login = () => {
                   placeholder="Enter email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  aria-label="Email address"
                 />
               </div>
               <div className="login__form-group">
@@ -77,12 +78,14 @@ const Login = () => {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-label="Password"
                 />
               </div>
               <button
                 type="submit"
                 className="login__button"
                 disabled={loading}
+                aria-label="Sign in to your account"
               >
                 Sign In
               </button>

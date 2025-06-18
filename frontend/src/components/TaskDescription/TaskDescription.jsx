@@ -138,6 +138,7 @@ const TaskDescription = () => {
           <button
             className="task-description__delete-btn"
             onClick={handleDeleteTask}
+            aria-label="Delete task"
           >
             Delete Task
           </button>

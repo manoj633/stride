@@ -67,6 +67,7 @@ const ResetPassword = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              aria-label="New password"
             />
           </div>
 
@@ -79,6 +80,7 @@ const ResetPassword = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              aria-label="Confirm new password"
             />
           </div>
 
@@ -88,6 +90,7 @@ const ResetPassword = () => {
             }`}
             type="submit"
             disabled={isSubmitting}
+            aria-label="Reset password"
           >
             {isSubmitting ? "Resetting..." : "Reset Password"}
           </button>

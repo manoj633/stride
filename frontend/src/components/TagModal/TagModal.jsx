@@ -30,6 +30,7 @@ const TagModal = ({ isOpen, onClose, onSave, availableTags }) => {
                 setSelectedTagId(e.target.value);
               }}
               required
+              aria-label="Select a tag"
             >
               <option value="">Select a tag</option>
               {availableTags.map((tag) => (
@@ -54,10 +55,18 @@ const TagModal = ({ isOpen, onClose, onSave, availableTags }) => {
             )}
           </div>
           <div className="tag-modal__actions">
-            <button type="button" onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cancel tag selection"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={!selectedTagId}>
+            <button
+              type="submit"
+              disabled={!selectedTagId}
+              aria-label="Add selected tag"
+            >
               Add Tag
             </button>
           </div>

@@ -7,12 +7,14 @@ const Collaborators = ({ collaborators }) => (
     <div className="collaborators-list">
       {collaborators.map((member) => (
         <div className="collaborator-avatar" key={member.id}>
-          <img src={member.avatar} alt={member.name} />
+          <img src={member.avatar} alt={`Avatar of ${member.name}`} />
           <span>{member.name}</span>
         </div>
       ))}
     </div>
-    <button className="add-collaborator">+ Add Member</button>
+    <button className="add-collaborator" aria-label="Add a new team member">
+      + Add Member
+    </button>
   </div>
 );
 
