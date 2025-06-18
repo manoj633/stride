@@ -144,7 +144,7 @@ const NavigationDrawer = () => {
             {quickAddItems.map((item) => (
               <button
                 key={item.path}
-                className="nav-drawer__quick-add"
+                className="nav-drawer__quick-add-btn"
                 style={{ backgroundColor: item.color }}
                 onClick={() => {
                   navigate(item.path);
@@ -153,8 +153,8 @@ const NavigationDrawer = () => {
                 aria-label={item.label}
                 role="menuitem"
               >
-                <FiPlusCircle />
-                <span>{item.label}</span>
+                <FiPlusCircle size={16} />
+                {item.label}
               </button>
             ))}
           </div>
@@ -164,34 +164,36 @@ const NavigationDrawer = () => {
         <ul className="nav-drawer__links">
           {mainNavItems.map((item) => (
             <li key={item.path}>
-              <button
-                key={item.path}
-                className={`nav-drawer__item${
-                  isActive(item.path) ? " active" : ""
-                }`}
-                onClick={() => {
+              <a
+                href={item.path}
+                className={`nav-drawer__link ${
+                  isActive(item.path) ? "active" : ""
+                } ${!isOpen ? "collapsed" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
                   navigate(item.path);
                   closeDrawer();
                 }}
-                aria-label={item.label}
-                aria-current={isActive(item.path) ? "page" : undefined}
-                role="menuitem"
+                title={!isOpen ? item.label : ""}
               >
-                {item.icon}
-                <span className="nav-drawer__label">{item.label}</span>
-              </button>
+                <span className="nav-drawer__icon">{item.icon}</span>
+                {isOpen && (
+                  <span className="nav-drawer__label">{item.label}</span>
+                )}
+              </a>
             </li>
           ))}
         </ul>
 
         <div className="nav-drawer__footer">
           <button
-            className="nav-drawer__logout"
+            className={`nav-drawer__logout ${!isOpen ? "collapsed" : ""}`}
+            title={!isOpen ? "Logout" : ""}
             onClick={handleLogout}
             aria-label="Log out"
           >
             <FiLogOut />
-            <span>Logout</span>
+            {isOpen && <span>Logout</span>}
           </button>
         </div>
       </nav>
