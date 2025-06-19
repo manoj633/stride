@@ -25,6 +25,7 @@ import tagRoutes from "./routes/tagRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import goalTemplateRoutes from "./routes/goalTemplateRoutes.js";
 
 // Configure directory paths
 const __filename = fileURLToPath(import.meta.url);
@@ -100,6 +101,7 @@ app.use("/api/tags", tagRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/goal-templates", goalTemplateRoutes);
 
 console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "production") {

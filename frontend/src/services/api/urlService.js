@@ -81,3 +81,11 @@ export const userAPI = {
   validateTwoFactorAuth: (data) =>
     axiosInstance.post("/users/two-factor/validate", data),
 };
+
+export const goalTemplateAPI = {
+  fetchAll: () => axiosInstance.get("/goal-templates"),
+  create: (templateData) => axiosInstance.post("/goal-templates", templateData),
+  update: (id, templateData) =>
+    axiosInstance.put(`/goal-templates/${id}`, templateData),
+  delete: (id) => axiosInstance.delete(`/goal-templates/${id}`),
+};

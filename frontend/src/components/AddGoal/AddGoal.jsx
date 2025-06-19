@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { createGoal } from "../../store/features/goals/goalSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
 import { toast } from "react-toastify";
+import GoalTemplateSelector from "./GoalTemplateSelector";
 
 const AddGoal = () => {
   const navigate = useNavigate();
@@ -29,6 +30,25 @@ const AddGoal = () => {
     },
     tags: [],
   });
+
+  const handleTemplateSelect = (template) => {
+    setGoal({
+      title: template.title || "",
+      description: template.description || "",
+      category: template.category || "Education",
+      priority: template.priority || "Medium",
+      duration: {
+        startDate: template.duration?.startDate
+          ? template.duration.startDate.slice(0, 10)
+          : "",
+        endDate: template.duration?.endDate
+          ? template.duration.endDate.slice(0, 10)
+          : "",
+      },
+      tags: template.tags || [],
+      // Optionally, you can add subtasks or other fields if needed
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,6 +93,7 @@ const AddGoal = () => {
     <div className="add-goal-container">
       <div className="add-goal">
         <h2>🎯 Add New Goal</h2>
+        <GoalTemplateSelector onSelect={handleTemplateSelect} />
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="title">Title:</label>

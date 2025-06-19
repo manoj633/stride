@@ -93,3 +93,20 @@ button[type="submit"]:hover {
     background-color: #45a049;
     /* Darker green */
 }
+
+.goal-template-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    background-color: #fff;
+    margin-bottom: 0;
+}
+
+.goal-template-select:focus {
+    outline: none;
+    border-color: #5c6ac4;
+    box-shadow: 0 0 5px rgba(92, 106, 196, 0.3);
+}

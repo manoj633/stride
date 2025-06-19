@@ -7,6 +7,7 @@ import subtaskReducer from "./features/subtasks/subtaskSlice";
 import commentReducer from "./features/comments/commentSlice";
 import authReducer from "./features/auth/authSlice";
 import userReducer from "./features/users/userSlice";
+import goalTemplateReducer from "./features/goalTemplates/goalTemplateSlice";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     comments: commentReducer,
     auth: authReducer,
     user: userReducer,
+    goalTemplates: goalTemplateReducer,
   },
 });
 
