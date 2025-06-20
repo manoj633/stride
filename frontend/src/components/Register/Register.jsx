@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks.js";
 import { register } from "../../store/features/users/userSlice.js";
 import { toast } from "react-toastify";
 import "./Register.css";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -26,7 +28,6 @@ const Register = () => {
     }
   }, [userInfo, redirect, navigate]);
 
-  // In frontend/src/components/Register/Register.jsx
   const submitHandler = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -35,9 +36,7 @@ const Register = () => {
     }
     try {
       const res = await dispatch(register({ name, email, password })).unwrap();
-      // Check if 2FA setup data is returned
       if (res.twoFactorAuthSetup) {
-        // Navigate to 2FA setup page
         navigate("/two-factor-setup");
       } else {
         navigate(redirect);
@@ -46,6 +45,9 @@ const Register = () => {
       toast.error(error?.data?.message || error.error);
     }
   };
+
+  if (loading) return <LoadingSpinner message="Registering..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="register">

@@ -6,6 +6,9 @@ import { login } from "../../store/features/users/userSlice.js";
 import { setCredentials } from "../../store/features/auth/authSlice.js";
 import { toast } from "react-toastify";
 
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
+
 import "./Login.css";
 
 const Login = () => {
@@ -45,6 +48,9 @@ const Login = () => {
       toast.error(error?.data?.message || error.error);
     }
   };
+
+  if (loading) return <LoadingSpinner message="Logging in..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="form-container">

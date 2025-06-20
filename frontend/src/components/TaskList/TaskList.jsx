@@ -3,6 +3,8 @@ import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchTasks } from "../../store/features/tasks/taskSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskList.css";
 
 const TaskList = ({ tasks: propTasks }) => {
@@ -45,15 +47,8 @@ const TaskList = ({ tasks: propTasks }) => {
       });
     })();
 
-  if (loading && !propTasks) {
-    return (
-      <div className="task-list">
-        <div className="task-list__loading-placeholder" />
-        <div className="task-list__loading-placeholder" />
-        <div className="task-list__loading-placeholder" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner message="Loading tasks..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   if (tasks.length === 0) {
     return (

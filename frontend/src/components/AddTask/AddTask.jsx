@@ -7,6 +7,8 @@ import "./AddTask.css";
 import { useNavigate } from "react-router-dom";
 import { fetchGoals } from "../../store/features/goals/goalSlice";
 import { createTask } from "../../store/features/tasks/taskSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const AddTask = ({ goalId, onTaskAdded }) => {
   const [taskData, setTaskData] = useState({
@@ -21,6 +23,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
   const dispatch = useAppDispatch();
   const goals = useAppSelector((state) => state.goals.items);
   const loading = useAppSelector((state) => state.goals.loading);
+  const error = useAppSelector((state) => state.goals.error);
 
   const selectedGoal = goals.find((goal) => goal._id === taskData.goalId);
   const minStartDate = selectedGoal
@@ -68,7 +71,8 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     navigate(-1);
   };
 
-  if (loading) return <div>Loading tags...</div>;
+  if (loading) return <LoadingSpinner message="Loading tags..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="add-task-container">

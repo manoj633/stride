@@ -3,6 +3,8 @@ import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 import "./SubtaskList.css";
 
 const SubtaskList = ({ subtasks: propSubtasks }) => {
@@ -41,15 +43,8 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
       });
     })();
 
-  if (loading && !propSubtasks) {
-    return (
-      <div className="subtask-list">
-        <div className="subtask-list__loading-placeholder" />
-        <div className="subtask-list__loading-placeholder" />
-        <div className="subtask-list__loading-placeholder" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner message="Loading subtasks..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   if (subtasks.length === 0) {
     return (

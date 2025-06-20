@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import SubtaskList from "../SubtaskList/SubtaskList";
 import { fetchTasks, deleteTask } from "../../store/features/tasks/taskSlice";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 import "./TaskDescription.css";
 
@@ -87,15 +89,8 @@ const TaskDescription = () => {
     }
   };
 
-  // Render loading state
-  if (loading) {
-    return <div className="task-description">Loading...</div>;
-  }
-
-  // Render error state
-  if (error) {
-    return <div className="task-description">Error: {error}</div>;
-  }
+  if (loading) return <LoadingSpinner message="Loading task details..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   // Render not found state
   if (!task) {

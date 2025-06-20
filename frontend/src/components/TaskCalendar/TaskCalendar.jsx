@@ -21,6 +21,8 @@ import {
   setSelectedSubtask,
   updateSubtask,
 } from "../../store/features/subtasks/subtaskSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskCalendar.css";
 
 const COLORS = [
@@ -124,6 +126,7 @@ const TaskCalendar = () => {
   const [selectedType, setSelectedType] = useState("subtask");
   const [showCompleted, setShowCompleted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   // State for month/year in monthly view
   const [monthDate, setMonthDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
@@ -144,10 +147,17 @@ const TaskCalendar = () => {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      if (goals.length === 0) await dispatch(fetchGoals());
-      if (tasks.length === 0) await dispatch(fetchTasks());
-      if (subtasks.length === 0) await dispatch(fetchSubtasks());
-      setIsLoading(false);
+      setError(null);
+      try {
+        if (goals.length === 0) await dispatch(fetchGoals());
+        if (tasks.length === 0) await dispatch(fetchTasks());
+        if (subtasks.length === 0) await dispatch(fetchSubtasks());
+      } catch (err) {
+        setError("Failed to load data. Please try again later.");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchData();
   }, [dispatch, goals.length, tasks.length, subtasks.length]);
@@ -433,7 +443,8 @@ const TaskCalendar = () => {
   };
 
   // Early return for loading
-  if (isLoading) return <div>Loading calendar...</div>;
+  if (isLoading) return <LoadingSpinner message="Loading calendar..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="calendar-container">

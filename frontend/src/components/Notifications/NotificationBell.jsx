@@ -3,22 +3,30 @@ import { FiBell } from "react-icons/fi";
 import axios from "axios";
 import "./NotificationBell.css";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const NotificationBell = ({ onClick }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const bellRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const res = await axios.get("/api/notifications");
         setNotifications(res.data.slice(0, 5));
         setUnreadCount(res.data.filter((n) => !n.isRead).length);
       } catch (err) {
-        // ignore
+        setError("Failed to fetch notifications");
+      } finally {
+        setLoading(false);
       }
     };
     fetchNotifications();
@@ -33,6 +41,9 @@ const NotificationBell = ({ onClick }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  if (loading) return <LoadingSpinner message="Loading notifications..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="notif-bell-wrapper" ref={bellRef}>

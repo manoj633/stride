@@ -9,6 +9,8 @@ import { toast } from "react-toastify";
 import TagModal from "../TagModal/TagModal";
 import Header from "./Header";
 import Content from "./Content";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 // Import actions from slices
 import {
@@ -43,6 +45,7 @@ const GoalDescription = () => {
     (state) =>
       state.goals.loading || state.tasks.loading || state.comments.loading
   );
+  const error = useSelector((state) => state.goals.error); // Assuming error is stored in goals slice
 
   // Local state
   const [isEditing, setIsEditing] = useState(false);
@@ -89,10 +92,10 @@ const GoalDescription = () => {
     }
   }, [goal?.completionPercentage]);
 
-  if (!goal && !loading)
+  if (loading) return <LoadingSpinner message="Loading goal details..." />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!goal)
     return <div className="goal-description__notice">Goal not found.</div>;
-  if (loading)
-    return <div className="goal-description__notice">Loading...</div>;
 
   // Handlers
   const handleEdit = () => {

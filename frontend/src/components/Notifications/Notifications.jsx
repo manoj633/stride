@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Notifications.css";
 import { motion, AnimatePresence } from "framer-motion"; // You'll need to install framer-motion
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -39,36 +41,8 @@ const Notifications = () => {
     return emojis[Math.floor(Math.random() * emojis.length)];
   };
 
-  if (loading)
-    return (
-      <div className="notifications-container">
-        <div className="notifications loading">
-          <div className="loading-animation">
-            <div className="dot"></div>
-            <div className="dot"></div>
-            <div className="dot"></div>
-          </div>
-          <p>Loading your updates...</p>
-        </div>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="notifications-container">
-        <div className="notifications error">
-          <div className="error-icon">⚠️</div>
-          <p>{error}</p>
-          <button
-            className="retry-button"
-            onClick={() => window.location.reload()}
-            aria-label="Retry loading notifications"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
+  if (loading) return <LoadingSpinner message="Loading notifications..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="notifications-container">

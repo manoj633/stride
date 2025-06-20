@@ -2,12 +2,15 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 import "./ResetPassword.css";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const { token } = useParams();
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ const ResetPassword = () => {
     }
 
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const response = await fetch(`/api/users/reset-password/${token}`, {
@@ -46,11 +50,15 @@ const ResetPassword = () => {
       toast.success("Password reset successful!");
       navigate("/login");
     } catch (error) {
+      setError(error.message);
       toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isSubmitting) return <LoadingSpinner message="Resetting password..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="reset-password">

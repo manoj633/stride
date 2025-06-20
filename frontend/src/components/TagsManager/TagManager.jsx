@@ -9,6 +9,8 @@ import {
   setSelectedTag,
 } from "../../store/features/tags/tagSlice";
 import "./TagManager.css";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const generatePastelColor = () => {
   // Generate random RGB values
@@ -153,21 +155,8 @@ export const TagManager = () => {
       return a.color.localeCompare(b.color);
     });
 
-  if (loading)
-    return (
-      <div className="tag-manager__loading">
-        <div className="spinner"></div>
-        <span>Loading tags...</span>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="tag-manager__error">
-        <span className="error-icon">⚠️</span>
-        <span>{error}</span>
-      </div>
-    );
+  if (loading) return <LoadingSpinner message="Loading tags..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="tag-manager">

@@ -1,8 +1,17 @@
 // TagModal.jsx
 import React, { useState } from "react";
 import "./TagModal.css";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
-const TagModal = ({ isOpen, onClose, onSave, availableTags }) => {
+const TagModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  availableTags,
+  loading,
+  error,
+}) => {
   const [selectedTagId, setSelectedTagId] = useState("");
 
   const handleSubmit = (e) => {
@@ -15,6 +24,8 @@ const TagModal = ({ isOpen, onClose, onSave, availableTags }) => {
   };
 
   if (!isOpen) return null;
+  if (loading) return <LoadingSpinner message="Loading tag modal..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="tag-modal-overlay">

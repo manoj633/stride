@@ -8,6 +8,8 @@ import {
   fetchTasks,
 } from "../../store/features/tasks/taskSlice";
 import { createSubtask } from "../../store/features/subtasks/subtaskSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 import "./AddSubTask.css";
 
 const formatDate = (isoDate) => {
@@ -36,6 +38,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
   const availableTasks = useAppSelector((state) =>
     selectTasksByGoalId(state, formData.goalId)
   );
+  const { loading, error } = useAppSelector((state) => state.subtasks);
 
   useEffect(() => {
     dispatch(fetchGoals());
@@ -104,6 +107,9 @@ const AddSubTask = ({ onSubtaskAdded }) => {
     });
     setTaskDateRange({ minDate: "", maxDate: "" });
   };
+
+  if (loading) return <LoadingSpinner message="Loading subtasks..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="add-subtask-container">

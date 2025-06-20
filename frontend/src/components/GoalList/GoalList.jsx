@@ -17,6 +17,8 @@ import { BulkActions } from "./controls/BulkActions";
 import { Stats } from "./Stats";
 import DonutChart from "./DonutChart";
 import { useGoalListLogic } from "./hooks/useGoalListLogic";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 import "./GoalList.css";
 
 const GoalList = () => {
@@ -81,7 +83,8 @@ const GoalList = () => {
     }
   };
 
-  if (loading) return <div>Loading goals...</div>;
+  if (loading) return <LoadingSpinner message="Loading goals..." />;
+  if (error) return <ErrorMessage message={error} />;
   if (goals.length === 0) {
     const handleNavigateToAdd = () => {
       navigate("/goals/add");

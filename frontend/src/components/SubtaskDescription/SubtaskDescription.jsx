@@ -12,6 +12,8 @@ import {
 import "./SubtaskDescription.css";
 import { updateTaskCompletion } from "../../store/features/tasks/taskSlice";
 import { updateGoalCompletion } from "../../store/features/goals/goalSlice";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const SubtaskDescription = () => {
   const { subtaskId } = useParams();
@@ -109,13 +111,8 @@ const SubtaskDescription = () => {
     }
   };
 
-  if (loading) {
-    return <div className="subtask">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="subtask">Error: {error}</div>;
-  }
+  if (loading) return <LoadingSpinner message="Loading subtask details..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   if (!subtask) {
     return (

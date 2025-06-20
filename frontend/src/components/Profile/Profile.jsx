@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { updateProfile } from "../../store/features/users/userSlice.js";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const Profile = () => {
   const [name, setName] = useState("");
@@ -42,6 +44,9 @@ const Profile = () => {
   const getInitial = () => {
     return name ? name.charAt(0).toUpperCase() : "U";
   };
+
+  if (loading) return <LoadingSpinner message="Loading profile..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="profile">

@@ -7,6 +7,8 @@ import { createGoal } from "../../store/features/goals/goalSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
 import { toast } from "react-toastify";
 import GoalTemplateSelector from "./GoalTemplateSelector";
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 const AddGoal = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const AddGoal = () => {
 
   const tags = useAppSelector((state) => state.tags.items);
   const loading = useAppSelector((state) => state.tags.loading);
+  const error = useAppSelector((state) => state.tags.error);
 
   useEffect(() => {
     dispatch(fetchTags());
@@ -87,7 +90,8 @@ const AddGoal = () => {
     }
   };
 
-  if (loading) return <div>Loading tags...</div>;
+  if (loading) return <LoadingSpinner message="Loading tags..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="add-goal-container">

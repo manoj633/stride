@@ -1,9 +1,11 @@
 // frontend/src/components/ForgotPassword/ForgotPassword.jsx
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/features/users/userSlice";
+
+import LoadingSpinner from "../Common/LoadingSpinner";
+import ErrorMessage from "../Common/ErrorMessage";
 
 import "./ForgotPassword.css";
 
@@ -11,12 +13,14 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const response = await fetch("/api/users/forgot-password", {
@@ -38,11 +42,15 @@ const ForgotPassword = () => {
       setEmailSent(true);
       toast.success("Password reset email sent successfully!");
     } catch (error) {
+      setError(error.message);
       toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isSubmitting) return <LoadingSpinner message="Sending reset email..." />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="forgot-password">
