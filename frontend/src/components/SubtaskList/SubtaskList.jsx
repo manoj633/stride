@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { toast } from "react-toastify";
 import "./SubtaskList.css";
 
 const SubtaskList = ({ subtasks: propSubtasks }) => {
@@ -17,7 +18,12 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
 
   useEffect(() => {
     if (!propSubtasks && allSubtasks.length === 0) {
-      dispatch(fetchSubtasks());
+      dispatch(fetchSubtasks())
+        .unwrap()
+        .catch((error) => {
+          console.error("Failed to fetch subtasks:", error);
+          toast.error("Failed to fetch subtasks");
+        });
     }
   }, [dispatch, propSubtasks, allSubtasks.length]);
 

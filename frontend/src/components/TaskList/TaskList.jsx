@@ -6,6 +6,7 @@ import { fetchTasks } from "../../store/features/tasks/taskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskList.css";
+import { toast } from "react-toastify";
 
 const TaskList = ({ tasks: propTasks }) => {
   const navigate = useNavigate();
@@ -17,7 +18,12 @@ const TaskList = ({ tasks: propTasks }) => {
 
   useEffect(() => {
     if (!propTasks && allTasks.length === 0) {
-      dispatch(fetchTasks());
+      dispatch(fetchTasks())
+        .unwrap()
+        .catch((error) => {
+          console.error("Failed to fetch tasks:", error);
+          toast.error("Failed to fetch tasks");
+        });
     }
   }, [dispatch, propTasks, allTasks.length]);
 

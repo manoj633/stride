@@ -106,22 +106,16 @@ const GoalDescription = () => {
   const handleSaveEdit = async () => {
     if (editedGoal) {
       try {
-        await toast.promise(
-          dispatch(
-            updateGoal({ id: editedGoal._id, goalData: editedGoal })
-          ).unwrap(),
-          {
-            pending: "Saving changes...",
-            success: "Goal updated successfully!",
-            error: "Failed to update goal 🤯",
-          }
-        );
-        setIsEditing(false);
-        setEditedGoal(null);
+        await dispatch(
+          updateGoal({ id: editedGoal._id, goalData: editedGoal })
+        ).unwrap();
+        toast.success("Goal updated successfully");
       } catch (error) {
         console.error("Error updating goal:", error);
         toast.error("Failed to update goal");
       }
+      setIsEditing(false);
+      setEditedGoal(null);
     }
   };
 

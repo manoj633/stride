@@ -155,6 +155,7 @@ const TaskCalendar = () => {
       } catch (err) {
         setError("Failed to load data. Please try again later.");
         console.error(err);
+        toast.error("Failed to load calendar data");
       } finally {
         setIsLoading(false);
       }
@@ -344,6 +345,7 @@ const TaskCalendar = () => {
           })
           .catch((error) => {
             console.error("Failed to update goal:", error);
+            toast.error("Failed to update goal");
           });
         break;
       case "task":
@@ -364,6 +366,7 @@ const TaskCalendar = () => {
           })
           .catch((error) => {
             console.error("Failed to update task:", error);
+            toast.error("Failed to update task");
           });
         break;
       case "subtask":
@@ -384,6 +387,7 @@ const TaskCalendar = () => {
           })
           .catch((error) => {
             console.error("Failed to update subtask:", error);
+            toast.error("Failed to update subtask");
           });
         break;
       default:
@@ -396,7 +400,7 @@ const TaskCalendar = () => {
   const toggleItem = (date, item) => {
     const [type, id] = item.id.split("-");
     switch (type) {
-      case "subtask":
+      case "subtask": {
         const updatedSubtask = {
           ...item.originalItem,
           completed: !item.originalItem.completed,
@@ -418,9 +422,10 @@ const TaskCalendar = () => {
                     })
                   )
                     .then(() => toast.success("Subtask updated successfully"))
-                    .catch((error) =>
-                      console.error("Failed to update goal completion:", error)
-                    );
+                    .catch((error) => {
+                      console.error("Failed to update goal completion:", error);
+                      toast.error("Failed to update goal completion");
+                    });
                 }
               });
             }
@@ -430,6 +435,7 @@ const TaskCalendar = () => {
             toast.error("Failed to update subtask");
           });
         break;
+      }
       default:
         break;
     }
@@ -442,314 +448,162 @@ const TaskCalendar = () => {
     }));
   };
 
-  // Early return for loading
-  if (isLoading) return <LoadingSpinner message="Loading calendar..." />;
-  if (error) return <ErrorMessage message={error} />;
-
+  // Render
   return (
-    <div className="calendar-container">
+    <div className="task-calendar">
       <div className="calendar-header">
-        <h1>{view === "weekly" ? "Weekly Overview" : "Monthly Overview"}</h1>
-        <div className="view-switch">
+        <div className="date-navigation">
+          <button className="prev-month" onClick={handlePrevMonth}>
+            <ChevronLeft />
+          </button>
+          <div className="current-month">
+            {monthDate.toLocaleString("default", { month: "long" })}{" "}
+            {monthDate.getFullYear()}
+          </div>
+          <button className="next-month" onClick={handleNextMonth}>
+            <ChevronRight />
+          </button>
+        </div>
+        <div className="view-toggle">
           <button
+            className={`toggle-btn ${view === "weekly" ? "active" : ""}`}
             onClick={() => setView("weekly")}
-            className={view === "weekly" ? "active" : ""}
-            aria-label="Switch to weekly view"
           >
             Weekly
           </button>
           <button
+            className={`toggle-btn ${view === "monthly" ? "active" : ""}`}
             onClick={() => setView("monthly")}
-            className={view === "monthly" ? "active" : ""}
-            aria-label="Switch to monthly view"
           >
             Monthly
           </button>
         </div>
-        {view === "monthly" && (
-          <div className="navigation-buttons">
-            <button onClick={handlePrevMonth} aria-label="Previous month">
-              <ChevronLeft />
-            </button>
-            <span style={{ margin: "0 1rem" }}>
-              {monthDate.toLocaleString("default", { month: "long" })} {year}
-            </span>
-            <button onClick={handleNextMonth} aria-label="Next month">
-              <ChevronRight />
-            </button>
-          </div>
-        )}
-        {view === "weekly" && (
-          <div className="navigation-buttons">
-            <button onClick={() => navigateWeek(-1)} aria-label="Previous week">
-              <ChevronLeft />
-            </button>
-            <button onClick={() => navigateWeek(1)} aria-label="Next week">
-              <ChevronRight />
-            </button>
-          </div>
-        )}
       </div>
-
-      <div className="calendar-filters">
-        <div className="filter-group">
-          <label htmlFor="priority-select">Priority:</label>
-          <select
-            id="priority-select"
-            value={selectedPriority}
-            onChange={(e) => setSelectedPriority(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <label htmlFor="type-select">Type:</label>
-          <select
-            id="type-select"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="goal">Goals</option>
-            <option value="task">Tasks</option>
-            <option value="subtask">Subtasks</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <input
-            type="checkbox"
-            id="show-completed"
-            checked={showCompleted}
-            onChange={(e) => setShowCompleted(e.target.checked)}
-          />
-          <label htmlFor="show-completed">Show Completed</label>
-        </div>
-      </div>
-
-      <div className="calendar-content">
-        {view === "weekly" ? (
-          <div className="calendar-grid" tabIndex={0}>
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="day-header">
-                {day}
+      {isLoading && <LoadingSpinner />}
+      {error && <ErrorMessage message={error} />}
+      {!isLoading && !error && view === "weekly" && (
+        <div className="weekly-view">
+          <div className="days-header">
+            {days.map((day) => (
+              <div key={day} className="day-cell">
+                {formatDate(day)}
               </div>
             ))}
-            {days.map((date) => {
-              const dateStr = date.toISOString().split("T")[0];
-              const dayItems = filteredItems[dateStr] || [];
-              const isToday = new Date().toDateString() === date.toDateString();
-              const dayProgress = calculateDayProgress(dayItems);
-              return (
-                <div
-                  key={dateStr}
-                  className={`calendar-cell ${isToday ? "today" : ""}`}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(date)}
-                >
-                  <div className="date-header">
-                    <div className="date-info">
-                      <div
-                        className="day-progress-circle"
-                        style={{ "--progress": `${dayProgress}%` }}
-                      >
-                        <span className="percentage">
-                          {Math.round(dayProgress)}%
-                        </span>
-                      </div>
-                      <div className="date-number">{formatDate(date)}</div>
-                    </div>
-                  </div>
-                  <div className="calendar-task-list">
-                    {dayItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`task-item type-${item.type} ${
-                          isTouchDevice ? "touch-device" : ""
-                        }`}
-                        data-priority={item.priority.toLowerCase()}
-                        style={{
-                          backgroundColor: COLORS.find(
-                            (c) => c.id === item.color
-                          )?.bg,
-                        }}
-                        onClick={() => handleItemClick(item)}
-                        draggable={!isTouchDevice}
-                        onDragStart={() =>
-                          !isTouchDevice && handleDragStart(date, item)
-                        }
-                        aria-label={`${item.type} ${item.text}`}
-                      >
-                        {item.type === "subtask" && (
-                          <input
-                            type="checkbox"
-                            checked={item.completed}
-                            className="task-checkbox"
-                            onChange={() => toggleItem(date, item)}
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label="Toggle completion"
-                          />
-                        )}
-                        <span
-                          className={`task-text ${
-                            item.completed ? "completed" : ""
-                          }`}
-                        >
-                          {item.type.toUpperCase()} - {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
           </div>
-        ) : (
-          // Monthly Heatmap View
-          <div className="monthly-heatmap">
-            <div className="calendar-grid month">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="day-header">
-                  {day}
-                </div>
-              ))}
-              {/* Empty cells before the first day */}
-              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div
-                  key={`empty-start-${i}`}
-                  className="calendar-cell empty"
-                ></div>
-              ))}
-              {/* Days of the month */}
-              {daysInMonth.map((date) => {
-                const dateStr = date.toISOString().split("T")[0];
-                const count = (filteredItems[dateStr] || []).filter(
-                  (item) => item.type === "subtask"
-                ).length;
-                const isToday =
-                  new Date().toDateString() === date.toDateString();
-                const items = filteredItems[dateStr] || [];
-
-                // Find the scale/color for this count
-                const scaleIdx = heatmapScale.findIndex(
-                  (level) => count <= level.max
-                );
-                const cellColor = heatmapScale[scaleIdx]?.color || "#f8f9fa";
-
-                return (
-                  <div
-                    key={dateStr}
-                    className={`heatmap-cell ${isToday ? "today" : ""}`}
-                    title={`${formatDate(date)}: ${count} subtasks`}
-                    onClick={() => setSelectedDay({ date, items })}
-                    style={{ cursor: "pointer", background: cellColor }}
-                  >
-                    <div className="heatmap-date-container">
-                      <span className="heatmap-date">{date.getDate()}</span>
-                      {count > 0 && (
-                        <span className="heatmap-badge">{count}</span>
-                      )}
+          <div className="tasks-container">
+            {Object.entries(filteredItems).map(([date, items]) => (
+              <div key={date} className="tasks-row">
+                <div className="date-label">{formatDate(new Date(date))}</div>
+                <div className="tasks-list">
+                  {items.length === 0 && (
+                    <div className="no-tasks">No tasks for this date</div>
+                  )}
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`task-item ${item.color}`}
+                      onClick={() => handleItemClick(item)}
+                      draggable
+                      onDragStart={() => handleDragStart(new Date(date), item)}
+                      onDragOver={handleDragOver}
+                      onDrop={() => handleDrop(new Date(date))}
+                    >
+                      <div className="task-content">
+                        <div className="task-title">{item.text}</div>
+                        <div className="task-priority">
+                          {item.priority.charAt(0).toUpperCase() +
+                            item.priority.slice(1)}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-              {/* Empty cells after the last day */}
-              {Array.from({ length: 6 - lastDayOfWeek }).map((_, i) => (
-                <div
-                  key={`empty-end-${i}`}
-                  className="calendar-cell empty"
-                ></div>
-              ))}
-            </div>
-            {/* Legend */}
-            <div className="heatmap-legend">
-              {heatmapScale.map((level, idx) => (
-                <div className="legend-item" key={idx}>
-                  <span
-                    className="legend-swatch"
-                    style={{ background: level.color }}
-                  ></span>
-                  <span className="legend-label">
-                    {idx === 0
-                      ? `0`
-                      : `${heatmapScale[idx - 1].max + 1}-${
-                          level.max === Infinity ? "+" : level.max
-                        }`}{" "}
-                    tasks
-                  </span>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-      {selectedDay && (
-        <DayPopover
-          date={selectedDay.date}
-          items={selectedDay.items}
-          onClose={() => setSelectedDay(null)}
-        />
-      )}
-      {view === "monthly" && (
-        <div className="heatmap-scale-editor">
-          <span style={{ fontWeight: 500, marginRight: 8 }}>
-            Customize Heatmap:
-          </span>
-          {heatmapScale.map((level, idx) => (
-            <span key={idx} style={{ marginRight: 12 }}>
-              <input
-                type="number"
-                min={idx === 0 ? 0 : heatmapScale[idx - 1].max + 1}
-                max={
-                  idx < heatmapScale.length - 1 ? heatmapScale[idx + 1].max : 99
-                }
-                value={level.max === Infinity ? "" : level.max}
-                onChange={(e) => {
-                  const val =
-                    e.target.value === ""
-                      ? Infinity
-                      : parseInt(e.target.value, 10);
-                  setHeatmapScale((scale) =>
-                    scale.map((l, i) => (i === idx ? { ...l, max: val } : l))
-                  );
-                }}
-                style={{
-                  width: 40,
-                  marginRight: 4,
-                  border: "1px solid #ccc",
-                  borderRadius: 4,
-                  padding: "2px 4px",
-                }}
-                disabled={idx === heatmapScale.length - 1}
-              />
-              <input
-                type="color"
-                value={level.color}
-                onChange={(e) => {
-                  setHeatmapScale((scale) =>
-                    scale.map((l, i) =>
-                      i === idx ? { ...l, color: e.target.value } : l
-                    )
-                  );
-                }}
-                style={{
-                  width: 28,
-                  height: 18,
-                  border: "none",
-                  verticalAlign: "middle",
-                }}
-              />
-              {idx < heatmapScale.length - 1 && (
-                <span style={{ fontSize: 12, color: "#888", marginLeft: 2 }}>
-                  to
-                </span>
-              )}
-            </span>
-          ))}
         </div>
       )}
+      {!isLoading && !error && view === "monthly" && (
+        <div className="monthly-view">
+          <div className="month-header">
+            {monthDate.toLocaleString("default", { month: "long" })}{" "}
+            {monthDate.getFullYear()}
+          </div>
+          <div className="calendar-grid">
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+              <div key={`empty-${i}`} className="empty-cell" />
+            ))}
+            {daysInMonth.map((day) => (
+              <div
+                key={day}
+                className="day-cell"
+                onClick={() => setSelectedDay(day)}
+              >
+                <div className="date-number">{day.getDate()}</div>
+                <div className="day-items">
+                  {filteredItems[day.toISOString().split("T")[0]]?.map(
+                    (item) => (
+                      <div
+                        key={item.id}
+                        className={`item-bubble ${item.color}`}
+                        onClick={() => handleItemClick(item)}
+                      >
+                        {item.text}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            ))}
+            {Array.from({ length: 6 - lastDayOfWeek }).map((_, i) => (
+              <div key={`empty-end-${i}`} className="empty-cell" />
+            ))}
+          </div>
+          {selectedDay && (
+            <DayPopover
+              date={selectedDay}
+              items={filteredItems[selectedDay.toISOString().split("T")[0]]}
+              onClose={() => setSelectedDay(null)}
+              onItemClick={handleItemClick}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            />
+          )}
+        </div>
+      )}
+      <div className="heatmap-container">
+        <div className="heatmap-header">Task Heatmap</div>
+        <div className="heatmap-scale">
+          {heatmapScale.map((scale, index) => (
+            <div
+              key={index}
+              className="scale-item"
+              style={{ backgroundColor: scale.color }}
+            >
+              {scale.max === Infinity
+                ? "7+ tasks"
+                : `Up to ${scale.max} task${scale.max > 1 ? "s" : ""}`}
+            </div>
+          ))}
+        </div>
+        <div className="heatmap-body">
+          {Object.entries(heatmapData).map(([date, data]) => (
+            <div
+              key={date}
+              className="heatmap-item"
+              style={{
+                backgroundColor:
+                  heatmapScale.find((scale) => data.value <= scale.max)
+                    ?.color || "transparent",
+              }}
+              title={`${data.value} task${
+                data.value !== 1 ? "s" : ""
+              } on ${formatDate(new Date(date))}`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
