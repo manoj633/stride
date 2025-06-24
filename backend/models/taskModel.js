@@ -6,10 +6,13 @@ const TaskSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minlength: 2,
+      maxlength: 100,
     },
     description: {
       type: String,
       trim: true,
+      maxlength: 500,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +31,12 @@ const TaskSchema = new mongoose.Schema(
     endDate: {
       type: Date,
       required: true,
+      validate: {
+        validator: function (value) {
+          return !this.startDate || value > this.startDate;
+        },
+        message: "End date must be after start date",
+      },
     },
     completed: {
       type: Boolean,

@@ -11,6 +11,7 @@ const passwordResetSchema = new mongoose.Schema({
   token: {
     type: String,
     required: true,
+    maxlength: 64,
   },
   createdAt: {
     type: Date,

@@ -1,15 +1,21 @@
 import mongoose from "mongoose";
 
 const SubtaskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String },
+  title: { type: String, required: true, minlength: 2, maxlength: 100 },
+  description: { type: String, maxlength: 500 },
   completed: { type: Boolean, default: false },
 });
 
 const GoalTemplateSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true },
-    description: { type: String, trim: true },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 100,
+    },
+    description: { type: String, trim: true, maxlength: 500 },
     category: {
       type: String,
       enum: [
@@ -31,7 +37,16 @@ const GoalTemplateSchema = new mongoose.Schema(
     },
     duration: {
       startDate: { type: Date },
-      endDate: { type: Date },
+      endDate: {
+        type: Date,
+        validate: {
+          validator: function (value) {
+            if (!this.duration.startDate || !value) return true;
+            return value > this.duration.startDate;
+          },
+          message: "End date must be after start date",
+        },
+      },
     },
     tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }],
     subtasks: [SubtaskSchema],

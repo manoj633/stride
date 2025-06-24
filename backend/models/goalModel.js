@@ -6,10 +6,13 @@ const GoalSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minlength: 2,
+      maxlength: 100,
     },
     description: {
       type: String,
       trim: true,
+      maxlength: 500,
     },
     category: {
       type: String,
@@ -43,6 +46,13 @@ const GoalSchema = new mongoose.Schema(
       endDate: {
         type: Date,
         required: true,
+        validate: {
+          validator: function (value) {
+            if (!this.duration.startDate || !value) return true;
+            return value > this.duration.startDate;
+          },
+          message: "End date must be after start date",
+        },
       },
     },
     archived: {

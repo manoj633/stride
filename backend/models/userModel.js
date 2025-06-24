@@ -3,13 +3,26 @@ import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
+    },
+    password: { type: String, required: true, minlength: 6, maxlength: 128 },
     isAdmin: { type: Boolean, required: true, default: false },
     isTwoFactorEnabled: { type: Boolean, default: true },
     twoFactorSecret: { type: String, default: null },
-    twoFactorBackupCodes: [{ type: String }], // For backup/recovery
+    twoFactorBackupCodes: [{ type: String, maxlength: 32 }], // For backup/recovery
   },
   { timestamps: true }
 );

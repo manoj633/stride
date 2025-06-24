@@ -11,6 +11,8 @@ const CommentSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minlength: 1,
+      maxlength: 500,
     },
     date: {
       type: Date,

@@ -6,6 +6,8 @@ const TagSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minlength: 2,
+      maxlength: 30,
     },
     color: {
       type: String,

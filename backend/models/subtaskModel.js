@@ -6,10 +6,13 @@ const SubtaskSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minlength: 2,
+      maxlength: 100,
     },
     description: {
       type: String,
       trim: true,
+      maxlength: 500,
     },
     priority: {
       type: String,
@@ -19,6 +22,12 @@ const SubtaskSchema = new mongoose.Schema(
     dueDate: {
       type: Date,
       required: true,
+      validate: {
+        validator: function (value) {
+          return value >= new Date();
+        },
+        message: "Due date cannot be in the past",
+      },
     },
     completed: {
       type: Boolean,
