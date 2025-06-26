@@ -51,6 +51,7 @@ const getTaskById = asyncHandler(async (req, res) => {
  * * access: Private
  */
 const createTask = asyncHandler(async (req, res) => {
+  console.log("DEBUG: createTask received body:", req.body);
   logger.info("Creating new task", {
     body: req.body,
     endpoint: "/api/tasks",
