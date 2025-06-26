@@ -19,7 +19,7 @@ import {
   validateTwoFactorAuth,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
-import { passwordResetLimiter } from "../middleware/rateLimiter.js";
+import { passwordResetLimiter, loginLimiter, registerLimiter } from "../middleware/rateLimiter.js";
 import { check } from "express-validator";
 import { validate } from "../middleware/validationMiddleware.js";
 
@@ -30,6 +30,7 @@ router
   .route("/")
   .post(
     [
+      registerLimiter,
       check("name")
         .trim()
         .isLength({ min: 2, max: 50 })
@@ -52,6 +53,7 @@ router.post("/logout", protect, logoutUser);
 router.post(
   "/login",
   [
+    loginLimiter,
     check("email")
       .trim()
       .isEmail()

@@ -14,4 +14,28 @@ const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export { limiter, passwordResetLimiter };
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 login requests per windowMs
+  message: "Too many login attempts. Please try again after 15 minutes.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // limit each IP to 5 registration requests per windowMs
+  message: "Too many registration attempts. Please try again after an hour.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const commentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // limit each IP to 20 comments per hour
+  message: "Too many comments created from this IP, please try again after an hour.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export { limiter, passwordResetLimiter, loginLimiter, registerLimiter, commentLimiter };

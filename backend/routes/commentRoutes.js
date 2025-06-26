@@ -8,6 +8,7 @@ import {
 import extractUser from "../utils/extractUser.js";
 import { check } from "express-validator";
 import { validate } from "../middleware/validationMiddleware.js";
+import { commentLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router
   .route("/")
   .post(
     [
+      commentLimiter,
       extractUser,
       check("content")
         .trim()
