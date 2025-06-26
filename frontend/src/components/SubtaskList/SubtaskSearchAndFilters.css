@@ -1,0 +1,92 @@
+/* SubtaskSearchAndFilters.css */
+.subtasklist-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.subtasklist-search-input {
+    flex: 2 1 200px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    transition: border 0.2s;
+}
+
+.subtasklist-search-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.subtasklist-filter-select {
+    flex: 1 1 160px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    color: #374151;
+    transition: border 0.2s;
+}
+
+.subtasklist-filter-select:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.subtasklist-date-range {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.subtasklist-date-range label {
+    font-size: 0.95rem;
+    color: #374151;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.subtasklist-date-range input[type="date"] {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    color: #374151;
+    transition: border 0.2s;
+}
+
+.subtasklist-date-range input[type="date"]:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+@media (max-width: 700px) {
+    .subtasklist-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .subtasklist-search-input,
+    .subtasklist-filter-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .subtasklist-date-range {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+}
