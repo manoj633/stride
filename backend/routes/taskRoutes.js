@@ -38,8 +38,8 @@ router
         .withMessage("Start date must be a valid date"),
       check("endDate").isISO8601().withMessage("End date must be a valid date"),
       check("endDate").custom((value, { req }) => {
-        if (req.body.startDate && value <= req.body.startDate) {
-          throw new Error("End date must be after start date");
+        if (req.body.startDate && value < req.body.startDate) {
+          throw new Error("End date must be after or equal to start date");
         }
         return true;
       }),
@@ -80,8 +80,8 @@ router
       check("endDate")
         .optional()
         .custom((value, { req }) => {
-          if (req.body.startDate && value <= req.body.startDate) {
-            throw new Error("End date must be after start date");
+          if (req.body.startDate && value < req.body.startDate) {
+            throw new Error("End date must be after or equal to start date");
           }
           return true;
         }),
