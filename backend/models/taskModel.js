@@ -33,9 +33,9 @@ const TaskSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (value) {
-          return !this.startDate || value > this.startDate;
+          return !this.startDate || value >= this.startDate;
         },
-        message: "End date must be after start date",
+        message: "End date must be after or equal to start date",
       },
     },
     completed: {
