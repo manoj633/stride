@@ -30,9 +30,7 @@ router
         .isLength({ max: 500 })
         .withMessage("Description max 500 characters"),
       check("priority")
-        .optional()
-        .isIn(["High", "Medium", "Low"])
-        .withMessage("Priority must be High, Medium, or Low"),
+        .optional(),
       check("startDate")
         .isISO8601()
         .withMessage("Start date must be a valid date"),
