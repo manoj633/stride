@@ -50,20 +50,7 @@ router
         .trim()
         .isLength({ max: 500 })
         .withMessage("Description max 500 characters"),
-      check("priority")
-        .optional()
-        .isIn(["High", "Medium", "Low"])
-        .withMessage("Priority must be High, Medium, or Low"),
-      check("dueDate")
-        .optional()
-        .isISO8601()
-        .withMessage("Due date must be a valid date")
-        .custom((value) => {
-          if (new Date(value) < new Date()) {
-            throw new Error("Due date cannot be in the past");
-          }
-          return true;
-        }),
+      check("priority").optional(),
       validate,
     ],
     updateSubtask
