@@ -24,7 +24,12 @@ const SubtaskSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (value) {
-          return value >= new Date();
+          // Compare only the date part, ignore time
+          const inputDate = new Date(value);
+          const today = new Date();
+          inputDate.setHours(0, 0, 0, 0);
+          today.setHours(0, 0, 0, 0);
+          return inputDate >= today;
         },
         message: "Due date cannot be in the past",
       },
