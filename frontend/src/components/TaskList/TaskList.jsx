@@ -68,16 +68,16 @@ const TaskList = ({ tasks: propTasks }) => {
         (task.collaborators || []).includes(filterCollaborator)
       );
     }
-    // Date range filter
-    if (filterDateRange.start) {
-      filtered = filtered.filter(
-        (task) => new Date(task.startDate) >= new Date(filterDateRange.start)
-      );
-    }
-    if (filterDateRange.end) {
-      filtered = filtered.filter(
-        (task) => new Date(task.endDate) <= new Date(filterDateRange.end)
-      );
+    // Date range filter (overlap logic)
+    if (filterDateRange.start && filterDateRange.end) {
+      const filterStart = new Date(filterDateRange.start);
+      const filterEnd = new Date(filterDateRange.end);
+      filtered = filtered.filter((task) => {
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        // Overlap: task starts before or on filter end, and ends after or on filter start
+        return taskStart <= filterEnd && taskEnd >= filterStart;
+      });
     }
     // Search
     if (searchTerm) {
