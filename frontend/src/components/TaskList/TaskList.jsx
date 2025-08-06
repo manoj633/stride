@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchTasks } from "../../store/features/tasks/taskSlice";
+import { fetchTasks, clearError } from "../../store/features/tasks/taskSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
 import { getUsers } from "../../store/features/users/userSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";

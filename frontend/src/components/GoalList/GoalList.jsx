@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   fetchGoals,
+  clearError,
   selectGoalStats,
 } from "../../store/features/goals/goalSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
