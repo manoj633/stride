@@ -42,6 +42,7 @@ import ReactGA from "react-ga4";
 ReactGA.initialize("G-TEK9P0HRHD"); // Replace with your ID
 
 import AnalyticsTracker from "./utils/AnalyticsTracker";
+import PrivateRoute from "./components/Common/PrivateRoute";
 
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
@@ -125,17 +126,63 @@ const App = () => {
       <AnalyticsTracker />
       <main className={mainClass}>
         <Routes>
-          <Route path="/" element={<TaskCalendar />} />
-          <Route path="/goals/:goalId" element={<GoalDescription />} />
-          <Route path="/goals/add" element={<AddGoal />} />
-          <Route path="/goals" element={<GoalList />} />
-          <Route path="/tasks/:taskId" element={<TaskDescription />} />
-          <Route path="/tasks/add" element={<AddTask />} />
-          <Route path="/tasks" element={<TaskList />} />
-          <Route path="/subtasks/:subtaskId" element={<SubtaskDescription />} />
-          <Route path="/subtasks/add" element={<AddSubTask />} />
-          <Route path="/subtasks" element={<SubtaskList />} />
-          <Route path="/tags/manage" element={<TagManager />} />
+          {/* Protected routes */}
+          <Route path="/" element={
+            <PrivateRoute>
+              <TaskCalendar />
+            </PrivateRoute>
+          } />
+          <Route path="/goals/:goalId" element={
+            <PrivateRoute>
+              <GoalDescription />
+            </PrivateRoute>
+          } />
+          <Route path="/goals/add" element={
+            <PrivateRoute>
+              <AddGoal />
+            </PrivateRoute>
+          } />
+          <Route path="/goals" element={
+            <PrivateRoute>
+              <GoalList />
+            </PrivateRoute>
+          } />
+          <Route path="/tasks/:taskId" element={
+            <PrivateRoute>
+              <TaskDescription />
+            </PrivateRoute>
+          } />
+          <Route path="/tasks/add" element={
+            <PrivateRoute>
+              <AddTask />
+            </PrivateRoute>
+          } />
+          <Route path="/tasks" element={
+            <PrivateRoute>
+              <TaskList />
+            </PrivateRoute>
+          } />
+          <Route path="/subtasks/:subtaskId" element={
+            <PrivateRoute>
+              <SubtaskDescription />
+            </PrivateRoute>
+          } />
+          <Route path="/subtasks/add" element={
+            <PrivateRoute>
+              <AddSubTask />
+            </PrivateRoute>
+          } />
+          <Route path="/subtasks" element={
+            <PrivateRoute>
+              <SubtaskList />
+            </PrivateRoute>
+          } />
+          <Route path="/tags/manage" element={
+            <PrivateRoute>
+              <TagManager />
+            </PrivateRoute>
+          } />
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
