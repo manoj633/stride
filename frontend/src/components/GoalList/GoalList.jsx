@@ -29,6 +29,7 @@ const GoalList = () => {
   const error = useAppSelector((state) => state.goals.error);
   const tags = useAppSelector((state) => state.tags.items);
   const stats = useAppSelector(selectGoalStats);
+  const userInfo = useAppSelector((state) => state.user.userInfo);
 
   useEffect(() => {
     if (goals.length === 0) {
@@ -36,6 +37,14 @@ const GoalList = () => {
     }
     dispatch(fetchTags());
   }, [dispatch, goals.length]);
+
+  // Refetch goals and clear error when userInfo changes (e.g., after login)
+  useEffect(() => {
+    if (userInfo) {
+      dispatch(clearError());
+      dispatch(fetchGoals());
+    }
+  }, [userInfo, dispatch]);
 
   useEffect(() => {
     if (error === "Request failed with status code 401") {

@@ -20,6 +20,7 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
   const error = useSelector((state) => state.subtasks.error);
   const tags = useSelector((state) => state.tags.items);
   const users = useSelector((state) => state.user.users);
+  const userInfo = useSelector((state) => state.user.userInfo);
 
   // Filter/search state
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,6 +43,14 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
         });
     }
   }, [dispatch, propSubtasks, allSubtasks.length]);
+
+  // Refetch subtasks and clear error when userInfo changes (e.g., after login)
+  useEffect(() => {
+    if (userInfo) {
+      dispatch(clearError());
+      dispatch(fetchSubtasks());
+    }
+  }, [userInfo, dispatch]);
 
   useEffect(() => {
     if (error === "Request failed with status code 401") {
