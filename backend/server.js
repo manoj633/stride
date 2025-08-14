@@ -26,6 +26,7 @@ import commentRoutes from "./routes/commentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import goalTemplateRoutes from "./routes/goalTemplateRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
 
 // Configure directory paths
 const __filename = fileURLToPath(import.meta.url);
@@ -103,6 +104,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/goal-templates", goalTemplateRoutes);
+app.use("/api/reports", reportRoutes);
 
 console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "production") {
