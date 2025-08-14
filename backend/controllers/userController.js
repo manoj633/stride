@@ -17,6 +17,10 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
+    // Update lastActive on login
+    user.lastActive = new Date();
+    await user.save();
+
     // Check if 2FA is enabled
     if (user.isTwoFactorEnabled) {
       // Only return minimal information to indicate 2FA is needed
@@ -62,6 +66,7 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
     isTwoFactorEnabled: true,
+    lastActive: new Date(),
   });
 
   // Generate a 2FA secret for the new user

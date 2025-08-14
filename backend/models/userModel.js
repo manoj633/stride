@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
     isTwoFactorEnabled: { type: Boolean, default: true },
     twoFactorSecret: { type: String, default: null },
     twoFactorBackupCodes: [{ type: String, maxlength: 32 }], // For backup/recovery
+    lastActive: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
