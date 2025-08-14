@@ -50,10 +50,6 @@ router
           "Other",
         ])
         .withMessage("Invalid category"),
-      check("priority")
-        .optional()
-        .isIn(["High", "Medium", "Low"])
-        .withMessage("Priority must be High, Medium, or Low"),
       check("duration.startDate")
         .optional()
         .isISO8601()
