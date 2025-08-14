@@ -1,11 +1,10 @@
 import asyncHandler from "../middleware/asyncHandler.js";
-// Import your weekly report generator logic
-import weeklyReportGenerator from "../utils/weeklyReportGenerator.js";
+import { generateAndSendWeeklyReports } from "../utils/weeklyReportGenerator.js";
 
 // Controller to trigger weekly report
 export const triggerWeeklyReport = asyncHandler(async (req, res) => {
   try {
-    await weeklyReportGenerator();
+    await generateAndSendWeeklyReports();
     res
       .status(200)
       .json({ message: "Weekly report triggered and emails sent." });
