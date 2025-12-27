@@ -1,22 +1,19 @@
 // TaskList.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchTasks, clearError } from "../../store/features/tasks/taskSlice";
-import { fetchTags } from "../../store/features/tags/tagSlice";
-import { getUsers } from "../../store/features/users/userSlice";
+import { fetchTasks } from "../../store/features/tasks/taskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import TaskSearchAndFilters from "./TaskSearchAndFilters";
 import "./TaskList.css";
-import { toast } from "react-toastify";
 
-const TaskList = ({ tasks: propTasks }) => {
+const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const allTasks = useSelector((state) => state.tasks.items);
-  const loading = useSelector((state) => state.tasks.loading);
+  const tasksStatus = useSelector((s) => s.tasks.status);
   const error = useSelector((state) => state.tasks.error);
   const tags = useSelector((state) => state.tags.items);
   const users = useSelector((state) => state.user.users);
@@ -46,11 +43,10 @@ const TaskList = ({ tasks: propTasks }) => {
 
   // Refetch tasks and clear error when userInfo changes (e.g., after login)
   useEffect(() => {
-    if (userInfo) {
-      dispatch(clearError());
+    if (ownsData && userInfo && tasksStatus === "idle") {
       dispatch(fetchTasks());
     }
-  }, [userInfo, dispatch]);
+  }, [ownsData, userInfo, tasksStatus, dispatch]);
 
   useEffect(() => {
     if (error === "Request failed with status code 401") {
@@ -58,40 +54,73 @@ const TaskList = ({ tasks: propTasks }) => {
     }
   }, [error, navigate]);
 
-  useEffect(() => {
-    dispatch(fetchTags());
-    // Only fetch all users if the current user is an admin
-    if (userInfo && userInfo.isAdmin) {
-      dispatch(getUsers());
+  const effectiveDateRange = useMemo(() => {
+    // Embedded mode → goal decides dates
+    if (!ownsData && goalDateRange?.start && goalDateRange?.end) {
+      return goalDateRange;
     }
-  }, [dispatch, userInfo]);
+
+    // Page mode → no explicit filter (monthly fallback applies)
+    return { start: "", end: "" };
+  }, [ownsData, goalDateRange]);
 
   const tasks = useMemo(() => {
-    let filtered = propTasks || allTasks;
-    // Tag filter
+    let filtered = ownsData ? allTasks : propTasks ?? [];
+
+    // 1️⃣ EXPLICIT user-selected date filter (standalone mode)
+    if (ownsData && filterDateRange.start && filterDateRange.end) {
+      const filterStart = new Date(filterDateRange.start);
+      const filterEnd = new Date(filterDateRange.end);
+
+      filtered = filtered.filter((task) => {
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        return taskStart <= filterEnd && taskEnd >= filterStart;
+      });
+
+      return filtered; // 🔴 STOP HERE
+    }
+
+    // 2️⃣ Embedded mode → goal date range
+    if (!ownsData && goalDateRange?.start && goalDateRange?.end) {
+      const rangeStart = new Date(goalDateRange.start);
+      const rangeEnd = new Date(goalDateRange.end);
+
+      filtered = filtered.filter((task) => {
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        return taskStart <= rangeEnd && taskEnd >= rangeStart;
+      });
+
+      return filtered; // 🔴 STOP HERE
+    }
+
+    // 3️⃣ Standalone mode → monthly fallback
+    if (ownsData) {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      filtered = filtered.filter((task) => {
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        return taskStart <= endOfMonth && taskEnd >= startOfMonth;
+      });
+    }
+
+    // 4️⃣ Other filters (tag, collaborator, search)
     if (filterTag) {
       filtered = filtered.filter((task) =>
         (task.tags || []).includes(filterTag)
       );
     }
-    // Collaborator filter
+
     if (filterCollaborator) {
       filtered = filtered.filter((task) =>
         (task.collaborators || []).includes(filterCollaborator)
       );
     }
-    // Date range filter (overlap logic)
-    if (filterDateRange.start && filterDateRange.end) {
-      const filterStart = new Date(filterDateRange.start);
-      const filterEnd = new Date(filterDateRange.end);
-      filtered = filtered.filter((task) => {
-        const taskStart = new Date(task.startDate);
-        const taskEnd = new Date(task.endDate);
-        // Overlap: task starts before or on filter end, and ends after or on filter start
-        return taskStart <= filterEnd && taskEnd >= filterStart;
-      });
-    }
-    // Search
+
     if (searchTerm) {
       filtered = filtered.filter(
         (task) =>
@@ -101,33 +130,41 @@ const TaskList = ({ tasks: propTasks }) => {
             .includes(searchTerm.toLowerCase())
       );
     }
+
     return filtered;
   }, [
+    ownsData,
     propTasks,
     allTasks,
+    goalDateRange,
+    filterDateRange,
     filterTag,
     filterCollaborator,
-    filterDateRange,
     searchTerm,
   ]);
 
-  if (loading) return <LoadingSpinner message="Loading tasks..." />;
+  if (tasksStatus === "loading") {
+    return <LoadingSpinner message="Loading tasks..." />;
+  }
+
   if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="task-list">
-      <TaskSearchAndFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterTag={filterTag}
-        setFilterTag={setFilterTag}
-        filterCollaborator={filterCollaborator}
-        setFilterCollaborator={setFilterCollaborator}
-        filterDateRange={filterDateRange}
-        setFilterDateRange={setFilterDateRange}
-        availableTags={tags}
-        availableCollaborators={users}
-      />
+      {ownsData && (
+        <TaskSearchAndFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterTag={filterTag}
+          setFilterTag={setFilterTag}
+          filterCollaborator={filterCollaborator}
+          setFilterCollaborator={setFilterCollaborator}
+          filterDateRange={filterDateRange}
+          setFilterDateRange={setFilterDateRange}
+          availableTags={tags}
+          availableCollaborators={users}
+        />
+      )}
       {tasks.length === 0 ? (
         <div
           className="task-list__empty"

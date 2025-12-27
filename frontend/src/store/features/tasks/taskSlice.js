@@ -1,5 +1,9 @@
 // store/features/tasks/taskSlice.js
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
 import { taskAPI } from "../../../services/api/urlService";
 
 // Async Thunks
@@ -67,7 +71,7 @@ const taskSlice = createSlice({
   name: "tasks",
   initialState: {
     items: [],
-    loading: false,
+    status: "idle",
     error: null,
     selectedTask: null,
   },
@@ -83,15 +87,15 @@ const taskSlice = createSlice({
     builder
       // Fetch all tasks cases
       .addCase(fetchTasks.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.items = action.payload;
-        state.loading = false;
+        state.status = "succeeded";
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.error = action.error.message;
-        state.loading = false;
+        state.status = "failed";
       })
       // Fetch single task cases
       .addCase(fetchTaskById.fulfilled, (state, action) => {
@@ -131,8 +135,10 @@ const taskSlice = createSlice({
   },
 });
 
-export const selectTasksByGoalId = (state, goalId) =>
-  state.tasks.items.filter((task) => task.goalId === goalId);
+export const selectTasksByGoalId = createSelector(
+  [(state) => state.tasks.items, (_, goalId) => goalId],
+  (tasks, goalId) => tasks.filter((task) => task.goalId === goalId)
+);
 
 export const { setSelectedTask, clearError } = taskSlice.actions;
 export default taskSlice.reducer;

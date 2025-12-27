@@ -12,7 +12,17 @@ export const createComment = createAsyncThunk(
 
 export const fetchGoalComments = createAsyncThunk(
   "comments/fetchGoalComments",
-  async (goalId) => {
+  async (goalId, { getState }) => {
+    const { comments } = getState();
+
+    // ⛔️ If comments already exist for this goal, do not refetch
+    if (
+      comments.items?.length > 0 &&
+      comments.items.every((c) => c.goalId === goalId)
+    ) {
+      return comments.items;
+    }
+
     const response = await commentAPI.fetchByGoal(goalId);
     return response.data;
   }

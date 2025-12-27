@@ -17,8 +17,12 @@ import {
   fetchGoals,
   updateGoal,
   deleteGoal,
+  selectGoalById,
 } from "../../store/features/goals/goalSlice";
-import { fetchTasks } from "../../store/features/tasks/taskSlice";
+import {
+  fetchTasks,
+  selectTasksByGoalId,
+} from "../../store/features/tasks/taskSlice";
 import {
   fetchGoalComments,
   createComment,
@@ -31,20 +35,32 @@ const GoalDescription = () => {
   const { goalId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const chartRef = React.useRef(null);
+
+  const tagsStatus = useSelector((s) => s.tags.status);
+  const tasksStatus = useSelector((s) => s.tasks.status);
+  const goalsStatus = useSelector((s) => s.goals.status);
+
+  // global/static data (ONCE per app lifecycle)
+  useEffect(() => {
+    if (tagsStatus === "idle") dispatch(fetchTags());
+    if (tasksStatus === "idle") dispatch(fetchTasks());
+    if (goalsStatus === "idle") dispatch(fetchGoals());
+  }, [dispatch, tagsStatus, tasksStatus, goalsStatus]);
+
+  // goal-specific data
+  useEffect(() => {
+    if (goalId) {
+      dispatch(fetchGoalComments(goalId));
+    }
+  }, [dispatch, goalId]);
 
   // Redux state selectors
-  const goal = useSelector((state) =>
-    state.goals.items.find((g) => g._id === goalId)
-  );
-  const tasks = useSelector((state) =>
-    state.tasks.items.filter((task) => task.goalId === goalId)
-  );
+  const goal = useSelector((state) => selectGoalById(state, goalId));
+  const tasks = useSelector((state) => selectTasksByGoalId(state, goalId));
   const comments = useSelector((state) => state.comments.items);
   const tags = useSelector((state) => state.tags.items);
-  const loading = useSelector(
-    (state) =>
-      state.goals.loading || state.tasks.loading || state.comments.loading
-  );
+
   const error = useSelector((state) => state.goals.error); // Assuming error is stored in goals slice
 
   // Local state
@@ -54,48 +70,24 @@ const GoalDescription = () => {
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
   // Get tag objects for the goal
-  const tagsObjects =
-    goal?.tags
-      ?.map((tagId) => tags.find((tag) => tag._id === tagId))
-      .filter(Boolean) || [];
+  const tagsObjects = React.useMemo(() => {
+    if (!goal?.tags || !tags.length) return [];
 
-  // Effects
-  useEffect(() => {
-    if (!goal) {
-      dispatch(fetchGoals());
+    return goal.tags
+      .map((tagId) => tags.find((tag) => tag._id === tagId))
+      .filter(Boolean);
+  }, [goal?.tags, tags]);
+
+  const goalDateRange = React.useMemo(() => {
+    if (!goal?.duration?.startDate || !goal?.duration?.endDate) {
+      return null;
     }
-    if (tasks.length === 0) {
-      dispatch(fetchTasks());
-    }
-    dispatch(fetchTags());
-    dispatch(fetchGoalComments(goalId));
-  }, [dispatch, goalId, goal, tasks.length]);
 
-  useEffect(() => {
-    if (goal) {
-      const chart = am4core.create("goal-chart", am4charts.PieChart3D);
-      chart.data = [
-        { category: "Completed", value: goal.completionPercentage },
-        { category: "Remaining", value: 100 - goal.completionPercentage },
-      ];
-
-      const pieSeries = chart.series.push(new am4charts.PieSeries3D());
-      pieSeries.dataFields.value = "value";
-      pieSeries.dataFields.category = "category";
-      pieSeries.innerRadius = am4core.percent(40);
-      pieSeries.colors.list = [
-        am4core.color("#1a73e8"),
-        am4core.color("#e0e0e0"),
-      ];
-
-      return () => chart.dispose();
-    }
-  }, [goal?.completionPercentage]);
-
-  if (loading) return <LoadingSpinner message="Loading goal details..." />;
-  if (error) return <ErrorMessage message={error} />;
-  if (!goal)
-    return <div className="goal-description__notice">Goal not found.</div>;
+    return {
+      start: goal.duration.startDate,
+      end: goal.duration.endDate,
+    };
+  }, [goal]);
 
   // Handlers
   const handleEdit = () => {
@@ -212,6 +204,18 @@ const GoalDescription = () => {
     }
   };
 
+  const isLoading =
+    tagsStatus === "loading" ||
+    tasksStatus === "loading" ||
+    goalsStatus === "loading";
+
+  if (isLoading) return <LoadingSpinner />;
+
+  if (error) return <ErrorMessage message={error} />;
+
+  if (!goal)
+    return <div className="goal-description__notice">Goal not found.</div>;
+
   return (
     <div className="goal-description">
       <div className="goal-description__container">
@@ -236,6 +240,7 @@ const GoalDescription = () => {
           relatedGoals={[]} // This could be filtered from goals state if needed
           comments={comments}
           comment={comment}
+          goalDateRange={goalDateRange}
           onAddComment={handleAddComment}
           setComment={setComment}
           onRemoveTag={handleRemoveTag}

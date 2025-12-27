@@ -1,8 +1,13 @@
 // store/features/goals/goalSlice.js
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
 import { goalAPI } from "../../../services/api/urlService";
 
-// Existing thunks remain the same
+/* ===================== THUNKS ===================== */
+
 export const fetchGoals = createAsyncThunk("goals/fetchGoals", async () => {
   const response = await goalAPI.fetchAll();
   return response.data;
@@ -139,12 +144,12 @@ const goalSlice = createSlice({
   name: "goals",
   initialState: {
     items: [],
-    loading: false,
+    status: "idle",
     error: null,
     selectedGoal: null,
     selectedGoals: [],
-    filteredGoals: [], // New state for filtered goals
-    filterCriteria: null, // New state for tracking active filters
+    filteredGoals: [],
+    filterCriteria: null,
   },
   reducers: {
     setSelectedGoal: (state, action) => {
@@ -181,15 +186,15 @@ const goalSlice = createSlice({
     builder
       // Existing cases remain the same
       .addCase(fetchGoals.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
       })
       .addCase(fetchGoals.fulfilled, (state, action) => {
         state.items = action.payload;
-        state.loading = false;
+        state.status = "succeeded";
       })
       .addCase(fetchGoals.rejected, (state, action) => {
         state.error = action.error.message;
-        state.loading = false;
+        state.status = "failed";
       })
       .addCase(createGoal.fulfilled, (state, action) => {
         state.items.push(action.payload);
@@ -263,6 +268,11 @@ const goalSlice = createSlice({
       });
   },
 });
+
+export const selectGoalById = createSelector(
+  [(state) => state.goals.items, (_, goalId) => goalId],
+  (goals, goalId) => goals.find((g) => g._id === goalId)
+);
 
 export const {
   setSelectedGoal,

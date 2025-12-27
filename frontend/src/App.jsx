@@ -127,61 +127,94 @@ const App = () => {
       <main className={mainClass}>
         <Routes>
           {/* Protected routes */}
-          <Route path="/" element={
-            <PrivateRoute>
-              <TaskCalendar />
-            </PrivateRoute>
-          } />
-          <Route path="/goals/:goalId" element={
-            <PrivateRoute>
-              <GoalDescription />
-            </PrivateRoute>
-          } />
-          <Route path="/goals/add" element={
-            <PrivateRoute>
-              <AddGoal />
-            </PrivateRoute>
-          } />
-          <Route path="/goals" element={
-            <PrivateRoute>
-              <GoalList />
-            </PrivateRoute>
-          } />
-          <Route path="/tasks/:taskId" element={
-            <PrivateRoute>
-              <TaskDescription />
-            </PrivateRoute>
-          } />
-          <Route path="/tasks/add" element={
-            <PrivateRoute>
-              <AddTask />
-            </PrivateRoute>
-          } />
-          <Route path="/tasks" element={
-            <PrivateRoute>
-              <TaskList />
-            </PrivateRoute>
-          } />
-          <Route path="/subtasks/:subtaskId" element={
-            <PrivateRoute>
-              <SubtaskDescription />
-            </PrivateRoute>
-          } />
-          <Route path="/subtasks/add" element={
-            <PrivateRoute>
-              <AddSubTask />
-            </PrivateRoute>
-          } />
-          <Route path="/subtasks" element={
-            <PrivateRoute>
-              <SubtaskList />
-            </PrivateRoute>
-          } />
-          <Route path="/tags/manage" element={
-            <PrivateRoute>
-              <TagManager />
-            </PrivateRoute>
-          } />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <TaskCalendar />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/goals/:goalId"
+            element={
+              <PrivateRoute>
+                <GoalDescription />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/goals/add"
+            element={
+              <PrivateRoute>
+                <AddGoal />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/goals"
+            element={
+              <PrivateRoute>
+                <GoalList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tasks/:taskId"
+            element={
+              <PrivateRoute>
+                <TaskDescription />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tasks/add"
+            element={
+              <PrivateRoute>
+                <AddTask />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <PrivateRoute>
+                <TaskList ownsData={true} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/subtasks/:subtaskId"
+            element={
+              <PrivateRoute>
+                <SubtaskDescription />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/subtasks/add"
+            element={
+              <PrivateRoute>
+                <AddSubTask />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/subtasks"
+            element={
+              <PrivateRoute>
+                <SubtaskList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tags/manage"
+            element={
+              <PrivateRoute>
+                <TagManager />
+              </PrivateRoute>
+            }
+          />
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

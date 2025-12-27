@@ -17,6 +17,7 @@ const Content = ({
   relatedGoals,
   comments,
   comment,
+  goalDateRange,
   onAddComment,
   setComment,
   onRemoveTag,
@@ -32,7 +33,7 @@ const Content = ({
     <ProgressChart goal={goal} />
     {/* <Collaborators collaborators={collaborators} /> */}
     {/* <Dependencies dependencies={dependencies} /> */}
-    <TaskSection tasks={tasks} />
+    <TaskSection tasks={tasks} goalDateRange={goalDateRange} />
     <RelatedGoals relatedGoals={relatedGoals} />
     <CommentsSection
       comments={comments}

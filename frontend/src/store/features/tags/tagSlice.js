@@ -28,7 +28,7 @@ const tagSlice = createSlice({
   name: "tags",
   initialState: {
     items: [],
-    loading: false,
+    status: "idle",
     error: null,
     selectedTag: null,
   },
@@ -43,16 +43,27 @@ const tagSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch tags cases
+      // .addCase(fetchTags.pending, (state) => {
+      //   state.loading = true;
+      // })
+      // .addCase(fetchTags.fulfilled, (state, action) => {
+      //   state.items = action.payload;
+      //   state.loading = false;
+      // })
+      // .addCase(fetchTags.rejected, (state, action) => {
+      //   state.error = action.error.message;
+      //   state.loading = false;
+      // })
       .addCase(fetchTags.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
       })
       .addCase(fetchTags.fulfilled, (state, action) => {
         state.items = action.payload;
-        state.loading = false;
+        state.status = "succeeded";
       })
       .addCase(fetchTags.rejected, (state, action) => {
         state.error = action.error.message;
-        state.loading = false;
+        state.status = "failed";
       })
       // Create tag cases
       .addCase(createTag.fulfilled, (state, action) => {
@@ -64,9 +75,11 @@ const tagSlice = createSlice({
       // Update tag cases
       .addCase(updateTag.fulfilled, (state, action) => {
         const updatedTag = action.payload;
-        const index = state.tags.findIndex((tag) => tag._id === updatedTag._id);
+        const index = state.items.findIndex(
+          (tag) => tag._id === updatedTag._id
+        );
         if (index !== -1) {
-          state.tags[index] = updatedTag;
+          state.items[index] = updatedTag;
         }
       })
       // Delete tag cases
