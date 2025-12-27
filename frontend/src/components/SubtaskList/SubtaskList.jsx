@@ -63,8 +63,11 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
 
   useEffect(() => {
     dispatch(fetchTags());
-    dispatch(getUsers());
-  }, [dispatch]);
+    // Only fetch all users if the current user is an admin
+    if (userInfo && userInfo.isAdmin) {
+      dispatch(getUsers());
+    }
+  }, [dispatch, userInfo]);
 
   const subtasks = useMemo(() => {
     let filtered = propSubtasks || allSubtasks;
