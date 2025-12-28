@@ -312,6 +312,15 @@ const TaskCalendar = () => {
     }
   };
 
+  // Progress color generator
+  const getProgressColor = (progress) => {
+    if (progress === 0) return "#ff4d4f"; // red
+    if (progress < 35) return "#ff7a00"; // orange
+    if (progress < 75) return "#fadb14"; // yellow
+    if (progress < 100) return "#73d13d"; // light green
+    return "#22c55e"; // bright green (100%)
+  };
+
   // Drag and drop handlers
   const handleDragStart = (date, item) =>
     setDraggedTask({ item, fromDate: date });
@@ -553,7 +562,10 @@ const TaskCalendar = () => {
                     <div className="date-info">
                       <div
                         className="day-progress-circle"
-                        style={{ "--progress": `${dayProgress}%` }}
+                        style={{
+                          "--progress": `${dayProgress}%`,
+                          "--progress-color": getProgressColor(dayProgress),
+                        }}
                       >
                         <span className="percentage">
                           {Math.round(dayProgress)}%

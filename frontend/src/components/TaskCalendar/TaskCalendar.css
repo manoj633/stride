@@ -190,15 +190,14 @@
 
 .day-progress-circle {
     width: 36px;
-    height: 36px;
+    height: 34px;
     border-radius: 50%;
-    background: conic-gradient(#32d583 var(--progress, 0%),
+    background: conic-gradient(var(--progress-color, #32d583) var(--progress, 0%),
             #e0e0e0 var(--progress, 0%) 100%);
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .day-progress-circle::before {
