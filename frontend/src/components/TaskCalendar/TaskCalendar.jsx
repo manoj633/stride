@@ -554,6 +554,36 @@ const TaskCalendar = () => {
             {days.map((date) => {
               const dateStr = date.toISOString().split("T")[0];
               const dayItems = filteredItems[dateStr] || [];
+              const totalSubtasks = dayItems.filter(
+                (item) => item.type === "subtask"
+              ).length;
+
+              const completedSubtasks = dayItems.filter(
+                (item) => item.type === "subtask" && item.completed
+              ).length;
+
+              const isPastDay =
+                date.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+
+              let summaryText = "";
+              let summaryClass = "";
+
+              if (totalSubtasks === 0) {
+                summaryText = "No subtasks";
+                summaryClass = "empty";
+              } else if (completedSubtasks === totalSubtasks) {
+                summaryText = "All done 🎉";
+                summaryClass = "done";
+              } else if (completedSubtasks === 0) {
+                summaryText = "Not started";
+                summaryClass = isPastDay ? "overdue" : "not-started";
+              } else {
+                summaryText = isPastDay
+                  ? `Overdue ⚠️ (${completedSubtasks} / ${totalSubtasks})`
+                  : `In progress (${completedSubtasks} / ${totalSubtasks})`;
+                summaryClass = isPastDay ? "overdue" : "in-progress";
+              }
+
               const isToday = new Date().toDateString() === date.toDateString();
               const dayProgress = calculateDayProgress(dayItems);
               return (
@@ -581,6 +611,34 @@ const TaskCalendar = () => {
                       <div className="date-number">{formatDate(date)}</div>
                     </div>
                   </div>
+                  <div
+                    className={`day-progress-bar ${
+                      dayItems.length === 0 ? "empty" : ""
+                    }`}
+                  >
+                    <div
+                      className="day-progress-bar-fill"
+                      style={{
+                        width: `${getDisplayProgress(dayProgress)}%`,
+                        backgroundColor: getProgressColor(dayProgress),
+                      }}
+                    />
+                  </div>
+                  <div
+                    className={`day-task-summary ${
+                      totalSubtasks === 0 ? "empty" : ""
+                    } ${
+                      totalSubtasks > 0 && completedSubtasks === totalSubtasks
+                        ? "completed"
+                        : ""
+                    }`}
+                  >
+                    {completedSubtasks} / {totalSubtasks} subtasks
+                  </div>
+                  <div className={`day-task-summary ${summaryClass}`}>
+                    {summaryText}
+                  </div>
+
                   <div className="calendar-task-list">
                     {dayItems.map((item) => (
                       <div
