@@ -2,7 +2,8 @@
 import React from "react";
 import "./HeatMap.css";
 
-const HeatMap = ({ data }) => {
+const HeatMap = ({ data, onDayClick }) => {
+  // Group data by month-year
   const groupedData = Object.entries(data).reduce((acc, [dateStr, value]) => {
     const date = new Date(dateStr);
     const month = date.getMonth();
@@ -16,45 +17,49 @@ const HeatMap = ({ data }) => {
     return acc;
   }, {});
 
+  // Find max value for color intensity
   const maxValue = Object.values(groupedData).reduce(
     (max, monthData) =>
       Math.max(max, ...monthData.map((dayData) => dayData.value)),
     0
   );
 
+  // Generate background color based on value
   const getBackgroundColor = (value) => {
     if (value === 0) {
-      return "#f0f0f0";
+      return "#f8fafc";
     }
 
     const intensity = Math.round((value / maxValue) * 100);
-    const saturation = 50;
-    const lightness = 96 - intensity / 1.2;
+    const hue = 200; // Blue hue
+    const saturation = 60 + intensity / 4;
+    const lightness = 95 - intensity / 1.5;
 
-    return `hsl(200, ${saturation}%, ${lightness}%)`;
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
 
+  // Get month name from index
   const getMonthName = (monthIndex) => {
     const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
+      "January",
+      "February",
+      "March",
+      "April",
       "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return monthNames[monthIndex];
   };
 
+  // Get weekday abbreviations
   const getWeekdayNames = () => {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return days;
+    return ["S", "M", "T", "W", "T", "F", "S"];
   };
 
   return (
@@ -68,44 +73,53 @@ const HeatMap = ({ data }) => {
 
         return (
           <div key={monthYear} className="heatmap-month">
-            <div className="heatmap-month-header">{`${getMonthName(
-              month - 1
-            )} ${year}`}</div>
-            <div className="heatmap-grid">
-              {weekdayNames.map((day) => (
-                <div key={day} className="heatmap-weekday-header">
+            <div className="heatmap-month-header">
+              {getMonthName(month - 1)} {year}
+            </div>
+
+            <div className="heatmap-weekday-labels">
+              {weekdayNames.map((day, idx) => (
+                <div key={idx} className="heatmap-weekday-label">
                   {day}
                 </div>
               ))}
-              {[...Array(daysInMonth + startingDay)].map((_, index) => {
-                const dayData = monthData.find(
-                  (day) =>
-                    new Date(day.dateStr).getDate() === index - startingDay + 1
-                );
+            </div>
 
-                if (index < startingDay) {
-                  return <div key={index} className="heatmap-cell empty" />;
-                }
+            <div className="heatmap-grid">
+              {/* Empty cells before month starts */}
+              {[...Array(startingDay)].map((_, index) => (
+                <div key={`empty-${index}`} className="heatmap-cell empty" />
+              ))}
+
+              {/* Days of the month */}
+              {[...Array(daysInMonth)].map((_, index) => {
+                const day = index + 1;
+                const dayData = monthData.find(
+                  (d) => new Date(d.dateStr).getDate() === day
+                );
+                const value = dayData?.value || 0;
+                const dateStr = new Date(year, month - 1, day)
+                  .toISOString()
+                  .split("T")[0];
+                const isToday =
+                  new Date().toDateString() ===
+                  new Date(year, month - 1, day).toDateString();
 
                 return (
                   <div
-                    key={index}
-                    className="heatmap-cell"
+                    key={day}
+                    className={`heatmap-cell ${isToday ? "today" : ""}`}
                     style={{
-                      backgroundColor: dayData
-                        ? getBackgroundColor(dayData.value)
-                        : "#f0f0f0",
+                      backgroundColor: getBackgroundColor(value),
                     }}
-                    title={
-                      dayData
-                        ? `${dayData.dateStr}: ${dayData.value} tasks`
-                        : `${
-                            new Date(year, month - 1, index - startingDay + 1)
-                              .toISOString()
-                              .split("T")[0]
-                          }: No tasks`
-                    }
-                  ></div>
+                    title={`${dateStr}: ${value} tasks`}
+                    onClick={() => onDayClick && onDayClick(dateStr, dayData)}
+                  >
+                    <span className="heatmap-day-number">{day}</span>
+                    {value > 0 && (
+                      <span className="heatmap-count">{value}</span>
+                    )}
+                  </div>
                 );
               })}
             </div>

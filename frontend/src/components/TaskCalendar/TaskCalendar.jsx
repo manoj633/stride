@@ -1,10 +1,9 @@
 // src/components/TaskCalendar/TaskCalendar.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
-import HeatMap from "./HeatMap.jsx";
 import DayPopover from "./DayPopover";
 import {
   fetchGoals,
@@ -25,14 +24,14 @@ import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskCalendar.css";
 
-const COLORS = [
-  { id: "high", bg: "#ffe6e6", label: "High Priority" },
-  { id: "medium", bg: "#fff8e6", label: "Medium Priority" },
-  { id: "low", bg: "#e6f8e6", label: "Low Priority" },
-  { id: "default", bg: "transparent", label: "Default" },
-];
+const PRIORITY_COLORS = {
+  high: "high",
+  medium: "medium",
+  low: "low",
+  default: "default",
+};
 
-// Helper functions
+// Helper: Add item to calendar across date range
 const addItemToCalendar = (
   itemsByDate,
   item,
@@ -52,6 +51,7 @@ const addItemToCalendar = (
   }
 };
 
+// Helper: Get 7 days starting from Sunday of the week
 const getDaysInWeek = (date) => {
   const start = new Date(date);
   start.setDate(start.getDate() - start.getDay());
@@ -62,6 +62,7 @@ const getDaysInWeek = (date) => {
   });
 };
 
+// Helper: Format date as "Jan 28"
 const formatDate = (date) => {
   const months = [
     "Jan",
@@ -80,6 +81,7 @@ const formatDate = (date) => {
   return `${months[date.getMonth()]} ${date.getDate()}`;
 };
 
+// Helper: Calculate completion percentage for a day
 const calculateDayProgress = (items) => {
   const subtasks = items?.filter((item) => item.type === "subtask") || [];
   if (subtasks.length === 0) return 0;
@@ -87,7 +89,7 @@ const calculateDayProgress = (items) => {
   return (completed / subtasks.length) * 100;
 };
 
-// Helper to get all days in a month as Date objects
+// Helper: Get all days in a month
 const getDaysInMonth = (year, month) => {
   const date = new Date(year, month, 1);
   const days = [];
@@ -98,12 +100,12 @@ const getDaysInMonth = (year, month) => {
   return days;
 };
 
-// Helper to get the first day of the week for the month (for grid alignment)
+// Helper: Get first day of week offset
 const getFirstDayOfWeek = (year, month) => {
   return new Date(year, month, 1).getDay();
 };
 
-// Helper to get the last day of the week for the month (for grid alignment)
+// Helper: Get last day of week offset
 const getLastDayOfWeek = (year, month) => {
   return new Date(year, month + 1, 0).getDay();
 };
@@ -123,19 +125,18 @@ const TaskCalendar = () => {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [view, setView] = useState("weekly");
   const [selectedPriority, setSelectedPriority] = useState("all");
-  const [selectedType, setSelectedType] = useState("subtask");
+  const [selectedType, setSelectedType] = useState("all");
   const [showCompleted, setShowCompleted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  // State for month/year in monthly view
   const [monthDate, setMonthDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [heatmapScale, setHeatmapScale] = useState([
-    { max: 0, color: "#f8f9fa" }, // 0 tasks
-    { max: 2, color: "#b3ffb3" }, // 1-2 tasks
-    { max: 4, color: "#ffd699" }, // 3-4 tasks
-    { max: 6, color: "#ffb3b3" }, // 5-6 tasks
-    { max: Infinity, color: "#ff8080" }, // 7+ tasks
+    { max: 0, color: "#f8f9fa" },
+    { max: 2, color: "#d1fae5" },
+    { max: 4, color: "#fef3c7" },
+    { max: 6, color: "#fed7aa" },
+    { max: Infinity, color: "#fca5a5" },
   ]);
 
   // Detect touch device
@@ -143,7 +144,7 @@ const TaskCalendar = () => {
     setIsTouchDevice("ontouchstart" in window);
   }, []);
 
-  // Fetch data if not loaded
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -153,7 +154,7 @@ const TaskCalendar = () => {
         if (tasks.length === 0) await dispatch(fetchTasks());
         if (subtasks.length === 0) await dispatch(fetchSubtasks());
       } catch (err) {
-        setError("Failed to load data. Please try again later.");
+        setError("Failed to load data. Please try again.");
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -162,9 +163,10 @@ const TaskCalendar = () => {
     fetchData();
   }, [dispatch, goals.length, tasks.length, subtasks.length]);
 
-  // Build calendar items
+  // Build calendar items from goals, tasks, subtasks
   useEffect(() => {
     const itemsByDate = {};
+
     goals.forEach((goal) => {
       addItemToCalendar(
         itemsByDate,
@@ -174,13 +176,15 @@ const TaskCalendar = () => {
           type: "goal",
           priority: goal.priority,
           completed: goal.completed,
-          color: goal.priority.toLowerCase(),
+          color: goal.priority?.toLowerCase() || "default",
+          percentage: goal.completionPercentage,
           originalItem: goal,
         },
         goal.duration.startDate,
         goal.duration.endDate
       );
     });
+
     tasks.forEach((task) => {
       addItemToCalendar(
         itemsByDate,
@@ -190,13 +194,15 @@ const TaskCalendar = () => {
           type: "task",
           priority: task.priority,
           completed: task.completed,
-          color: task.priority.toLowerCase(),
+          color: task.priority?.toLowerCase() || "default",
+          percentage: task.completionPercentage,
           originalItem: task,
         },
         task.startDate,
         task.endDate
       );
     });
+
     subtasks.forEach((subtask) => {
       addItemToCalendar(
         itemsByDate,
@@ -206,12 +212,13 @@ const TaskCalendar = () => {
           type: "subtask",
           priority: subtask.priority,
           completed: subtask.completed,
-          color: subtask.priority.toLowerCase(),
+          color: subtask.priority?.toLowerCase() || "default",
           originalItem: subtask,
         },
         subtask.dueDate
       );
     });
+
     setCalendarItems(itemsByDate);
   }, [goals, tasks, subtasks]);
 
@@ -230,8 +237,10 @@ const TaskCalendar = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentDate]);
 
-  // Memoized days and filtered items
+  // Memoized days for weekly view
   const days = useMemo(() => getDaysInWeek(currentDate), [currentDate]);
+
+  // Filtered items based on filters
   const filteredItems = useMemo(
     () =>
       Object.fromEntries(
@@ -240,7 +249,7 @@ const TaskCalendar = () => {
           items.filter((item) => {
             const matchesPriority =
               selectedPriority === "all" ||
-              item.priority.toLowerCase() === selectedPriority;
+              item.priority?.toLowerCase() === selectedPriority.toLowerCase();
             const matchesType =
               selectedType === "all" || item.type === selectedType;
             const matchesCompletion = showCompleted || !item.completed;
@@ -251,21 +260,14 @@ const TaskCalendar = () => {
     [calendarItems, selectedPriority, selectedType, showCompleted]
   );
 
-  // Memoized heatmap data
-  const heatmapData = useMemo(() => {
-    const data = {};
-    for (const dateStr in calendarItems) {
-      if (calendarItems.hasOwnProperty(dateStr)) {
-        const taskCount = calendarItems[dateStr].filter(
-          (item) => item.type === "subtask"
-        ).length;
-        data[dateStr] = { value: taskCount };
-      }
-    }
-    return data;
-  }, [calendarItems]);
+  // Monthly view calculations
+  const month = monthDate.getMonth();
+  const year = monthDate.getFullYear();
+  const daysInMonth = useMemo(() => getDaysInMonth(year, month), [year, month]);
+  const firstDayOfWeek = getFirstDayOfWeek(year, month);
+  const lastDayOfWeek = getLastDayOfWeek(year, month);
 
-  // Navigation
+  // Navigate week
   const navigateWeek = (direction) => {
     setCurrentDate((prev) => {
       const newDate = new Date(prev);
@@ -274,24 +276,20 @@ const TaskCalendar = () => {
     });
   };
 
+  // Navigate month
   const handlePrevMonth = () => {
     setMonthDate(
       (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
     );
   };
+
   const handleNextMonth = () => {
     setMonthDate(
       (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
     );
   };
 
-  const month = monthDate.getMonth();
-  const year = monthDate.getFullYear();
-  const daysInMonth = useMemo(() => getDaysInMonth(year, month), [year, month]);
-  const firstDayOfWeek = getFirstDayOfWeek(year, month);
-  const lastDayOfWeek = getLastDayOfWeek(year, month);
-
-  // Item click handler
+  // Handle item click to navigate to detail page
   const handleItemClick = (item) => {
     const [type, id] = item.id.split("-");
     switch (type) {
@@ -312,74 +310,38 @@ const TaskCalendar = () => {
     }
   };
 
-  // Progress color generator
+  // Get progress color based on percentage
   const getProgressColor = (progress) => {
-    if (progress === 0) return "#ff4d4f"; // red
-    if (progress < 35) return "#ff7a00"; // orange
-    if (progress < 75) return "#fadb14"; // yellow
-    if (progress < 100) return "#73d13d"; // light green
-    return "#22c55e"; // bright green (100%)
+    if (progress === 0) return "#ef4444";
+    if (progress < 35) return "#f59e0b";
+    if (progress < 75) return "#eab308";
+    if (progress < 100) return "#84cc16";
+    return "#10b981";
   };
 
+  // Display progress (show full ring if 0%)
   const getDisplayProgress = (progress) => {
-    if (progress === 0) return 100; // FULL ring
+    if (progress === 0) return 100;
     return progress;
   };
 
-  // Drag and drop handlers
+  // Drag handlers
   const handleDragStart = (date, item) =>
     setDraggedTask({ item, fromDate: date });
   const handleDragOver = (e) => e.preventDefault();
+
   const handleDrop = (toDate) => {
     if (!draggedTask) return;
     const fromDateStr = draggedTask.fromDate.toISOString().split("T")[0];
     const toDateStr = toDate.toISOString().split("T")[0];
     if (fromDateStr === toDateStr) return;
+
     const updatedItem = {
       ...draggedTask.item.originalItem,
       dueDate: toDateStr,
     };
+
     switch (draggedTask.item.type) {
-      case "goal":
-        dispatch(
-          updateGoalCompletion({
-            goalId: updatedItem._id,
-            goalData: updatedItem,
-          })
-        )
-          .then(() => {
-            setCalendarItems((prev) => ({
-              ...prev,
-              [fromDateStr]: prev[fromDateStr].filter(
-                (item) => item.id !== draggedTask.item.id
-              ),
-              [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
-            }));
-          })
-          .catch((error) => {
-            console.error("Failed to update goal:", error);
-          });
-        break;
-      case "task":
-        dispatch(
-          updateTaskCompletion({
-            taskId: updatedItem._id,
-            taskData: updatedItem,
-          })
-        )
-          .then(() => {
-            setCalendarItems((prev) => ({
-              ...prev,
-              [fromDateStr]: prev[fromDateStr].filter(
-                (item) => item.id !== draggedTask.item.id
-              ),
-              [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
-            }));
-          })
-          .catch((error) => {
-            console.error("Failed to update task:", error);
-          });
-        break;
       case "subtask":
         dispatch(
           updateSubtask({
@@ -390,14 +352,17 @@ const TaskCalendar = () => {
           .then(() => {
             setCalendarItems((prev) => ({
               ...prev,
-              [fromDateStr]: prev[fromDateStr].filter(
-                (item) => item.id !== draggedTask.item.id
-              ),
+              [fromDateStr]:
+                prev[fromDateStr]?.filter(
+                  (item) => item.id !== draggedTask.item.id
+                ) || [],
               [toDateStr]: [...(prev[toDateStr] || []), draggedTask.item],
             }));
+            toast.success("Subtask moved successfully");
           })
           .catch((error) => {
             console.error("Failed to update subtask:", error);
+            toast.error("Failed to move subtask");
           });
         break;
       default:
@@ -406,64 +371,62 @@ const TaskCalendar = () => {
     setDraggedTask(null);
   };
 
-  // Toggle completion
+  // Toggle subtask completion
   const toggleItem = (date, item) => {
     const [type, id] = item.id.split("-");
-    switch (type) {
-      case "subtask":
-        const updatedSubtask = {
-          ...item.originalItem,
-          completed: !item.originalItem.completed,
-        };
-        dispatch(updateSubtask({ id, subtaskData: updatedSubtask }))
-          .then(() => {
-            if (item.originalItem.taskId) {
+    if (type !== "subtask") return;
+
+    const updatedSubtask = {
+      ...item.originalItem,
+      completed: !item.originalItem.completed,
+    };
+
+    dispatch(updateSubtask({ id, subtaskData: updatedSubtask }))
+      .then(() => {
+        if (item.originalItem.taskId) {
+          dispatch(
+            updateTaskCompletion({ taskId: item.originalItem.taskId, subtasks })
+          ).then(() => {
+            if (item.originalItem.goalId) {
               dispatch(
-                updateTaskCompletion({
-                  taskId: item.originalItem.taskId,
+                updateGoalCompletion({
+                  goalId: item.originalItem.goalId,
                   subtasks,
                 })
-              ).then(() => {
-                if (item.originalItem.goalId) {
-                  dispatch(
-                    updateGoalCompletion({
-                      goalId: item.originalItem.goalId,
-                      subtasks,
-                    })
-                  )
-                    .then(() => toast.success("Subtask updated successfully"))
-                    .catch((error) =>
-                      console.error("Failed to update goal completion:", error)
-                    );
-                }
-              });
+              ).catch((error) =>
+                console.error("Failed to update goal:", error)
+              );
             }
-          })
-          .catch((error) => {
-            console.error("Failed to update subtask:", error);
-            toast.error("Failed to update subtask");
           });
-        break;
-      default:
-        break;
-    }
+        }
+        toast.success("Subtask updated");
+      })
+      .catch((error) => {
+        console.error("Failed to update subtask:", error);
+        toast.error("Failed to update subtask");
+      });
+
     const dateStr = date.toISOString().split("T")[0];
     setCalendarItems((prev) => ({
       ...prev,
-      [dateStr]: prev[dateStr].map((i) =>
-        i.id === item.id ? { ...i, completed: !i.completed } : i
-      ),
+      [dateStr]:
+        prev[dateStr]?.map((i) =>
+          i.id === item.id ? { ...i, completed: !i.completed } : i
+        ) || [],
     }));
   };
 
-  // Early return for loading
   if (isLoading) return <LoadingSpinner message="Loading calendar..." />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="calendar-container">
+      {/* Header */}
       <div className="calendar-header">
-        <h1>{view === "weekly" ? "Weekly Overview" : "Monthly Overview"}</h1>
+        <div>
+          <h1>Task Calendar</h1>
+        </div>
+
         <div className="view-switch">
           <button
             onClick={() => setView("weekly")}
@@ -480,58 +443,66 @@ const TaskCalendar = () => {
             Monthly
           </button>
         </div>
-        {view === "monthly" && (
-          <div className="navigation-buttons">
-            <button onClick={handlePrevMonth} aria-label="Previous month">
-              <ChevronLeft />
-            </button>
-            <span style={{ margin: "0 1rem" }}>
-              {monthDate.toLocaleString("default", { month: "long" })} {year}
-            </span>
-            <button onClick={handleNextMonth} aria-label="Next month">
-              <ChevronRight />
-            </button>
-          </div>
-        )}
-        {view === "weekly" && (
-          <div className="navigation-buttons">
-            <button onClick={() => navigateWeek(-1)} aria-label="Previous week">
-              <ChevronLeft />
-            </button>
-            <button onClick={() => navigateWeek(1)} aria-label="Next week">
-              <ChevronRight />
-            </button>
-          </div>
-        )}
+
+        <div className="navigation-buttons">
+          <button
+            onClick={
+              view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)
+            }
+            className="nav-button"
+            aria-label={view === "monthly" ? "Previous month" : "Previous week"}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span>
+            {view === "monthly"
+              ? `${monthDate.toLocaleString("default", {
+                  month: "long",
+                })} ${year}`
+              : `Week of ${formatDate(days[0])}`}
+          </span>
+          <button
+            onClick={
+              view === "monthly" ? handleNextMonth : () => navigateWeek(1)
+            }
+            className="nav-button"
+            aria-label={view === "monthly" ? "Next month" : "Next week"}
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
       </div>
 
+      {/* Filters */}
       <div className="calendar-filters">
         <div className="filter-group">
-          <label htmlFor="priority-select">Priority:</label>
+          <label htmlFor="priority-select">Priority</label>
           <select
             id="priority-select"
             value={selectedPriority}
             onChange={(e) => setSelectedPriority(e.target.value)}
           >
-            <option value="all">All</option>
+            <option value="all">All Priorities</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
         </div>
+
         <div className="filter-group">
-          <label htmlFor="type-select">Type:</label>
+          <label htmlFor="type-select">Type</label>
           <select
             id="type-select"
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
           >
-            <option value="all">All</option>
+            <option value="all">All Types</option>
             <option value="goal">Goals</option>
             <option value="task">Tasks</option>
             <option value="subtask">Subtasks</option>
           </select>
         </div>
+
         <div className="filter-group">
           <input
             type="checkbox"
@@ -543,6 +514,7 @@ const TaskCalendar = () => {
         </div>
       </div>
 
+      {/* Calendar Content */}
       <div className="calendar-content">
         {view === "weekly" ? (
           <div className="calendar-grid" tabIndex={0}>
@@ -551,17 +523,16 @@ const TaskCalendar = () => {
                 {day}
               </div>
             ))}
+
             {days.map((date) => {
               const dateStr = date.toISOString().split("T")[0];
               const dayItems = filteredItems[dateStr] || [];
               const totalSubtasks = dayItems.filter(
                 (item) => item.type === "subtask"
               ).length;
-
               const completedSubtasks = dayItems.filter(
                 (item) => item.type === "subtask" && item.completed
               ).length;
-
               const isPastDay =
                 date.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
 
@@ -575,17 +546,16 @@ const TaskCalendar = () => {
                 summaryText = "All done 🎉";
                 summaryClass = "done";
               } else if (completedSubtasks === 0) {
-                summaryText = "Not started";
+                summaryText = isPastDay ? "Overdue ⚠️" : "Not started";
                 summaryClass = isPastDay ? "overdue" : "not-started";
               } else {
-                summaryText = isPastDay
-                  ? `Overdue ⚠️ (${completedSubtasks} / ${totalSubtasks})`
-                  : `In progress (${completedSubtasks} / ${totalSubtasks})`;
+                summaryText = `${completedSubtasks} / ${totalSubtasks} completed`;
                 summaryClass = isPastDay ? "overdue" : "in-progress";
               }
 
               const isToday = new Date().toDateString() === date.toDateString();
               const dayProgress = calculateDayProgress(dayItems);
+
               return (
                 <div
                   key={dateStr}
@@ -597,7 +567,7 @@ const TaskCalendar = () => {
                     <div className="date-info">
                       <div
                         className={`day-progress-circle ${
-                          dayProgress === 0 ? "pulse" : ""
+                          dayProgress === 0 && totalSubtasks > 0 ? "pulse" : ""
                         }`}
                         style={{
                           "--progress": `${getDisplayProgress(dayProgress)}%`,
@@ -611,6 +581,7 @@ const TaskCalendar = () => {
                       <div className="date-number">{formatDate(date)}</div>
                     </div>
                   </div>
+
                   <div
                     className={`day-progress-bar ${
                       dayItems.length === 0 ? "empty" : ""
@@ -624,17 +595,7 @@ const TaskCalendar = () => {
                       }}
                     />
                   </div>
-                  <div
-                    className={`day-task-summary ${
-                      totalSubtasks === 0 ? "empty" : ""
-                    } ${
-                      totalSubtasks > 0 && completedSubtasks === totalSubtasks
-                        ? "completed"
-                        : ""
-                    }`}
-                  >
-                    {completedSubtasks} / {totalSubtasks} subtasks
-                  </div>
+
                   <div className={`day-task-summary ${summaryClass}`}>
                     {summaryText}
                   </div>
@@ -643,17 +604,14 @@ const TaskCalendar = () => {
                     {dayItems.map((item) => (
                       <div
                         key={item.id}
-                        className={`task-item type-${item.type} ${
+                        className={`task-item ${
                           isTouchDevice ? "touch-device" : ""
                         }`}
-                        data-priority={item.priority.toLowerCase()}
-                        style={{
-                          backgroundColor: COLORS.find(
-                            (c) => c.id === item.color
-                          )?.bg,
-                        }}
+                        data-priority={
+                          item.priority?.toLowerCase() || "default"
+                        }
                         onClick={() => handleItemClick(item)}
-                        draggable={!isTouchDevice}
+                        draggable={!isTouchDevice && item.type === "subtask"}
                         onDragStart={() =>
                           !isTouchDevice && handleDragStart(date, item)
                         }
@@ -674,7 +632,7 @@ const TaskCalendar = () => {
                             item.completed ? "completed" : ""
                           }`}
                         >
-                          {item.type.toUpperCase()} - {item.text}
+                          {item.text}
                         </span>
                       </div>
                     ))}
@@ -692,14 +650,14 @@ const TaskCalendar = () => {
                   {day}
                 </div>
               ))}
-              {/* Empty cells before the first day */}
+
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
                 <div
                   key={`empty-start-${i}`}
                   className="calendar-cell empty"
                 ></div>
               ))}
-              {/* Days of the month */}
+
               {daysInMonth.map((date) => {
                 const dateStr = date.toISOString().split("T")[0];
                 const count = (filteredItems[dateStr] || []).filter(
@@ -709,7 +667,6 @@ const TaskCalendar = () => {
                   new Date().toDateString() === date.toDateString();
                 const items = filteredItems[dateStr] || [];
 
-                // Find the scale/color for this count
                 const scaleIdx = heatmapScale.findIndex(
                   (level) => count <= level.max
                 );
@@ -721,7 +678,7 @@ const TaskCalendar = () => {
                     className={`heatmap-cell ${isToday ? "today" : ""}`}
                     title={`${formatDate(date)}: ${count} subtasks`}
                     onClick={() => setSelectedDay({ date, items })}
-                    style={{ cursor: "pointer", background: cellColor }}
+                    style={{ background: cellColor }}
                   >
                     <div className="heatmap-date-container">
                       <span className="heatmap-date">{date.getDate()}</span>
@@ -732,7 +689,7 @@ const TaskCalendar = () => {
                   </div>
                 );
               })}
-              {/* Empty cells after the last day */}
+
               {Array.from({ length: 6 - lastDayOfWeek }).map((_, i) => (
                 <div
                   key={`empty-end-${i}`}
@@ -740,6 +697,7 @@ const TaskCalendar = () => {
                 ></div>
               ))}
             </div>
+
             {/* Legend */}
             <div className="heatmap-legend">
               {heatmapScale.map((level, idx) => (
@@ -750,7 +708,7 @@ const TaskCalendar = () => {
                   ></span>
                   <span className="legend-label">
                     {idx === 0
-                      ? `0`
+                      ? "0"
                       : `${heatmapScale[idx - 1].max + 1}-${
                           level.max === Infinity ? "+" : level.max
                         }`}{" "}
@@ -759,73 +717,66 @@ const TaskCalendar = () => {
                 </div>
               ))}
             </div>
+
+            {/* Customizable Scale Editor */}
+            <div className="heatmap-scale-editor">
+              <span style={{ fontWeight: 600 }}>Customize Scale:</span>
+              {heatmapScale.map((level, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <input
+                    type="number"
+                    min={idx === 0 ? 0 : heatmapScale[idx - 1].max + 1}
+                    max={
+                      idx < heatmapScale.length - 1
+                        ? heatmapScale[idx + 1].max - 1
+                        : 99
+                    }
+                    value={level.max === Infinity ? "" : level.max}
+                    onChange={(e) => {
+                      const val =
+                        e.target.value === ""
+                          ? Infinity
+                          : parseInt(e.target.value, 10);
+                      setHeatmapScale((scale) =>
+                        scale.map((l, i) =>
+                          i === idx ? { ...l, max: val } : l
+                        )
+                      );
+                    }}
+                    disabled={idx === heatmapScale.length - 1}
+                  />
+                  <input
+                    type="color"
+                    value={level.color}
+                    onChange={(e) => {
+                      setHeatmapScale((scale) =>
+                        scale.map((l, i) =>
+                          i === idx ? { ...l, color: e.target.value } : l
+                        )
+                      );
+                    }}
+                  />
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Day Popover Modal */}
       {selectedDay && (
         <DayPopover
           date={selectedDay.date}
           items={selectedDay.items}
           onClose={() => setSelectedDay(null)}
         />
-      )}
-      {view === "monthly" && (
-        <div className="heatmap-scale-editor">
-          <span style={{ fontWeight: 500, marginRight: 8 }}>
-            Customize Heatmap:
-          </span>
-          {heatmapScale.map((level, idx) => (
-            <span key={idx} style={{ marginRight: 12 }}>
-              <input
-                type="number"
-                min={idx === 0 ? 0 : heatmapScale[idx - 1].max + 1}
-                max={
-                  idx < heatmapScale.length - 1 ? heatmapScale[idx + 1].max : 99
-                }
-                value={level.max === Infinity ? "" : level.max}
-                onChange={(e) => {
-                  const val =
-                    e.target.value === ""
-                      ? Infinity
-                      : parseInt(e.target.value, 10);
-                  setHeatmapScale((scale) =>
-                    scale.map((l, i) => (i === idx ? { ...l, max: val } : l))
-                  );
-                }}
-                style={{
-                  width: 40,
-                  marginRight: 4,
-                  border: "1px solid #ccc",
-                  borderRadius: 4,
-                  padding: "2px 4px",
-                }}
-                disabled={idx === heatmapScale.length - 1}
-              />
-              <input
-                type="color"
-                value={level.color}
-                onChange={(e) => {
-                  setHeatmapScale((scale) =>
-                    scale.map((l, i) =>
-                      i === idx ? { ...l, color: e.target.value } : l
-                    )
-                  );
-                }}
-                style={{
-                  width: 28,
-                  height: 18,
-                  border: "none",
-                  verticalAlign: "middle",
-                }}
-              />
-              {idx < heatmapScale.length - 1 && (
-                <span style={{ fontSize: 12, color: "#888", marginLeft: 2 }}>
-                  to
-                </span>
-              )}
-            </span>
-          ))}
-        </div>
       )}
     </div>
   );
