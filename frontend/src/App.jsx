@@ -203,7 +203,7 @@ const App = () => {
             path="/subtasks"
             element={
               <PrivateRoute>
-                <SubtaskList />
+                <SubtaskList ownsData={true} />
               </PrivateRoute>
             }
           />

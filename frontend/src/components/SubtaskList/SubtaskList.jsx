@@ -1,20 +1,19 @@
 // SubtaskList/SubtaskList.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchSubtasks,
-  clearError,
-} from "../../store/features/subtasks/subtaskSlice";
-import { fetchTags } from "../../store/features/tags/tagSlice";
-import { getUsers } from "../../store/features/users/userSlice";
+import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import { toast } from "react-toastify";
 import SubtaskSearchAndFilters from "./SubtaskSearchAndFilters";
 import "./SubtaskList.css";
 
-const SubtaskList = ({ subtasks: propSubtasks }) => {
+const SubtaskList = ({
+  subtasks: propSubtasks,
+  ownsData = false,
+  taskDateRange,
+}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -47,30 +46,51 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
     }
   }, [dispatch, propSubtasks, allSubtasks.length]);
 
-  // Refetch subtasks and clear error when userInfo changes (e.g., after login)
-  useEffect(() => {
-    if (userInfo) {
-      dispatch(clearError());
-      dispatch(fetchSubtasks());
-    }
-  }, [userInfo, dispatch]);
-
   useEffect(() => {
     if (error === "Request failed with status code 401") {
       navigate("/login");
     }
   }, [error, navigate]);
 
-  useEffect(() => {
-    dispatch(fetchTags());
-    // Only fetch all users if the current user is an admin
-    if (userInfo && userInfo.isAdmin) {
-      dispatch(getUsers());
-    }
-  }, [dispatch, userInfo]);
-
   const subtasks = useMemo(() => {
-    let filtered = propSubtasks || allSubtasks;
+    let filtered = ownsData ? allSubtasks : propSubtasks ?? [];
+
+    // 1️⃣ EXPLICIT user-selected date filter (standalone mode)
+    if (ownsData && filterDateRange.start && filterDateRange.end) {
+      const filterStart = new Date(filterDateRange.start);
+      const filterEnd = new Date(filterDateRange.end);
+      filtered = filtered.filter((subtask) => {
+        const dueDate = new Date(subtask.dueDate);
+        // Overlap: dueDate is between filterStart and filterEnd (inclusive)
+        return dueDate >= filterStart && dueDate <= filterEnd;
+      });
+    }
+
+    // 2️⃣ Embedded mode → goal date range
+    if (!ownsData && taskDateRange?.start && taskDateRange?.end) {
+      const rangeStart = new Date(taskDateRange.start);
+      const rangeEnd = new Date(taskDateRange.end);
+
+      filtered = filtered.filter((subtask) => {
+        const dueDate = new Date(subtask.dueDate);
+        return dueDate >= rangeStart && dueDate <= rangeEnd;
+      });
+
+      return filtered; // 🔴 STOP HERE
+    }
+
+    // 3️⃣ Standalone mode → monthly fallback
+    if (ownsData) {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      filtered = filtered.filter((subtask) => {
+        const dueDate = new Date(subtask.dueDate);
+        return dueDate >= startOfMonth && dueDate <= endOfMonth;
+      });
+    }
+
     // Tag filter
     if (filterTag) {
       filtered = filtered.filter((subtask) =>
@@ -83,16 +103,7 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
         (subtask.collaborators || []).includes(filterCollaborator)
       );
     }
-    // Date range filter (overlap logic for dueDate)
-    if (filterDateRange.start && filterDateRange.end) {
-      const filterStart = new Date(filterDateRange.start);
-      const filterEnd = new Date(filterDateRange.end);
-      filtered = filtered.filter((subtask) => {
-        const dueDate = new Date(subtask.dueDate);
-        // Overlap: dueDate is between filterStart and filterEnd (inclusive)
-        return dueDate >= filterStart && dueDate <= filterEnd;
-      });
-    }
+
     // Search
     if (searchTerm) {
       filtered = filtered.filter(
@@ -120,18 +131,20 @@ const SubtaskList = ({ subtasks: propSubtasks }) => {
 
   return (
     <div className="subtask-list">
-      <SubtaskSearchAndFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterTag={filterTag}
-        setFilterTag={setFilterTag}
-        filterCollaborator={filterCollaborator}
-        setFilterCollaborator={setFilterCollaborator}
-        filterDateRange={filterDateRange}
-        setFilterDateRange={setFilterDateRange}
-        availableTags={tags}
-        availableCollaborators={users}
-      />
+      {ownsData && (
+        <SubtaskSearchAndFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterTag={filterTag}
+          setFilterTag={setFilterTag}
+          filterCollaborator={filterCollaborator}
+          setFilterCollaborator={setFilterCollaborator}
+          filterDateRange={filterDateRange}
+          setFilterDateRange={setFilterDateRange}
+          availableTags={tags}
+          availableCollaborators={users}
+        />
+      )}
       {subtasks.length === 0 ? (
         <div
           className="subtask-list__empty"
