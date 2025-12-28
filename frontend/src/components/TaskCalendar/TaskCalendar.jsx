@@ -321,6 +321,11 @@ const TaskCalendar = () => {
     return "#22c55e"; // bright green (100%)
   };
 
+  const getDisplayProgress = (progress) => {
+    if (progress === 0) return 100; // FULL ring
+    return progress;
+  };
+
   // Drag and drop handlers
   const handleDragStart = (date, item) =>
     setDraggedTask({ item, fromDate: date });
@@ -561,9 +566,11 @@ const TaskCalendar = () => {
                   <div className="date-header">
                     <div className="date-info">
                       <div
-                        className="day-progress-circle"
+                        className={`day-progress-circle ${
+                          dayProgress === 0 ? "pulse" : ""
+                        }`}
                         style={{
-                          "--progress": `${dayProgress}%`,
+                          "--progress": `${getDisplayProgress(dayProgress)}%`,
                           "--progress-color": getProgressColor(dayProgress),
                         }}
                       >

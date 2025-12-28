@@ -225,6 +225,30 @@
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.day-progress-circle {
+    transition:
+        background 0.6s ease,
+        box-shadow 0.6s ease;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 77, 79, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+    }
+}
+
+.day-progress-circle.pulse {
+    animation: pulse-ring 1.6s infinite;
+}
+
 .add-task-button {
     border: none;
     background: none;
