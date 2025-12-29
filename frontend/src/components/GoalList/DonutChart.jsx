@@ -13,7 +13,11 @@ function DonutChart({ data }) {
     let chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
-        innerRadius: am5.percent(50),
+        innerRadius: am5.percent(60),
+        paddingTop: 0,
+        paddingBottom: 10,
+        paddingLeft: 0,
+        paddingRight: 0,
       })
     );
 
@@ -29,40 +33,56 @@ function DonutChart({ data }) {
       "colors",
       am5.ColorSet.new(root, {
         colors: [
-          am5.color("#1a73e8"),
-          am5.color("#4285f4"),
-          am5.color("#8ab4f8"),
+          am5.color("#3b82f6"),
+          am5.color("#8b5cf6"),
+          am5.color("#94a3b8"),
         ],
       })
     );
 
     series.slices.template.setAll({
-      cornerRadius: 5,
+      cornerRadius: 10,
       templateField: "settings",
-      strokeWidth: 2,
+      strokeWidth: 4,
       stroke: am5.color("#ffffff"),
     });
 
+    // Hide the default labels to prevent cutoff
     series.labels.template.setAll({
-      fontSize: 12,
-      fontFamily:
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif",
-      text: "{category}: {value}%",
+      visible: false,
     });
 
+    // Hide the tick marks as well
+    series.ticks.template.setAll({
+      visible: false,
+    });
+
+    // Create custom legend with better styling
     let legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.percent(50),
         x: am5.percent(50),
-        marginTop: 15,
-        marginBottom: 15,
+        marginTop: 20,
+        marginBottom: 10,
+        layout: root.verticalLayout,
       })
     );
 
+    // Customize legend labels to show category and percentage
     legend.labels.template.setAll({
-      fontSize: 12,
+      fontSize: 13,
       fontFamily:
         "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif",
+      fill: am5.color("#1a1a1a"),
+      fontWeight: "500",
+    });
+
+    legend.valueLabels.template.setAll({
+      fontSize: 14,
+      fontFamily:
+        "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif",
+      fill: am5.color("#1a1a1a"),
+      fontWeight: "700",
     });
 
     legend.data.setAll(series.dataItems);
@@ -80,8 +100,8 @@ function DonutChart({ data }) {
       id="chartdiv"
       style={{
         width: "100%",
-        height: "300px",
-        backgroundColor: "#ffffff",
+        height: "320px",
+        backgroundColor: "transparent",
         borderRadius: "8px",
       }}
     ></div>
