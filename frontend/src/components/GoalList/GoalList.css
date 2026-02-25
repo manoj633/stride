@@ -1138,3 +1138,172 @@
         right: auto !important;
     }
 }
+
+/* =========================================================
+   RESPONSIVE HARDENING LAYER (Zoom + Viewport Safe)
+   Does NOT remove or rename any existing class
+   ========================================================= */
+
+/* 1. Safer viewport height handling (fixes zoom breakage) */
+.enhanced-goals-container,
+.enhanced-goals {
+    min-height: 100svh;
+    height: auto;
+}
+
+@supports not (height: 100svh) {
+
+    .enhanced-goals-container,
+    .enhanced-goals {
+        min-height: 100vh;
+    }
+}
+
+/* 2. Fluid typography scale */
+html {
+    font-size: clamp(14px, 0.9vw + 0.4rem, 16px);
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+.enhanced-goals-container {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+.enhanced-goals__header h2 {
+    font-size: clamp(1.25rem, 1.4vw, 1.75rem);
+}
+
+.stat-item p {
+    font-size: clamp(1.25rem, 1.6vw, 1.75rem);
+}
+
+.enhanced-goals__item-title {
+    font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+}
+
+/* 3. Controls: zoom-safe widths */
+.enhanced-goals__search-input {
+    width: clamp(180px, 22vw, 260px);
+    min-width: 0;
+}
+
+.enhanced-goals__filter-select,
+.enhanced-goals__sort-select,
+.enhanced-goals__view-select {
+    min-width: clamp(90px, 12vw, 120px);
+}
+
+/* 4. Header grid: adaptive collapse */
+.enhanced-goals__header {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* 5. Main content grid: elastic instead of rigid */
+.enhanced-goals__main {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 26%);
+    height: auto;
+    min-height: calc(100svh - 8rem);
+}
+
+@media (max-width: 1100px) {
+    .enhanced-goals__main {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 6. Scroll areas: prevent nested scroll traps */
+.enhanced-goals__content,
+.enhanced-goals__chart-container,
+.enhanced-goals__timeline {
+    max-height: unset;
+    min-height: 0;
+}
+
+/* 7. Stat cards: prevent overflow on zoom */
+.goals__stats {
+    align-items: stretch;
+}
+
+.stat-item {
+    flex: 1 1 clamp(100px, 22%, 160px);
+}
+
+/* 8. Calendar layout: responsive column */
+.calendar-view {
+    grid-template-columns: minmax(0, 380px) 1fr;
+}
+
+@media (max-width: 1000px) {
+    .calendar-view {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 9. Timeline: zoom-proof centering */
+.enhanced-goals__timeline::before {
+    left: clamp(20px, 50%, 50%);
+}
+
+.timeline-content {
+    width: clamp(260px, 45%, 520px);
+}
+
+@media (max-width: 900px) {
+    .timeline-content {
+        width: 100%;
+    }
+}
+
+/* 10. Kanban: fluid columns */
+.enhanced-goals__kanban {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* 11. Padding normalization (zoom safety) */
+.enhanced-goals__sidebar,
+.enhanced-goals__main,
+.enhanced-goals__content,
+.enhanced-goals__chart-container {
+    padding: clamp(1rem, 2vw, 1.75rem);
+}
+
+.enhanced-goals {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    overflow: hidden;
+}
+
+.enhanced-goals__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+    gap: 2rem;
+    overflow: hidden;
+}
+
+.enhanced-goals__content,
+.enhanced-goals__chart-container,
+.enhanced-goals__timeline,
+.calendar-goals-list {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+@media (max-width: 1200px) {
+    .enhanced-goals__main {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) auto;
+    }
+
+    .enhanced-goals__chart-container {
+        max-height: 35vh;
+    }
+}
