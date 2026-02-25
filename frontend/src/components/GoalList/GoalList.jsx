@@ -33,9 +33,7 @@ const GoalList = () => {
   const userInfo = useAppSelector((state) => state.user.userInfo);
 
   useEffect(() => {
-    if (goals.length === 0) {
-      dispatch(fetchGoals());
-    }
+    if (goals.length === 0) dispatch(fetchGoals());
     dispatch(fetchTags());
   }, [dispatch, goals.length]);
 
@@ -47,9 +45,7 @@ const GoalList = () => {
   }, [userInfo, dispatch]);
 
   useEffect(() => {
-    if (error === "Request failed with status code 401") {
-      navigate("/login");
-    }
+    if (error === "Request failed with status code 401") navigate("/login");
   }, [error, navigate]);
 
   const {
@@ -94,16 +90,13 @@ const GoalList = () => {
 
   if (loading) return <LoadingSpinner message="Loading goals..." />;
   if (error) return <ErrorMessage message={error} />;
-  if (goals.length === 0) {
-    const handleNavigateToAdd = () => {
-      navigate("/goals/add");
-    };
 
+  if (goals.length === 0) {
     return (
       <div className="goal-list">
         <div
           className="goal-list__empty goal-list__empty--clickable"
-          onClick={handleNavigateToAdd}
+          onClick={() => navigate("/goals/add")}
         >
           <div className="goal-list__empty-content">
             <div className="goal-list__empty-text">
@@ -119,10 +112,10 @@ const GoalList = () => {
   return (
     <div className="enhanced-goals-container">
       <div className="enhanced-goals">
-        {/* Compact Header Section */}
+        {/* ── Top header bar ── */}
         <div className="enhanced-goals__sidebar">
           <div className="enhanced-goals__header">
-            <div>
+            <div className="enhanced-goals__header-title">
               <h2>My Goals</h2>
             </div>
 
@@ -156,222 +149,101 @@ const GoalList = () => {
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* ── Main content ── */}
         <div className="enhanced-goals__main">
+          {/* Goals list / board */}
           <div className="enhanced-goals__content">{renderContent()}</div>
 
+          {/* Chart + summary sidebar */}
           <div className="enhanced-goals__chart-container">
-            <h3
-              style={{
-                margin: "0 0 1rem 0",
-                fontSize: "1.1rem",
-                fontWeight: 600,
-              }}
-            >
-              📈 Goal Distribution
-            </h3>
+            <h3 className="chart-section-title">📈 Goal Distribution</h3>
 
             <div className="enhanced-goals__chart-wrapper">
               <DonutChart data={chartData} />
             </div>
 
-            {/* Quick Insights */}
             <div className="enhanced-goals__insights-wrapper">
-              <h4
-                style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 600,
-                  color: "#1a1a1a",
-                  marginBottom: "1rem",
-                  marginTop: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                }}
-              >
-                <span>💡</span> Quick Insights
-              </h4>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "0.75rem",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "0.875rem",
-                    background: "rgba(59, 130, 246, 0.05)",
-                    borderRadius: "10px",
-                    border: "1px solid rgba(59, 130, 246, 0.1)",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(59, 130, 246, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "0.7rem",
-                      color: "#64748b",
-                      marginBottom: "0.25rem",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    📚 Total Goals
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: 700,
-                      color: "#1a1a1a",
-                    }}
-                  >
-                    {goals.length}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: "0.875rem",
-                    background: "rgba(139, 92, 246, 0.05)",
-                    borderRadius: "10px",
-                    border: "1px solid rgba(139, 92, 246, 0.1)",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(139, 92, 246, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "0.7rem",
-                      color: "#64748b",
-                      marginBottom: "0.25rem",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    🚀 Active
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: 700,
-                      color: "#8b5cf6",
-                    }}
-                  >
-                    {
-                      goals.filter(
-                        (g) =>
-                          g.completionPercentage > 0 &&
-                          g.completionPercentage < 100
-                      ).length
-                    }
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: "0.875rem",
-                    background: "rgba(22, 163, 74, 0.05)",
-                    borderRadius: "10px",
-                    border: "1px solid rgba(22, 163, 74, 0.1)",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(22, 163, 74, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "0.7rem",
-                      color: "#64748b",
-                      marginBottom: "0.25rem",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    ✨ Completed
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: 700,
-                      color: "#16a34a",
-                    }}
-                  >
-                    {goals.filter((g) => g.completionPercentage === 100).length}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: "0.875rem",
-                    background: "rgba(148, 163, 184, 0.05)",
-                    borderRadius: "10px",
-                    border: "1px solid rgba(148, 163, 184, 0.1)",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(148, 163, 184, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "0.7rem",
-                      color: "#64748b",
-                      marginBottom: "0.25rem",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    💤 Not Started
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: 700,
-                      color: "#64748b",
-                    }}
-                  >
-                    {goals.filter((g) => g.completionPercentage === 0).length}
-                  </div>
-                </div>
+              <h4 className="insights-title">💡 Quick Insights</h4>
+              <div className="insights-grid">
+                <InsightCard
+                  label="Total Goals"
+                  emoji="📚"
+                  value={goals.length}
+                  colorVar="blue"
+                />
+                <InsightCard
+                  label="Active"
+                  emoji="🚀"
+                  value={
+                    goals.filter(
+                      (g) =>
+                        g.completionPercentage > 0 &&
+                        g.completionPercentage < 100,
+                    ).length
+                  }
+                  colorVar="purple"
+                />
+                <InsightCard
+                  label="Completed"
+                  emoji="✨"
+                  value={
+                    goals.filter((g) => g.completionPercentage === 100).length
+                  }
+                  colorVar="green"
+                />
+                <InsightCard
+                  label="Not Started"
+                  emoji="💤"
+                  value={
+                    goals.filter((g) => g.completionPercentage === 0).length
+                  }
+                  colorVar="slate"
+                />
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+/** Small reusable insight card – keeps JSX clean */
+const INSIGHT_COLORS = {
+  blue: {
+    bg: "rgba(59,130,246,0.05)",
+    border: "rgba(59,130,246,0.1)",
+    text: "#3b82f6",
+  },
+  purple: {
+    bg: "rgba(139,92,246,0.05)",
+    border: "rgba(139,92,246,0.1)",
+    text: "#8b5cf6",
+  },
+  green: {
+    bg: "rgba(22,163,74,0.05)",
+    border: "rgba(22,163,74,0.1)",
+    text: "#16a34a",
+  },
+  slate: {
+    bg: "rgba(148,163,184,0.05)",
+    border: "rgba(148,163,184,0.1)",
+    text: "#64748b",
+  },
+};
+
+const InsightCard = ({ label, emoji, value, colorVar }) => {
+  const c = INSIGHT_COLORS[colorVar];
+  return (
+    <div
+      className="insight-card"
+      style={{ background: c.bg, border: `1px solid ${c.border}` }}
+    >
+      <div className="insight-card__label">
+        {emoji} {label}
+      </div>
+      <div className="insight-card__value" style={{ color: c.text }}>
+        {value}
       </div>
     </div>
   );

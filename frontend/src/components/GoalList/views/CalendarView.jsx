@@ -49,8 +49,8 @@ const CalendarView = ({ goals }) => {
     viewMode === "day"
       ? goalsForSelectedDate
       : viewMode === "week"
-      ? getWeekGoals()
-      : getMonthGoals();
+        ? getWeekGoals()
+        : getMonthGoals();
 
   const getGoalCountForDate = (date) => {
     return goals.filter((goal) => {
@@ -224,7 +224,7 @@ const CalendarView = ({ goals }) => {
               {
                 goals.filter(
                   (g) =>
-                    g.completionPercentage > 0 && g.completionPercentage < 100
+                    g.completionPercentage > 0 && g.completionPercentage < 100,
                 ).length
               }
             </div>
