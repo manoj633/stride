@@ -5,21 +5,26 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 import DayPopover from "./DayPopover";
-import {
-  fetchGoals,
-  setSelectedGoal,
-  updateGoalCompletion,
-} from "../../store/features/goals/goalSlice";
+import { fetchGoals, clearError as clearGoalsError } from "../../store/features/goals/goalSlice";
 import {
   fetchTasks,
   setSelectedTask,
   updateTaskCompletion,
+  clearError as clearTasksError,
 } from "../../store/features/tasks/taskSlice";
 import {
   fetchSubtasks,
   setSelectedSubtask,
   updateSubtask,
+  clearError as clearSubtasksError,
 } from "../../store/features/subtasks/subtaskSlice";
+import { 
+  FiChevronLeft, 
+  FiChevronRight, 
+  FiPlus, 
+  FiCalendar, 
+  FiTrendingUp 
+} from "react-icons/fi";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskCalendar.css";
@@ -115,9 +120,9 @@ const TaskCalendar = () => {
   const dispatch = useAppDispatch();
 
   const { userInfo } = useAppSelector((state) => state.user);
-  const goals = useAppSelector((state) => state.goals.items);
-  const tasks = useAppSelector((state) => state.tasks.items);
-  const subtasks = useAppSelector((state) => state.subtasks.items);
+  const { items: goals, loading: loadingGoals, error: goalsError } = useAppSelector((state) => state.goals);
+  const { items: tasks, loading: loadingTasks, error: tasksError } = useAppSelector((state) => state.tasks);
+  const { items: subtasks, loading: loadingSubtasks, error: subtasksError } = useAppSelector((state) => state.subtasks);
 
   const [calendarItems, setCalendarItems] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -127,8 +132,6 @@ const TaskCalendar = () => {
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [showCompleted, setShowCompleted] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [monthDate, setMonthDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [heatmapScale, setHeatmapScale] = useState([
@@ -146,22 +149,14 @@ const TaskCalendar = () => {
 
   // Fetch data
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        if (goals.length === 0) await dispatch(fetchGoals());
-        if (tasks.length === 0) await dispatch(fetchTasks());
-        if (subtasks.length === 0) await dispatch(fetchSubtasks());
-      } catch (err) {
-        setError("Failed to load data. Please try again.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, [dispatch, goals.length, tasks.length, subtasks.length]);
+    dispatch(clearGoalsError());
+    dispatch(clearTasksError());
+    dispatch(clearSubtasksError());
+
+    dispatch(fetchGoals());
+    dispatch(fetchTasks());
+    dispatch(fetchSubtasks());
+  }, [dispatch]);
 
   // Build calendar items from goals, tasks, subtasks
   useEffect(() => {
@@ -416,358 +411,243 @@ const TaskCalendar = () => {
     }));
   };
 
-  if (isLoading) return <LoadingSpinner message="Loading calendar..." />;
-  if (error) return <ErrorMessage message={error} />;
+  const isLoading = loadingGoals || loadingTasks || loadingSubtasks;
+  
+  if (isLoading) return <LoadingSpinner message="Syncing enterprise data..." />;
+  
+  if (goalsError) return <ErrorMessage message={`Goals: ${goalsError}`} />;
+  if (tasksError) return <ErrorMessage message={`Tasks: ${tasksError}`} />;
+  if (subtasksError) return <ErrorMessage message={`Subtasks: ${subtasksError}`} />;
 
   return (
-    <div className="calendar-container">
-      {/* Header */}
-      <div className="calendar-header">
-        <div>
-          <h1>Task Calendar</h1>
-        </div>
-
-        <div className="view-switch">
-          <button
-            onClick={() => setView("weekly")}
-            className={view === "weekly" ? "active" : ""}
-            aria-label="Switch to weekly view"
-          >
-            Weekly
-          </button>
-          <button
-            onClick={() => setView("monthly")}
-            className={view === "monthly" ? "active" : ""}
-            aria-label="Switch to monthly view"
-          >
-            Monthly
-          </button>
-        </div>
-
-        <div className="navigation-buttons">
-          <button
-            onClick={
-              view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)
-            }
-            className="nav-button"
-            aria-label={view === "monthly" ? "Previous month" : "Previous week"}
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <span>
-            {view === "monthly"
-              ? `${monthDate.toLocaleString("default", {
-                  month: "long",
-                })} ${year}`
-              : `Week of ${formatDate(days[0])}`}
-          </span>
-          <button
-            onClick={
-              view === "monthly" ? handleNextMonth : () => navigateWeek(1)
-            }
-            className="nav-button"
-            aria-label={view === "monthly" ? "Next month" : "Next week"}
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="calendar-filters">
-        <div className="filter-group">
-          <label htmlFor="priority-select">Priority</label>
-          <select
-            id="priority-select"
-            value={selectedPriority}
-            onChange={(e) => setSelectedPriority(e.target.value)}
-          >
-            <option value="all">All Priorities</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="type-select">Type</label>
-          <select
-            id="type-select"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-          >
-            <option value="all">All Types</option>
-            <option value="goal">Goals</option>
-            <option value="task">Tasks</option>
-            <option value="subtask">Subtasks</option>
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <input
-            type="checkbox"
-            id="show-completed"
-            checked={showCompleted}
-            onChange={(e) => setShowCompleted(e.target.checked)}
-          />
-          <label htmlFor="show-completed">Show Completed</label>
-        </div>
-      </div>
-
-      {/* Calendar Content */}
-      <div className="calendar-content">
-        {view === "weekly" ? (
-          <div className="calendar-grid" tabIndex={0}>
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="day-header">
-                {day}
+    <div className="enhanced-calendar-container">
+      <div className="enhanced-tasks">
+        {/* Top Navigation Bar */}
+        <div className="enhanced-tasks__sidebar">
+          <div className="enhanced-tasks__header">
+            <div className="enhanced-tasks__header-title">
+              <div className="header-icon--calendar">
+                <FiCalendar />
               </div>
-            ))}
-
-            {days.map((date) => {
-              const dateStr = date.toISOString().split("T")[0];
-              const dayItems = filteredItems[dateStr] || [];
-              const totalSubtasks = dayItems.filter(
-                (item) => item.type === "subtask"
-              ).length;
-              const completedSubtasks = dayItems.filter(
-                (item) => item.type === "subtask" && item.completed
-              ).length;
-              const isPastDay =
-                date.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
-
-              let summaryText = "";
-              let summaryClass = "";
-
-              if (totalSubtasks === 0) {
-                summaryText = "No subtasks";
-                summaryClass = "empty";
-              } else if (completedSubtasks === totalSubtasks) {
-                summaryText = "All done 🎉";
-                summaryClass = "done";
-              } else if (completedSubtasks === 0) {
-                summaryText = isPastDay ? "Overdue ⚠️" : "Not started";
-                summaryClass = isPastDay ? "overdue" : "not-started";
-              } else {
-                summaryText = `${completedSubtasks} / ${totalSubtasks} completed`;
-                summaryClass = isPastDay ? "overdue" : "in-progress";
-              }
-
-              const isToday = new Date().toDateString() === date.toDateString();
-              const dayProgress = calculateDayProgress(dayItems);
-
-              return (
-                <div
-                  key={dateStr}
-                  className={`calendar-cell ${isToday ? "today" : ""}`}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(date)}
-                >
-                  <div className="date-header">
-                    <div className="date-info">
-                      <div
-                        className={`day-progress-circle ${
-                          dayProgress === 0 && totalSubtasks > 0 ? "pulse" : ""
-                        }`}
-                        style={{
-                          "--progress": `${getDisplayProgress(dayProgress)}%`,
-                          "--progress-color": getProgressColor(dayProgress),
-                        }}
-                      >
-                        <span className="percentage">
-                          {Math.round(dayProgress)}%
-                        </span>
-                      </div>
-                      <div className="date-number">{formatDate(date)}</div>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`day-progress-bar ${
-                      dayItems.length === 0 ? "empty" : ""
-                    }`}
-                  >
-                    <div
-                      className="day-progress-bar-fill"
-                      style={{
-                        width: `${getDisplayProgress(dayProgress)}%`,
-                        backgroundColor: getProgressColor(dayProgress),
-                      }}
-                    />
-                  </div>
-
-                  <div className={`day-task-summary ${summaryClass}`}>
-                    {summaryText}
-                  </div>
-
-                  <div className="calendar-task-list">
-                    {dayItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`task-item ${
-                          isTouchDevice ? "touch-device" : ""
-                        }`}
-                        data-priority={
-                          item.priority?.toLowerCase() || "default"
-                        }
-                        onClick={() => handleItemClick(item)}
-                        draggable={!isTouchDevice && item.type === "subtask"}
-                        onDragStart={() =>
-                          !isTouchDevice && handleDragStart(date, item)
-                        }
-                        aria-label={`${item.type} ${item.text}`}
-                      >
-                        {item.type === "subtask" && (
-                          <input
-                            type="checkbox"
-                            checked={item.completed}
-                            className="task-checkbox"
-                            onChange={() => toggleItem(date, item)}
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label="Toggle completion"
-                          />
-                        )}
-                        <span
-                          className={`task-text ${
-                            item.completed ? "completed" : ""
-                          }`}
-                        >
-                          {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          // Monthly Heatmap View
-          <div className="monthly-heatmap">
-            <div className="calendar-grid month">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="day-header">
-                  {day}
-                </div>
-              ))}
-
-              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div
-                  key={`empty-start-${i}`}
-                  className="calendar-cell empty"
-                ></div>
-              ))}
-
-              {daysInMonth.map((date) => {
-                const dateStr = date.toISOString().split("T")[0];
-                const count = (filteredItems[dateStr] || []).filter(
-                  (item) => item.type === "subtask"
-                ).length;
-                const isToday =
-                  new Date().toDateString() === date.toDateString();
-                const items = filteredItems[dateStr] || [];
-
-                const scaleIdx = heatmapScale.findIndex(
-                  (level) => count <= level.max
-                );
-                const cellColor = heatmapScale[scaleIdx]?.color || "#f8f9fa";
-
-                return (
-                  <div
-                    key={dateStr}
-                    className={`heatmap-cell ${isToday ? "today" : ""}`}
-                    title={`${formatDate(date)}: ${count} subtasks`}
-                    onClick={() => setSelectedDay({ date, items })}
-                    style={{ background: cellColor }}
-                  >
-                    <div className="heatmap-date-container">
-                      <span className="heatmap-date">{date.getDate()}</span>
-                      {count > 0 && (
-                        <span className="heatmap-badge">{count}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {Array.from({ length: 6 - lastDayOfWeek }).map((_, i) => (
-                <div
-                  key={`empty-end-${i}`}
-                  className="calendar-cell empty"
-                ></div>
-              ))}
+              <h2>Enterprise Calendar</h2>
             </div>
 
-            {/* Legend */}
-            <div className="heatmap-legend">
-              {heatmapScale.map((level, idx) => (
-                <div className="legend-item" key={idx}>
-                  <span
-                    className="legend-swatch"
-                    style={{ background: level.color }}
-                  ></span>
-                  <span className="legend-label">
-                    {idx === 0
-                      ? "0"
-                      : `${heatmapScale[idx - 1].max + 1}-${
-                          level.max === Infinity ? "+" : level.max
-                        }`}{" "}
-                    tasks
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Customizable Scale Editor */}
-            <div className="heatmap-scale-editor">
-              <span style={{ fontWeight: 600 }}>Customize Scale:</span>
-              {heatmapScale.map((level, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
+            <div className="tasks__stats">
+              <div className="view-switch">
+                <button
+                  onClick={() => setView("weekly")}
+                  className={view === "weekly" ? "active" : ""}
                 >
-                  <input
-                    type="number"
-                    min={idx === 0 ? 0 : heatmapScale[idx - 1].max + 1}
-                    max={
-                      idx < heatmapScale.length - 1
-                        ? heatmapScale[idx + 1].max - 1
-                        : 99
-                    }
-                    value={level.max === Infinity ? "" : level.max}
-                    onChange={(e) => {
-                      const val =
-                        e.target.value === ""
-                          ? Infinity
-                          : parseInt(e.target.value, 10);
-                      setHeatmapScale((scale) =>
-                        scale.map((l, i) =>
-                          i === idx ? { ...l, max: val } : l
-                        )
-                      );
-                    }}
-                    disabled={idx === heatmapScale.length - 1}
-                  />
-                  <input
-                    type="color"
-                    value={level.color}
-                    onChange={(e) => {
-                      setHeatmapScale((scale) =>
-                        scale.map((l, i) =>
-                          i === idx ? { ...l, color: e.target.value } : l
-                        )
-                      );
-                    }}
-                  />
+                  Weekly
+                </button>
+                <button
+                  onClick={() => setView("monthly")}
+                  className={view === "monthly" ? "active" : ""}
+                >
+                  Monthly
+                </button>
+              </div>
+
+              <div className="navigation-buttons">
+                <button
+                  onClick={view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)}
+                  className="nav-button"
+                >
+                  <FiChevronLeft size={16} />
+                </button>
+                <span className="current-date-label">
+                  {view === "monthly"
+                    ? `${monthDate.toLocaleString("default", { month: "long" })} ${year}`
+                    : `Week of ${formatDate(days[0])}`}
                 </span>
-              ))}
+                <button
+                  onClick={view === "monthly" ? handleNextMonth : () => navigateWeek(1)}
+                  className="nav-button"
+                >
+                  <FiChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="enhanced-tasks__actions">
+              <div className="calendar-filter-dropdowns">
+                 <select
+                    value={selectedPriority}
+                    onChange={(e) => setSelectedPriority(e.target.value)}
+                    className="enterprise-select"
+                  >
+                    <option value="all">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="enterprise-select"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="goal">Goals</option>
+                    <option value="task">Tasks</option>
+                    <option value="subtask">Subtasks</option>
+                  </select>
+              </div>
+
+              <button className="enhanced-tasks__add-btn" onClick={() => navigate('/tasks/add')}>
+                <FiPlus size={14} /> Add Event
+              </button>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Main Content Area */}
+        <div className="enhanced-tasks__main">
+          {/* Left: The Calendar Grid */}
+          <div className="enhanced-tasks__content">
+            <div className="calendar-content">
+              {view === "weekly" ? (
+                <div className="calendar-grid">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                    <div key={day} className="day-header">{day}</div>
+                  ))}
+
+                  {days.map((date) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const dayItems = filteredItems[dateStr] || [];
+                    const totalSubtasks = dayItems.filter(item => item.type === "subtask").length;
+                    const completedSubtasks = dayItems.filter(item => item.type === "subtask" && item.completed).length;
+                    const isPastDay = date.setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+
+                    let summaryText = "";
+                    let summaryClass = "";
+
+                    if (totalSubtasks === 0) {
+                      summaryText = "No subtasks";
+                      summaryClass = "empty";
+                    } else if (completedSubtasks === totalSubtasks) {
+                      summaryText = "All done 🎉";
+                      summaryClass = "done";
+                    } else {
+                      summaryText = `${completedSubtasks}/${totalSubtasks} done`;
+                      summaryClass = isPastDay ? "overdue" : "in-progress";
+                    }
+
+                    const isToday = new Date().toDateString() === date.toDateString();
+                    const dayProgress = calculateDayProgress(dayItems);
+
+                    return (
+                      <div
+                        key={dateStr}
+                        className={`calendar-cell ${isToday ? "today" : ""}`}
+                        onDragOver={handleDragOver}
+                        onDrop={() => handleDrop(date)}
+                      >
+                        <div className="date-header">
+                          <span className="date-number">{date.getDate()}</span>
+                          <span className="date-month">{formatDate(date).split(' ')[0]}</span>
+                        </div>
+
+                        <div className="calendar-task-list">
+                          {dayItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="tk-row--mini"
+                              data-priority={item.priority?.toLowerCase() || 'default'}
+                              onClick={() => handleItemClick(item)}
+                            >
+                              <div className={`mini-priority-indicator ${item.priority?.toLowerCase()}`}></div>
+                              <span className={`mini-task-text ${item.completed ? 'completed' : ''}`}>
+                                {item.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className={`mini-day-summary ${summaryClass}`}>
+                           {summaryText}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Monthly View Grid (Larger version) */
+                <div className="calendar-grid month">
+                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                    <div key={day} className="day-header">{day}</div>
+                  ))}
+
+                  {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                    <div key={`empty-start-${i}`} className="calendar-cell empty"></div>
+                  ))}
+
+                  {daysInMonth.map((date) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const items = filteredItems[dateStr] || [];
+                    const isToday = new Date().toDateString() === date.toDateString();
+
+                    return (
+                      <div
+                        key={dateStr}
+                        className={`calendar-cell monthly ${isToday ? "today" : ""}`}
+                        onClick={() => setSelectedDay({ date, items })}
+                      >
+                        <span className="date-number">{date.getDate()}</span>
+                        {items.length > 0 && <span className="item-count-dot">{items.length}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Insights Sidebar */}
+          <div className="enhanced-tasks__chart-container calendar-insights">
+            <div className="insights-header">
+              <h3>Calendar Insights</h3>
+              <p>Visualizing your timeline</p>
+            </div>
+
+            <div className="insight-widget">
+              <h4 className="widget-title">Activity Heatmap</h4>
+              <div className="mini-heatmap-grid">
+                 {/* Mini monthly view for heatmap */}
+                 {daysInMonth.map((date) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const count = (filteredItems[dateStr] || []).length;
+                    const scaleIdx = heatmapScale.findIndex(level => count <= level.max);
+                    const cellColor = heatmapScale[scaleIdx]?.color || "#f8f9fa";
+                    return (
+                      <div 
+                        key={dateStr} 
+                        className="mini-heatmap-cell" 
+                        style={{ background: cellColor }}
+                        title={`${count} items`}
+                      ></div>
+                    );
+                 })}
+              </div>
+              <div className="heatmap-legend--sidebar">
+                 <div className="legend-swatches">
+                    {heatmapScale.slice(0, 4).map((level, i) => (
+                      <div key={i} className="swatch" style={{ background: level.color }}></div>
+                    ))}
+                 </div>
+                 <span>Productivity Level</span>
+              </div>
+            </div>
+
+            <div className="insight-widget mt-auto">
+              <div className="productivity-promo">
+                <div className="promo-icon"><FiTrendingUp /></div>
+                <h4>Peak Performance</h4>
+                <p>You are most active on <strong>Tuesdays</strong>. Keep the momentum!</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Day Popover Modal */}
