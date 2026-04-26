@@ -14,6 +14,7 @@ import SubtaskList from "./components/SubtaskList/SubtaskList";
 import AddSubTask from "./components/AddSubTask/AddSubTask";
 import SubtaskDescription from "./components/SubtaskDescription/SubtaskDescription";
 import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
+import Dashboard from "./components/Dashboard/Dashboard";
 import { TagManager } from "./components/TagsManager/TagManager";
 import Notifications from "./components/Notifications/Notifications";
 
@@ -129,6 +130,14 @@ const App = () => {
           {/* Protected routes */}
           <Route
             path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/calendar"
             element={
               <PrivateRoute>
                 <TaskCalendar />
