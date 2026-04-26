@@ -1,167 +1,339 @@
-/* TaskList.css */
-.task-list {
+/* ============================================================
+   TASKS — Enterprise SaaS Design System
+   Aesthetic: Stripe / Linear / Vercel — clean, data-first,
+   light mode, structured, zero glow, zero flash.
+   Font: Sora (headings) + DM Sans (body/data)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── CSS Variables ─────────────────────────────────────────── */
+:root {
+    --bg-app: #F7F7F8;
+    --bg-surface: #FFFFFF;
+    --bg-subtle: #F4F4F5;
+    --bg-hover: #F0F0F2;
+    --bg-selected: #EFF6FF;
+
+    --border: #E4E4E7;
+    --border-strong: #D1D1D6;
+
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --text-tertiary: #A1A1AA;
+    --text-disabled: #D4D4D8;
+
+    --accent: #2563EB;
+    --accent-light: #EFF6FF;
+    --accent-border: #BFDBFE;
+
+    --red: #DC2626;
+    --red-light: #FEF2F2;
+    --red-border: #FECACA;
+
+    --amber: #D97706;
+    --amber-light: #FFFBEB;
+    --amber-border: #FDE68A;
+
+    --green: #16A34A;
+    --green-light: #F0FDF4;
+    --green-border: #BBF7D0;
+
+    --slate: #64748B;
+    --slate-light: #F8FAFC;
+    --slate-border: #E2E8F0;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
+
+    --font-display: 'Sora', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+
+    --t: 0.15s ease;
+}
+
+/* ── App Shell ─────────────────────────────────────────────── */
+.enhanced-tasks-container {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: var(--bg-app);
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        Helvetica, Arial, sans-serif;
-    max-width: 850px;
-    margin: 2rem auto;
-    padding: 2rem;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Loading Placeholders */
-.task-list__loading-placeholder {
-    height: 80px;
-    background-color: #f6f7f8;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    animation: shimmer 1.5s infinite linear;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: -468px 0;
-    }
-
-    100% {
-        background-position: 468px 0;
-    }
-}
-
-.task-list__loading-placeholder:nth-child(2) {
-    height: 100px;
-}
-
-/* Empty State */
-.task-list__empty {
+.enhanced-tasks {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 250px;
-    background: #f9fafb;
-    border: 2px dashed #e5e7eb;
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    height: 100%;
+    min-height: 0;
 }
 
-.task-list__empty:hover {
-    background-color: #f1f3f5;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.task-list__empty-text {
-    font-size: 1.2rem;
-    color: #6b7280;
-    margin-bottom: 1rem;
-}
-
-.task-list__empty-action {
-    font-size: 1rem;
-    color: #3b82f6;
-    font-weight: 500;
-}
-
-/* Task Items */
-.task-list__item-link {
-    text-decoration: none;
-    color: inherit;
-}
-
-.task-list__item {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease-in-out;
-}
-
-.task-list__item:hover {
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.task-list__content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.task-list__title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
+/* ── Top Header ────────────────────────────────────────────── */
+.enhanced-tasks__sidebar {
+    flex: 0 0 auto;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: 52px;
     display: flex;
     align-items: center;
+    position: relative;
+    z-index: 10;
+    box-shadow: var(--shadow-xs);
 }
 
-.task-list__title span {
-    margin-left: 0.5rem;
-    font-size: 1rem;
-}
-
-.task-list__description {
-    font-size: 0.9rem;
-    color: #4b5563;
-}
-
-.task-list__meta {
+.enhanced-tasks__header {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-    font-size: 0.8rem;
-}
-
-.task-list__priority {
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-weight: 500;
-    text-transform: uppercase;
-}
-
-.task-list__priority.high {
-    background-color: #fef2f2;
-    color: #ef4444;
-}
-
-.task-list__priority.medium {
-    background-color: #fffbeb;
-    color: #d97706;
-}
-
-.task-list__priority.low {
-    background-color: #ecfccb;
-    color: #4ade80;
-}
-
-.task-list__date {
-    color: #6b7280;
-}
-
-.task-list__progress-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.task-list__progress-label {
-    font-weight: 500;
-}
-
-.task-list__progress-bar {
-    width: 100px;
-    height: 6px;
-    background-color: #e5e7eb;
-    border-radius: 4px;
+    gap: 0;
+    width: 100%;
+    margin: 0 auto;
     overflow: hidden;
 }
 
-.task-list__progress-bar-fill {
+.enhanced-tasks__header-title {
+    display: flex;
+    align-items: center;
+    padding-right: 16px;
+    margin-right: 0;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.enhanced-tasks__header-title h2 {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.header-icon--tasks {
+    width: 22px;
+    height: 22px;
+    background: #4ade80;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    flex-shrink: 0;
+}
+
+/* ── Stats ─────────────────────────────────────────────────── */
+.tasks__stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-right: auto;
     height: 100%;
-    transition: width 0.3s ease-in-out;
+    overflow: hidden;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* ── Main Two-Column Area ──────────────────────────────────── */
+.enhanced-tasks__main {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 0;
+    overflow: hidden;
+    background: var(--bg-app);
+}
+
+.enhanced-tasks__content {
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0;
+}
+
+.enhanced-tasks__chart-container {
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* ── Table Layout ──────────────────────────────────────────── */
+.tk-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.tk-header,
+.tk-row {
+    display: grid;
+    grid-template-columns: 1fr 96px 120px 96px 120px;
+    align-items: center;
+    min-width: 0;
+    padding: 0 20px;
+}
+
+.tk-header {
+    height: 36px;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.tk-header .tk-col {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-tertiary);
+}
+
+.tk-row {
+    min-height: 56px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background var(--t);
+    border-left: 2px solid transparent;
+}
+
+.tk-row:hover {
+    background: var(--bg-hover);
+    border-left-color: var(--accent);
+}
+
+.tk-col {
+    padding: 12px 8px 12px 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.tk-title {
+    font-family: var(--font-display);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tk-priority {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.tk-priority--high { background: var(--red-light); color: var(--red); }
+.tk-priority--medium { background: var(--amber-light); color: var(--amber); }
+.tk-priority--low { background: var(--slate-light); color: var(--slate); }
+
+.tk-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.tk-progress__track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-subtle);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.tk-progress__fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.tk-progress__pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 32px;
+    text-align: right;
+}
+
+/* ── Search & Actions (Simplified copy from GoalList) ──────── */
+.enhanced-tasks__controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 12px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.enhanced-tasks__date-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.date-separator {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.enhanced-tasks__actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.enhanced-tasks__add-btn {
+    height: 32px;
+    padding: 0 12px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Media Queries ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .tasks__stats {
+        display: none;
+    }
 }

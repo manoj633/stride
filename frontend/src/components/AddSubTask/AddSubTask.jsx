@@ -90,9 +90,11 @@ const AddSubTask = ({ onSubtaskAdded }) => {
 
       onSubtaskAdded?.(newSubtaskData);
       resetForm();
-      navigate(-1);
+      navigate("/subtasks");
     } catch (error) {
       console.error("Failed to create subtask:", error);
+      // Navigate away even on failure as requested
+      navigate("/subtasks");
     }
   };
 

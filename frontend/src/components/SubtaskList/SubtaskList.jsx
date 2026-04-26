@@ -1,212 +1,215 @@
-// SubtaskList/SubtaskList.jsx
+// SubtaskList.jsx
 import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
-import { toast } from "react-toastify";
 import SubtaskSearchAndFilters from "./SubtaskSearchAndFilters";
+import DonutChart from "../GoalList/DonutChart";
 import "./SubtaskList.css";
 
-const SubtaskList = ({
-  subtasks: propSubtasks,
-  ownsData = false,
-  taskDateRange,
-}) => {
+const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const allSubtasks = useSelector((state) => state.subtasks.items);
-  const loading = useSelector((state) => state.subtasks.loading);
+  const loading = useSelector((state) => state.subtasks.status);
   const error = useSelector((state) => state.subtasks.error);
   const tags = useSelector((state) => state.tags.items);
-  const users = useSelector((state) => state.user.users);
-  const userInfo = useSelector((state) => state.user.userInfo);
+
+  // Default month range
+  const defaultDateRange = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const formatDate = (d) => d.toISOString().split("T")[0];
+    return { start: formatDate(start), end: formatDate(end) };
+  }, []);
 
   // Filter/search state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTag, setFilterTag] = useState("");
-  const [filterCollaborator, setFilterCollaborator] = useState("");
-  // Set default date range to today
-  const todayStr = new Date().toISOString().split("T")[0];
-  const [filterDateRange, setFilterDateRange] = useState({
-    start: todayStr,
-    end: todayStr,
-  });
+  const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
 
   useEffect(() => {
     if (!propSubtasks && allSubtasks.length === 0) {
-      dispatch(fetchSubtasks())
-        .unwrap()
-        .catch((error) => {
-          console.error("Failed to fetch subtasks:", error);
-          toast.error("Failed to fetch subtasks");
-        });
+      dispatch(fetchSubtasks());
     }
   }, [dispatch, propSubtasks, allSubtasks.length]);
-
-  useEffect(() => {
-    if (error === "Request failed with status code 401") {
-      navigate("/login");
-    }
-  }, [error, navigate]);
 
   const subtasks = useMemo(() => {
     let filtered = ownsData ? allSubtasks : propSubtasks ?? [];
 
-    // 1️⃣ EXPLICIT user-selected date filter (standalone mode)
-    if (ownsData && filterDateRange.start && filterDateRange.end) {
-      const filterStart = new Date(filterDateRange.start);
-      const filterEnd = new Date(filterDateRange.end);
-      filtered = filtered.filter((subtask) => {
-        const dueDate = new Date(subtask.dueDate);
-        // Overlap: dueDate is between filterStart and filterEnd (inclusive)
-        return dueDate >= filterStart && dueDate <= filterEnd;
+    // Date range filter
+    if (filterDateRange.start && filterDateRange.end) {
+      const fStart = new Date(filterDateRange.start);
+      const fEnd = new Date(filterDateRange.end);
+      fEnd.setHours(23, 59, 59, 999);
+
+      filtered = filtered.filter(st => {
+        if (!st.dueDate) return true;
+        const dDate = new Date(st.dueDate);
+        return dDate >= fStart && dDate <= fEnd;
       });
     }
 
-    // 2️⃣ Embedded mode → goal date range
-    if (!ownsData && taskDateRange?.start && taskDateRange?.end) {
-      const rangeStart = new Date(taskDateRange.start);
-      const rangeEnd = new Date(taskDateRange.end);
-
-      filtered = filtered.filter((subtask) => {
-        const dueDate = new Date(subtask.dueDate);
-        return dueDate >= rangeStart && dueDate <= rangeEnd;
-      });
-
-      return filtered; // 🔴 STOP HERE
-    }
-
-    // 3️⃣ Standalone mode → monthly fallback
-    if (ownsData) {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-      filtered = filtered.filter((subtask) => {
-        const dueDate = new Date(subtask.dueDate);
-        return dueDate >= startOfMonth && dueDate <= endOfMonth;
-      });
-    }
-
-    // Tag filter
     if (filterTag) {
-      filtered = filtered.filter((subtask) =>
-        (subtask.tags || []).includes(filterTag)
-      );
-    }
-    // Collaborator filter
-    if (filterCollaborator) {
-      filtered = filtered.filter((subtask) =>
-        (subtask.collaborators || []).includes(filterCollaborator)
-      );
+      filtered = filtered.filter((st) => (st.tags || []).includes(filterTag));
     }
 
-    // Search
     if (searchTerm) {
       filtered = filtered.filter(
-        (subtask) =>
-          (subtask.name || "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          (subtask.description || "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+        (st) =>
+          (st.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (st.description || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     return filtered;
-  }, [
-    propSubtasks,
-    allSubtasks,
-    filterTag,
-    filterCollaborator,
-    filterDateRange,
-    searchTerm,
-  ]);
+  }, [propSubtasks, allSubtasks, filterTag, filterDateRange, searchTerm, ownsData]);
 
-  if (loading) return <LoadingSpinner message="Loading subtasks..." />;
+  const stats = useMemo(() => {
+    const total = subtasks.length;
+    const completed = subtasks.filter(s => s.completed).length;
+    const highPriority = subtasks.filter(s => s.priority === "High").length;
+    return { total, completed, pending: total - completed, highPriority };
+  }, [subtasks]);
+
+  const chartData = useMemo(() => [
+    { category: "Completed", value: stats.completed },
+    { category: "Pending", value: stats.pending },
+  ], [stats]);
+
+  if (loading === "loading") return <LoadingSpinner message="Loading subtasks..." />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="subtask-list">
-      {ownsData && (
-        <SubtaskSearchAndFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterTag={filterTag}
-          setFilterTag={setFilterTag}
-          filterCollaborator={filterCollaborator}
-          setFilterCollaborator={setFilterCollaborator}
-          filterDateRange={filterDateRange}
-          setFilterDateRange={setFilterDateRange}
-          availableTags={tags}
-          availableCollaborators={users}
-        />
-      )}
-      {subtasks.length === 0 ? (
-        <div
-          className="subtask-list__empty"
-          onClick={() => navigate("/tasks/add")}
-          role="button"
-          tabIndex={0}
-          aria-label="Add your first task"
-        >
-          <p className="subtask-list__empty-text">
-            No subtasks yet! ✨ Time to get productive! 🚀
-          </p>
-          <p className="subtask-list__empty-action">
-            Click here to add your first task! ➕
-          </p>
+    <div className="enhanced-subtasks-container">
+      <div className="enhanced-subtasks">
+        {/* ── Top Bar ── */}
+        <div className="enhanced-subtasks__sidebar">
+          <div className="enhanced-subtasks__header">
+            <div className="enhanced-subtasks__header-title">
+              <h2>
+                <span className="header-icon--subtasks">S</span>
+                Subtasks
+              </h2>
+            </div>
+
+            {/* Inline Stats */}
+            <div className="subtasks__stats">
+              <StatItem label="Total" value={stats.total} />
+              <StatItem label="High Priority" value={stats.highPriority} color="red" />
+              <StatItem label="Pending" value={stats.pending} color="amber" />
+            </div>
+
+            <SubtaskSearchAndFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filterTag={filterTag}
+              setFilterTag={setFilterTag}
+              filterDateRange={filterDateRange}
+              setFilterDateRange={setFilterDateRange}
+              availableTags={tags}
+            />
+
+            <div className="enhanced-tasks__actions">
+              <button
+                className="stk-add-btn"
+                onClick={() => navigate("/subtasks/add")}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add Subtask
+              </button>
+            </div>
+          </div>
         </div>
-      ) : (
-        subtasks.map((subtask) => (
-          <Link
-            key={subtask._id}
-            to={`/subtasks/${subtask._id}`}
-            className="subtask-list__item-link"
-            aria-label={`View details for subtask ${subtask.name}`}
-          >
-            <div
-              className={`subtask-list__item ${
-                subtask.completed ? "subtask-list__item--completed" : ""
-              }`}
-            >
-              <div className="subtask-list__content">
-                <h3 className="subtask-list__title">
-                  {subtask.name}
-                  {subtask.priority === "High" && <span> 🔥</span>}
-                </h3>
-                {subtask.description && (
-                  <p className="subtask-list__description">
-                    {subtask.description}
-                  </p>
-                )}
+
+        {/* ── Main Area ── */}
+        <div className="enhanced-subtasks__main">
+          <div className="enhanced-subtasks__content">
+            <div className="stk-table">
+              <div className="stk-header">
+                <div className="stk-col">Subtask</div>
+                <div className="stk-col">Priority</div>
+                <div className="stk-col">Status</div>
+                <div className="stk-col">Due Date</div>
               </div>
-              <div className="subtask-list__meta">
-                <span
-                  className={`subtask-list__status ${
-                    subtask.completed ? "completed" : "pending"
-                  }`}
-                >
-                  {subtask.completed ? "Completed" : "Pending"}
-                </span>
-                {subtask.dueDate && (
-                  <span className="subtask-list__date">
-                    {new Date(subtask.dueDate).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                    })}
-                  </span>
-                )}
+
+              {subtasks.length === 0 ? (
+                <div className="task-list__empty">
+                  <p>No subtasks found for this period.</p>
+                </div>
+              ) : (
+                subtasks.map(st => (
+                  <div 
+                    key={st._id} 
+                    className="stk-row"
+                    onClick={() => navigate(`/subtasks/${st._id}`)}
+                  >
+                    <div className="stk-col">
+                      <span className="stk-title">{st.name}</span>
+                    </div>
+                    <div className="stk-col">
+                      <span className={`tk-priority tk-priority--${st.priority?.toLowerCase() || 'low'}`}>
+                        {st.priority || 'Low'}
+                      </span>
+                    </div>
+                    <div className="stk-col">
+                      <span className={`stk-status stk-status--${st.completed ? 'completed' : 'pending'}`}>
+                        {st.completed ? 'Completed' : 'Pending'}
+                      </span>
+                    </div>
+                    <div className="stk-col">
+                      <span className="gl-meta">
+                        {st.dueDate ? new Date(st.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className="enhanced-subtasks__chart-container">
+            <p className="chart-section-title">Status Breakdown</p>
+            <div className="enhanced-goals__chart-wrapper">
+              <DonutChart data={chartData} />
+            </div>
+            <div className="enhanced-goals__insights-wrapper">
+              <p className="insights-title">Summary</p>
+              <div className="insights-grid">
+                <InsightCard label="Done" value={stats.completed} color="green" />
+                <InsightCard label="Pending" value={stats.pending} color="amber" />
               </div>
             </div>
-          </Link>
-        ))
-      )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
+const StatItem = ({ label, value, color }) => (
+  <div className="stat-item">
+    <h3>{label}</h3>
+    <p style={{ color: color === "red" ? "var(--red)" : color === "amber" ? "var(--amber)" : "inherit" }}>
+      {value}
+    </p>
+  </div>
+);
+
+const InsightCard = ({ label, value, color }) => (
+  <div className="insight-card">
+    <div className="insight-card__label">{label}</div>
+    <div className="insight-card__value" style={{ color: color === "green" ? "var(--green)" : color === "amber" ? "var(--amber)" : "var(--text-primary)" }}>
+      {value}
+    </div>
+  </div>
+);
 
 export default SubtaskList;

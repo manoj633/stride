@@ -59,16 +59,16 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     };
 
     try {
-      toast.promise(dispatch(createTask(taskData)).unwrap(), {
+      await toast.promise(dispatch(createTask(taskData)).unwrap(), {
         pending: "Creating your task... ⏳",
         success: "Task created successfully! 🚀",
         error: "Failed to create task 😭",
       });
+      navigate("/tasks");
     } catch (error) {
       console.error("Failed to create task:", error);
+      navigate("/tasks");
     }
-
-    navigate(-1);
   };
 
   if (loading) return <LoadingSpinner message="Loading tags..." />;
