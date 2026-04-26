@@ -18,7 +18,7 @@ function DonutChart({ data }) {
         paddingBottom: 10,
         paddingLeft: 0,
         paddingRight: 0,
-      })
+      }),
     );
 
     let series = chart.series.push(
@@ -26,7 +26,7 @@ function DonutChart({ data }) {
         valueField: "value",
         categoryField: "category",
         alignLabels: false,
-      })
+      }),
     );
 
     series.set(
@@ -37,7 +37,7 @@ function DonutChart({ data }) {
           am5.color("#8b5cf6"),
           am5.color("#94a3b8"),
         ],
-      })
+      }),
     );
 
     series.slices.template.setAll({
@@ -65,7 +65,7 @@ function DonutChart({ data }) {
         marginTop: 20,
         marginBottom: 10,
         layout: root.verticalLayout,
-      })
+      }),
     );
 
     // Customize legend labels to show category and percentage

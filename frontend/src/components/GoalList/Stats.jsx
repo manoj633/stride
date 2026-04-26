@@ -5,35 +5,18 @@ const STAT_CONFIG = [
   {
     key: "completionRate",
     label: "Completion",
-    emoji: "✅",
-    color: "#3b82f6",
     format: (v) => `${v.toFixed(1)}%`,
   },
-  {
-    key: "overdueGoals",
-    label: "Overdue",
-    emoji: "⏰",
-    color: "#dc2626",
-    format: (v) => v,
-  },
-  {
-    key: "monthlyGoals",
-    label: "This Month",
-    emoji: "📅",
-    color: "#8b5cf6",
-    format: (v) => v,
-  },
+  { key: "overdueGoals", label: "Overdue", format: (v) => v },
+  { key: "monthlyGoals", label: "This month", format: (v) => v },
 ];
 
 export const Stats = ({ stats }) => (
   <div className="goals__stats">
-    {STAT_CONFIG.map(({ key, label, emoji, color, format }) => (
+    {STAT_CONFIG.map(({ key, label, format }) => (
       <div key={key} className="stat-item">
-        <h3>
-          <span className="stat-item__emoji">{emoji}</span>
-          {label}
-        </h3>
-        <p style={{ color }}>{format(stats[key])}</p>
+        <h3>{label}</h3>
+        <p>{format(stats[key])}</p>
       </div>
     ))}
   </div>

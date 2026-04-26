@@ -2,43 +2,29 @@
 import React from "react";
 
 const TimelineView = ({ goals }) => {
-  const sortedGoals = [...goals]
+  const sorted = [...goals]
     .filter((g) => g.duration?.startDate)
     .sort(
       (a, b) => new Date(a.duration.startDate) - new Date(b.duration.startDate),
     );
 
-  if (sortedGoals.length === 0) {
+  if (sorted.length === 0) {
     return (
       <div className="timeline-empty">
-        <span>🗂️</span>
-        <p>No goals match your current filters</p>
+        <span>○</span>
+        <p>No goals match your filters</p>
       </div>
     );
   }
 
   return (
     <div className="enhanced-goals__timeline">
-      {sortedGoals.map((goal) => (
+      {sorted.map((goal) => (
         <div key={goal._id} className="timeline-item">
           <div className="timeline-content">
             <div className="timeline-date">
-              {new Date(goal.duration.startDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-              {goal.duration?.endDate && (
-                <>
-                  {" "}
-                  —{" "}
-                  {new Date(goal.duration.endDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </>
-              )}
+              {fmtDate(goal.duration.startDate)}
+              {goal.duration?.endDate && ` → ${fmtDate(goal.duration.endDate)}`}
             </div>
 
             <h4>{goal.title}</h4>
@@ -56,16 +42,12 @@ const TimelineView = ({ goals }) => {
 
             <div className="timeline-footer">
               <span className={`priority-badge ${goal.priority.toLowerCase()}`}>
-                {goal.priority === "High" && "🔴"}
-                {goal.priority === "Medium" && "🟡"}
-                {goal.priority === "Low" && "🟢"} {goal.priority}
+                {goal.priority}
               </span>
               {goal.category && (
-                <span className="category-badge">📁 {goal.category}</span>
+                <span className="category-badge">{goal.category}</span>
               )}
-              <span className="timeline-pct">
-                {goal.completionPercentage}% Complete
-              </span>
+              <span className="timeline-pct">{goal.completionPercentage}%</span>
             </div>
           </div>
         </div>
@@ -73,5 +55,12 @@ const TimelineView = ({ goals }) => {
     </div>
   );
 };
+
+const fmtDate = (d) =>
+  new Date(d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
 export default TimelineView;

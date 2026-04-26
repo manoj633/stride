@@ -1,86 +1,53 @@
+// src/components/GoalList/views/CalendarView.jsx
 import { useState } from "react";
 import Calendar from "react-calendar";
 
 const CalendarView = ({ goals }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState("day"); // 'day', 'week', 'month'
+  const [viewMode, setViewMode] = useState("day");
 
-  const goalsForSelectedDate = goals.filter((goal) => {
-    if (!goal.duration?.startDate || !goal.duration?.endDate) {
-      return false;
-    }
-    const startDate = new Date(goal.duration.startDate);
-    const endDate = new Date(goal.duration.endDate);
-    return selectedDate >= startDate && selectedDate <= endDate;
-  });
-
-  const getWeekGoals = () => {
-    const startOfWeek = new Date(selectedDate);
-    startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-    return goals.filter((goal) => {
-      if (!goal.duration?.startDate || !goal.duration?.endDate) return false;
-      const startDate = new Date(goal.duration.startDate);
-      const endDate = new Date(goal.duration.endDate);
-      return startDate <= endOfWeek && endDate >= startOfWeek;
-    });
+  /* ── date filtering ───────────────────────────────────────── */
+  const inRange = (goal, start, end) => {
+    if (!goal.duration?.startDate || !goal.duration?.endDate) return false;
+    const s = new Date(goal.duration.startDate);
+    const e = new Date(goal.duration.endDate);
+    return s <= end && e >= start;
   };
 
-  const getMonthGoals = () => {
-    const month = selectedDate.getMonth();
-    const year = selectedDate.getFullYear();
+  const displayGoals = (() => {
+    if (viewMode === "day") {
+      const d = new Date(selectedDate);
+      d.setHours(0, 0, 0, 0);
+      const next = new Date(d);
+      next.setDate(d.getDate() + 1);
+      return goals.filter((g) => inRange(g, d, next));
+    }
+    if (viewMode === "week") {
+      const start = new Date(selectedDate);
+      start.setDate(selectedDate.getDate() - selectedDate.getDay());
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return goals.filter((g) => inRange(g, start, end));
+    }
+    // month
+    const y = selectedDate.getFullYear();
+    const m = selectedDate.getMonth();
+    return goals.filter((g) =>
+      inRange(g, new Date(y, m, 1), new Date(y, m + 1, 0)),
+    );
+  })();
 
-    return goals.filter((goal) => {
-      if (!goal.duration?.startDate || !goal.duration?.endDate) return false;
-      const startDate = new Date(goal.duration.startDate);
-      const endDate = new Date(goal.duration.endDate);
+  const getCountForDate = (date) =>
+    goals.filter((g) => {
+      if (!g.duration?.startDate || !g.duration?.endDate) return false;
+      const d = new Date(date);
       return (
-        (startDate.getMonth() === month && startDate.getFullYear() === year) ||
-        (endDate.getMonth() === month && endDate.getFullYear() === year) ||
-        (startDate <= new Date(year, month, 1) &&
-          endDate >= new Date(year, month + 1, 0))
+        d >= new Date(g.duration.startDate) && d <= new Date(g.duration.endDate)
       );
-    });
-  };
-
-  const displayGoals =
-    viewMode === "day"
-      ? goalsForSelectedDate
-      : viewMode === "week"
-        ? getWeekGoals()
-        : getMonthGoals();
-
-  const getGoalCountForDate = (date) => {
-    return goals.filter((goal) => {
-      if (!goal.duration?.startDate || !goal.duration?.endDate) return false;
-      const startDate = new Date(goal.duration.startDate);
-      const endDate = new Date(goal.duration.endDate);
-      return date >= startDate && date <= endDate;
     }).length;
-  };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "High":
-        return "#dc2626";
-      case "Medium":
-        return "#f59e0b";
-      case "Low":
-        return "#16a34a";
-      default:
-        return "#64748b";
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
-
-  const getDateRangeText = () => {
+  const getDateLabel = () => {
     if (viewMode === "day") {
       return selectedDate.toLocaleDateString("en-US", {
         weekday: "long",
@@ -88,409 +55,157 @@ const CalendarView = ({ goals }) => {
         month: "long",
         day: "numeric",
       });
-    } else if (viewMode === "week") {
-      const startOfWeek = new Date(selectedDate);
-      startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      return `${startOfWeek.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${endOfWeek.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`;
-    } else {
-      return selectedDate.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
     }
+    if (viewMode === "week") {
+      const start = new Date(selectedDate);
+      start.setDate(selectedDate.getDate() - selectedDate.getDay());
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return `${fmtShort(start)} – ${fmtShort(end, true)}`;
+    }
+    return selectedDate.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
   };
 
   return (
     <div className="calendar-view">
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        {/* View Mode Selector */}
-        <div
-          style={{
-            display: "flex",
-            gap: "0.5rem",
-            padding: "0.5rem",
-            background: "rgba(255, 255, 255, 0.9)",
-            borderRadius: "12px",
-            border: "1px solid rgba(0, 0, 0, 0.06)",
-          }}
-        >
+      {/* Left: calendar picker */}
+      <div className="calendar-view__left">
+        {/* View mode tabs */}
+        <div className="calendar-view-tabs">
           {["day", "week", "month"].map((mode) => (
             <button
               key={mode}
+              className={`calendar-view-tab${viewMode === mode ? " active" : ""}`}
               onClick={() => setViewMode(mode)}
-              style={{
-                flex: 1,
-                padding: "0.625rem 1rem",
-                border: "none",
-                borderRadius: "8px",
-                background:
-                  viewMode === mode
-                    ? "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
-                    : "transparent",
-                color: viewMode === mode ? "white" : "#64748b",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                textTransform: "capitalize",
-              }}
             >
-              {mode === "day" && "📅"}
-              {mode === "week" && "📆"}
-              {mode === "month" && "🗓️"} {mode}
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Calendar */}
         <Calendar
           onChange={setSelectedDate}
           value={selectedDate}
           tileContent={({ date }) => {
-            const count = getGoalCountForDate(date);
+            const count = getCountForDate(date);
             return count > 0 ? (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "2px",
-                  marginTop: "4px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div className="cal-dot-row">
                 {Array.from({ length: Math.min(count, 3) }).map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: "5px",
-                      height: "5px",
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-                    }}
-                  />
+                  <div key={i} className="cal-dot" />
                 ))}
                 {count > 3 && (
-                  <div
-                    style={{
-                      fontSize: "0.65rem",
-                      color: "#3b82f6",
-                      fontWeight: 700,
-                    }}
-                  >
-                    +{count - 3}
-                  </div>
+                  <span className="cal-dot-more">+{count - 3}</span>
                 )}
               </div>
             ) : null;
           }}
         />
 
-        {/* Calendar Stats */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "0.75rem",
-            padding: "1rem",
-            background: "rgba(255, 255, 255, 0.9)",
-            borderRadius: "12px",
-            border: "1px solid rgba(0, 0, 0, 0.06)",
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontSize: "0.7rem",
-                color: "#64748b",
-                fontWeight: 600,
-                marginBottom: "0.25rem",
-              }}
-            >
-              ACTIVE GOALS
-            </div>
-            <div
-              style={{ fontSize: "1.5rem", fontWeight: 700, color: "#3b82f6" }}
-            >
+        {/* Compact stats */}
+        <div className="calendar-summary">
+          <div className="calendar-summary__item">
+            <span className="calendar-summary__label">Active</span>
+            <span className="calendar-summary__value">
               {
                 goals.filter(
                   (g) =>
                     g.completionPercentage > 0 && g.completionPercentage < 100,
                 ).length
               }
-            </div>
+            </span>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontSize: "0.7rem",
-                color: "#64748b",
-                fontWeight: 600,
-                marginBottom: "0.25rem",
-              }}
-            >
-              COMPLETED
-            </div>
-            <div
-              style={{ fontSize: "1.5rem", fontWeight: 700, color: "#16a34a" }}
+          <div className="calendar-summary__divider" />
+          <div className="calendar-summary__item">
+            <span className="calendar-summary__label">Done</span>
+            <span
+              className="calendar-summary__value"
+              style={{ color: "var(--green)" }}
             >
               {goals.filter((g) => g.completionPercentage === 100).length}
-            </div>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Goals List */}
+      {/* Right: goal list for selected period */}
       <div className="calendar-goals-list">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1.5rem",
-            paddingBottom: "1rem",
-            borderBottom: "2px solid rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: "1.25rem",
-              fontWeight: 600,
-              color: "#1a1a1a",
-            }}
-          >
-            {viewMode === "day" && "📅"}
-            {viewMode === "week" && "📆"}
-            {viewMode === "month" && "🗓️"} {getDateRangeText()}
-          </h3>
-          <div
-            style={{
-              padding: "0.5rem 1rem",
-              background: "rgba(59, 130, 246, 0.1)",
-              borderRadius: "20px",
-              fontSize: "0.8rem",
-              fontWeight: 700,
-              color: "#3b82f6",
-              border: "1px solid rgba(59, 130, 246, 0.2)",
-            }}
-          >
-            {displayGoals.length} Goal{displayGoals.length !== 1 ? "s" : ""}
-          </div>
+        <div className="calendar-goals-list__header">
+          <span className="calendar-goals-list__title">{getDateLabel()}</span>
+          <span className="calendar-goals-list__count">
+            {displayGoals.length} goal{displayGoals.length !== 1 ? "s" : ""}
+          </span>
         </div>
 
         {displayGoals.length === 0 ? (
-          <div
-            style={{
-              padding: "3rem",
-              textAlign: "center",
-              background: "rgba(100, 116, 139, 0.05)",
-              borderRadius: "12px",
-              border: "2px dashed rgba(100, 116, 139, 0.2)",
-            }}
-          >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
-            <div
-              style={{ fontSize: "1rem", color: "#64748b", fontWeight: 600 }}
-            >
-              No goals for this {viewMode}
-            </div>
-            <div
-              style={{
-                fontSize: "0.85rem",
-                color: "#94a3b8",
-                marginTop: "0.5rem",
-              }}
-            >
-              Select a different date or create a new goal
-            </div>
+          <div className="calendar-empty">
+            <p>No goals for this {viewMode}</p>
+            <span>Select a different date or create a new goal</span>
           </div>
         ) : (
-          displayGoals.map((goal) => (
-            <div
-              key={goal._id}
-              className="calendar-goal-item"
-              style={{
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              {/* Priority Indicator Bar */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: "4px",
-                  background: getPriorityColor(goal.priority),
-                }}
-              />
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "0.75rem",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    color: "#1a1a1a",
-                    fontSize: "1rem",
-                    flex: 1,
-                    marginRight: "1rem",
-                  }}
-                >
-                  {goal.title}
-                </div>
-                <div
-                  style={{
-                    padding: "0.35rem 0.75rem",
-                    borderRadius: "6px",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    background: `${getPriorityColor(goal.priority)}15`,
-                    color: getPriorityColor(goal.priority),
-                    border: `1px solid ${getPriorityColor(goal.priority)}30`,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {goal.priority === "High" && "🔴"}
-                  {goal.priority === "Medium" && "🟡"}
-                  {goal.priority === "Low" && "🟢"} {goal.priority}
-                </div>
-              </div>
-
-              {goal.description && (
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "#64748b",
-                    lineHeight: "1.5",
-                    marginBottom: "0.75rem",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {goal.description}
-                </div>
-              )}
-
-              {/* Progress Bar */}
-              <div
-                style={{
-                  position: "relative",
-                  height: "8px",
-                  background: "rgba(0, 0, 0, 0.05)",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  marginBottom: "0.75rem",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${goal.completionPercentage}%`,
-                    background:
-                      "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
-                    borderRadius: "10px",
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </div>
-
-              {/* Meta Info Row */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1rem",
-                  flexWrap: "wrap",
-                  fontSize: "0.75rem",
-                  color: "#64748b",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.35rem",
-                  }}
-                >
-                  <span>📊</span>
-                  <span style={{ fontWeight: 600, color: "#3b82f6" }}>
-                    {goal.completionPercentage}%
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.35rem",
-                  }}
-                >
-                  <span>📁</span>
-                  <span>{goal.category}</span>
-                </div>
-                {goal.duration?.startDate && goal.duration?.endDate && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                    }}
-                  >
-                    <span>🗓️</span>
-                    <span>
-                      {formatDate(goal.duration.startDate)} -{" "}
-                      {formatDate(goal.duration.endDate)}
-                    </span>
-                  </div>
-                )}
-                {goal.collaborators && goal.collaborators.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                    }}
-                  >
-                    <span>👥</span>
-                    <span>{goal.collaborators.length}</span>
-                  </div>
-                )}
-                {goal.comments && goal.comments.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                    }}
-                  >
-                    <span>💬</span>
-                    <span>{goal.comments.length}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
+          displayGoals.map((goal) => <CalGoalItem key={goal._id} goal={goal} />)
         )}
       </div>
     </div>
   );
 };
+
+const CalGoalItem = ({ goal }) => (
+  <div className="calendar-goal-item">
+    {/* Priority stripe */}
+    <div
+      className="cal-item__stripe"
+      style={{
+        background:
+          goal.priority === "High"
+            ? "var(--red)"
+            : goal.priority === "Medium"
+              ? "var(--amber)"
+              : "var(--green)",
+      }}
+    />
+
+    <div className="cal-item__body">
+      <div className="cal-item__top">
+        <span className="cal-item__title">{goal.title}</span>
+        <span className={`priority-badge ${goal.priority.toLowerCase()}`}>
+          {goal.priority}
+        </span>
+      </div>
+
+      {goal.description && <p className="cal-item__desc">{goal.description}</p>}
+
+      {/* Progress */}
+      <div className="cal-item__progress-track">
+        <div
+          className="cal-item__progress-bar"
+          style={{ width: `${goal.completionPercentage}%` }}
+        />
+      </div>
+
+      <div className="cal-item__meta">
+        <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+          {goal.completionPercentage}%
+        </span>
+        {goal.category && <span>{goal.category}</span>}
+        {goal.duration?.startDate && goal.duration?.endDate && (
+          <span>
+            {fmtShort(goal.duration.startDate)} →{" "}
+            {fmtShort(goal.duration.endDate)}
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+const fmtShort = (d, year = false) =>
+  new Date(d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(year ? { year: "numeric" } : {}),
+  });
 
 export default CalendarView;
