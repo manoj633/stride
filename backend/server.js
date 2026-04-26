@@ -42,7 +42,7 @@ console.log("DEBUG: Starting server...");
 initScheduler();
 app.use(
   cors({
-    origin: "https://stride-qd71.onrender.com",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
   })
 );
