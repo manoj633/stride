@@ -80,6 +80,7 @@
 /* ── App Shell ─────────────────────────────────────────────── */
 .enhanced-goals-container {
     width: 100%;
+    max-width: 100%;
     height: 100dvh;
     font-family: var(--font-body);
     font-size: 13.5px;
@@ -105,10 +106,10 @@
     flex: 0 0 auto;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
-    padding: 0 20px;
+    padding: 0 16px;
     height: 52px;
     display: flex;
-    align-items: stretch;
+    align-items: center;
     /* let stat-items fill full height */
     position: relative;
     z-index: 10;
@@ -122,12 +123,11 @@
 
 .enhanced-goals__header {
     display: flex;
-    align-items: stretch;
-    /* full-height children for divider effect */
+    align-items: center;
     gap: 0;
     width: 100%;
-    max-width: 1920px;
     margin: 0 auto;
+    overflow: hidden;
 }
 
 /* Title */
@@ -175,10 +175,13 @@
 /* ── Stats (in header) ─────────────────────────────────────── */
 .goals__stats {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     gap: 0;
     margin-right: auto;
     height: 100%;
+    overflow: hidden;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .stat-item {
@@ -186,16 +189,13 @@
     flex-direction: row;
     align-items: center;
     gap: 5px;
-    padding: 0 18px;
+    padding: 0 14px;
     border-right: 1px solid var(--border);
     background: transparent;
-    box-shadow: none;
-    border-radius: 0;
     transition: background var(--t);
-    flex: none;
-    min-width: auto;
-    overflow: visible;
-    position: static;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
     cursor: default;
 }
 
@@ -218,6 +218,8 @@
     margin: 0;
     font-family: var(--font-body);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .stat-item h3::before {
@@ -249,8 +251,9 @@
     align-items: center;
     gap: 6px;
     flex-wrap: nowrap;
-    margin-left: auto;
-    /* pushes controls + actions to far right of header */
+    margin-left: 12px;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 /* Force rectangular search — override any component-level border-radius */
@@ -346,7 +349,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    margin-left: 8px;
+    margin-left: 10px;
     padding-left: 10px;
     border-left: 1px solid var(--border);
     flex-shrink: 0;
@@ -1870,5 +1873,38 @@
 
     .enhanced-goals__bulk-actions button {
         width: 100%;
+    }
+}
+
+/* ── Media Queries ─────────────────────────────────────────── */
+@media (max-width: 1400px) {
+    .stat-item h3 {
+        display: none;
+        /* Hide labels like "Total", "In Progress" to save space */
+    }
+
+    .stat-item {
+        padding: 0 12px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .enhanced-goals__search-input {
+        width: 140px;
+        /* Narrower search */
+    }
+
+    .enhanced-goals__filter-select,
+    .enhanced-goals__sort-select,
+    .enhanced-goals__view-select {
+        padding: 0 20px 0 8px;
+        /* Compact selects */
+    }
+}
+
+@media (max-width: 1024px) {
+    .goals__stats {
+        display: none;
+        /* Hide stats entirely on smaller tablets/laptops if sidebar is open */
     }
 }
