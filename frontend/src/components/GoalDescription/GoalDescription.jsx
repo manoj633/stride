@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import * as am4core from "@amcharts/amcharts4/core";
-import * as am4charts from "@amcharts/amcharts4/charts";
 import { toast } from "react-toastify";
 
 import TagModal from "../TagModal/TagModal";
@@ -12,7 +10,6 @@ import Content from "./Content";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 
-// Import actions from slices
 import {
   fetchGoals,
   updateGoal,
@@ -35,61 +32,49 @@ const GoalDescription = () => {
   const { goalId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const chartRef = React.useRef(null);
 
   const tagsStatus = useSelector((s) => s.tags.status);
   const tasksStatus = useSelector((s) => s.tasks.status);
   const goalsStatus = useSelector((s) => s.goals.status);
 
-  // global/static data (ONCE per app lifecycle)
   useEffect(() => {
     if (tagsStatus === "idle") dispatch(fetchTags());
     if (tasksStatus === "idle") dispatch(fetchTasks());
     if (goalsStatus === "idle") dispatch(fetchGoals());
   }, [dispatch, tagsStatus, tasksStatus, goalsStatus]);
 
-  // goal-specific data
   useEffect(() => {
     if (goalId) {
       dispatch(fetchGoalComments(goalId));
     }
   }, [dispatch, goalId]);
 
-  // Redux state selectors
   const goal = useSelector((state) => selectGoalById(state, goalId));
   const tasks = useSelector((state) => selectTasksByGoalId(state, goalId));
   const comments = useSelector((state) => state.comments.items);
   const tags = useSelector((state) => state.tags.items);
+  const error = useSelector((state) => state.goals.error);
 
-  const error = useSelector((state) => state.goals.error); // Assuming error is stored in goals slice
-
-  // Local state
   const [isEditing, setIsEditing] = useState(false);
   const [editedGoal, setEditedGoal] = useState(null);
   const [comment, setComment] = useState("");
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
-  // Get tag objects for the goal
   const tagsObjects = React.useMemo(() => {
     if (!goal?.tags || !tags.length) return [];
-
     return goal.tags
       .map((tagId) => tags.find((tag) => tag._id === tagId))
       .filter(Boolean);
   }, [goal?.tags, tags]);
 
   const goalDateRange = React.useMemo(() => {
-    if (!goal?.duration?.startDate || !goal?.duration?.endDate) {
-      return null;
-    }
-
+    if (!goal?.duration?.startDate || !goal?.duration?.endDate) return null;
     return {
       start: goal.duration.startDate,
       end: goal.duration.endDate,
     };
   }, [goal]);
 
-  // Handlers
   const handleEdit = () => {
     setEditedGoal({ ...goal });
     setIsEditing(true);
@@ -122,12 +107,11 @@ const GoalDescription = () => {
         await toast.promise(dispatch(deleteGoal(goalId)).unwrap(), {
           pending: "Deleting goal...",
           success: "Goal deleted successfully!",
-          error: "Failed to delete goal 🤯",
+          error: "Failed to delete goal",
         });
         navigate("/goals");
       } catch (error) {
         console.error("Error deleting goal:", error);
-        toast.error("Failed to delete goal");
       }
     }
   };
@@ -146,13 +130,12 @@ const GoalDescription = () => {
           {
             pending: "Adding comment...",
             success: "Comment added!",
-            error: "Failed to add comment 🤯",
+            error: "Failed to add comment",
           }
         );
         setComment("");
       } catch (error) {
         console.error("Error adding comment:", error);
-        toast.error("Failed to add comment");
       }
     }
   };
@@ -170,13 +153,12 @@ const GoalDescription = () => {
         {
           pending: "Adding tag...",
           success: "Tag added!",
-          error: "Failed to add tag 🤯",
+          error: "Failed to add tag",
         }
       );
       setIsTagModalOpen(false);
     } catch (error) {
       console.error("Error adding tag:", error);
-      toast.error("Failed to add tag");
     }
   };
 
@@ -194,12 +176,11 @@ const GoalDescription = () => {
           {
             pending: "Removing tag...",
             success: "Tag removed!",
-            error: "Failed to remove tag 🤯",
+            error: "Failed to remove tag",
           }
         );
       } catch (error) {
         console.error("Error removing tag:", error);
-        toast.error("Failed to remove tag");
       }
     }
   };
@@ -210,50 +191,94 @@ const GoalDescription = () => {
     goalsStatus === "loading";
 
   if (isLoading) return <LoadingSpinner />;
-
   if (error) return <ErrorMessage message={error} />;
 
-  if (!goal)
-    return <div className="goal-description__notice">Goal not found.</div>;
+  if (!goal) {
+    return (
+      <div className="goal-description">
+        <div className="ef-body">
+          <div className="goal-description__notice">Goal not found.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="goal-description">
-      <div className="goal-description__container">
-        <Header
-          goal={goal}
-          tags={tags}
-          isEditing={isEditing}
-          editedGoal={editedGoal}
-          onEdit={handleEdit}
-          onSave={handleSaveEdit}
-          onCancel={handleCancelEdit}
-          onDelete={handleDelete}
-          setEditedGoal={setEditedGoal}
-        />
-
-        <Content
-          goal={goal}
-          tags={tagsObjects}
-          tasks={tasks}
-          collaborators={[]} // This should come from a separate collaborators reducer if needed
-          dependencies={[]} // This should come from a separate dependencies reducer if needed
-          relatedGoals={[]} // This could be filtered from goals state if needed
-          comments={comments}
-          comment={comment}
-          goalDateRange={goalDateRange}
-          onAddComment={handleAddComment}
-          setComment={setComment}
-          onRemoveTag={handleRemoveTag}
-          onAddTag={() => setIsTagModalOpen(true)}
-        />
-
-        <TagModal
-          isOpen={isTagModalOpen}
-          onClose={() => setIsTagModalOpen(false)}
-          onSave={handleTagSave}
-          availableTags={tags}
-        />
+      {/* Top bar */}
+      <div className="ef-topbar">
+        <div className="ef-topbar__icon">G</div>
+        <span className="ef-topbar__title">Goal Details</span>
+        <span className="ef-topbar__breadcrumb">
+          / <span>{goal.title}</span>
+        </span>
+        <div className="ef-topbar__actions">
+          {!isEditing && (
+            <>
+              <button
+                className="ef-btn-primary"
+                onClick={handleEdit}
+              >
+                Edit Goal
+              </button>
+              <button
+                className="ef-btn-danger"
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+            </>
+          )}
+          <button
+            className="ef-btn-ghost"
+            onClick={() => navigate("/goals")}
+            type="button"
+          >
+            ← Back
+          </button>
+        </div>
       </div>
+
+      <div className="ef-body">
+        <div className="goal-layout">
+          <div className="goal-card">
+            <Header
+              goal={goal}
+              tags={tags}
+              isEditing={isEditing}
+              editedGoal={editedGoal}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+              setEditedGoal={setEditedGoal}
+              // Removed onEdit and onDelete props as they are now in Topbar
+            />
+            {!isEditing && (
+              <Content
+                goal={goal}
+                tags={tagsObjects}
+                tasks={tasks}
+                collaborators={[]}
+                dependencies={[]}
+                relatedGoals={[]}
+                comments={comments}
+                comment={comment}
+                goalDateRange={goalDateRange}
+                onAddComment={handleAddComment}
+                setComment={setComment}
+                onRemoveTag={handleRemoveTag}
+                onAddTag={() => setIsTagModalOpen(true)}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <TagModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
+        onSave={handleTagSave}
+        availableTags={tags}
+      />
     </div>
   );
 };

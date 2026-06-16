@@ -2,17 +2,14 @@
 import React from "react";
 import EditForm from "./EditForm";
 import MetaInfo from "./MetaInfo";
-import Actions from "./Actions";
 
 const Header = ({
   goal,
   tags,
   isEditing,
   editedGoal,
-  onEdit,
   onSave,
   onCancel,
-  onDelete,
   setEditedGoal,
 }) => (
   <div className="goal-description__header">
@@ -31,7 +28,6 @@ const Header = ({
           {goal.title}
         </h1>
         <MetaInfo goal={goal} />
-        <Actions onEdit={onEdit} onDelete={onDelete} />
       </>
     )}
   </div>
