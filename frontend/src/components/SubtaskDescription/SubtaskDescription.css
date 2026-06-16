@@ -35,6 +35,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
+.subtask-container *,
+.subtask-container *::before,
+.subtask-container *::after {
+  box-sizing: border-box;
+}
+
 .ef-topbar {
   flex: 0 0 auto;
   height: 52px;

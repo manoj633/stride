@@ -35,6 +35,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
+.goal-description *,
+.goal-description *::before,
+.goal-description *::after {
+  box-sizing: border-box;
+}
+
 .ef-topbar {
   flex: 0 0 auto;
   height: 52px;
@@ -229,6 +235,13 @@
   grid-template-columns: 1.5fr 1fr;
   gap: 32px;
   padding: 28px 32px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.goal-description__content > * {
+  min-width: 0; /* Prevents grid blowouts */
+  box-sizing: border-box;
 }
 
 .goal-description__text {
@@ -236,11 +249,14 @@
   color: var(--ef-text-secondary);
   line-height: 1.6;
   white-space: pre-wrap;
+  word-break: break-word; /* Forces long unbroken words to wrap */
   background: var(--ef-bg-subtle);
   padding: 16px;
   border-radius: var(--ef-radius-md);
   border: 1px solid var(--ef-border);
   margin: 0 0 24px 0;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .goal-description__subtitle {
@@ -377,4 +393,72 @@
   .goal-description__content {
     grid-template-columns: 1fr;
   }
+}
+
+/* Embedded Task List */
+.embedded-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.embedded-task-item {
+  background: var(--ef-bg-surface);
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--ef-t);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.embedded-task-item:hover {
+  border-color: var(--ef-accent);
+  box-shadow: var(--ef-shadow-sm);
+  background: var(--ef-bg-hover);
+}
+
+.embedded-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.embedded-task-title {
+  font-weight: 600;
+  color: var(--ef-text-primary);
+  font-size: 13.5px;
+}
+
+/* Reusing progress bar styles from TaskList for consistency inside embedded */
+.tk-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.tk-progress__track {
+  flex: 1;
+  height: 6px;
+  background: var(--ef-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tk-progress__fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.tk-progress__pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ef-text-secondary);
+  width: 32px;
+  text-align: right;
 }
