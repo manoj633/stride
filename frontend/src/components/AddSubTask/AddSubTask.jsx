@@ -46,25 +46,15 @@ const AddSubTask = ({ onSubtaskAdded }) => {
   }, [dispatch]);
 
   const handleGoalChange = (e) => {
-    const selectedGoalId = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      goalId: selectedGoalId,
-      taskId: "",
-    }));
+    setFormData((prev) => ({ ...prev, goalId: e.target.value, taskId: "" }));
     setTaskDateRange({ minDate: "", maxDate: "" });
   };
 
   const handleTaskChange = (e) => {
     const selectedTaskId = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      taskId: selectedTaskId,
-    }));
+    setFormData((prev) => ({ ...prev, taskId: selectedTaskId }));
 
-    const selectedTask = availableTasks.find(
-      (task) => task._id === selectedTaskId
-    );
+    const selectedTask = availableTasks.find((task) => task._id === selectedTaskId);
     if (selectedTask) {
       setTaskDateRange({
         minDate: formatDate(selectedTask.startDate),
@@ -77,37 +67,23 @@ const AddSubTask = ({ onSubtaskAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const newSubtaskData = await toast.promise(
         dispatch(createSubtask(formData)).unwrap(),
         {
-          pending: "Creating your subtask... ⏳",
-          success: "Subtask created successfully! 🚀",
-          error: "Failed to create subtask 😭",
+          pending: "Creating your subtask...",
+          success: "Subtask created successfully!",
+          error: "Failed to create subtask",
         }
       );
-
       onSubtaskAdded?.(newSubtaskData);
-      resetForm();
+      setFormData({ name: "", description: "", priority: "Medium", dueDate: "", goalId: "", taskId: "" });
+      setTaskDateRange({ minDate: "", maxDate: "" });
       navigate("/subtasks");
     } catch (error) {
       console.error("Failed to create subtask:", error);
-      // Navigate away even on failure as requested
       navigate("/subtasks");
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      priority: "Medium",
-      dueDate: "",
-      goalId: "",
-      taskId: "",
-    });
-    setTaskDateRange({ minDate: "", maxDate: "" });
   };
 
   if (loading) return <LoadingSpinner message="Loading subtasks..." />;
@@ -115,120 +91,139 @@ const AddSubTask = ({ onSubtaskAdded }) => {
 
   return (
     <div className="add-subtask-container">
-      <div className="add-subtask">
-        <h1>🚀 Add New Subtask</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="name">Subtask Name:</label>
-            <input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Ex: Research Topic"
-              className="add-subtask__input"
-              required
-              aria-label="Subtask name"
-            />
+      {/* Top bar */}
+      <div className="ef-topbar">
+        <div className="ef-topbar__icon">S</div>
+        <span className="ef-topbar__title">Subtasks</span>
+        <span className="ef-topbar__breadcrumb">
+          / <span>New Subtask</span>
+        </span>
+        <button
+          className="ef-topbar__back"
+          onClick={() => navigate("/subtasks")}
+          type="button"
+        >
+          ← Back to Subtasks
+        </button>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="ef-body">
+        <div className="add-subtask">
+          {/* Card header */}
+          <div className="ef-form-header">
+            <h2>Create a new Subtask</h2>
+            <p>Assign a specific action item to a task and set a due date.</p>
           </div>
-          <div className="form-group">
-            <label htmlFor="description">Description:</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Tell us more about your subtask..."
-              className="add-subtask__input add-subtask__textarea"
-              aria-label="Subtask description"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="priority">Priority:</label>
-            <select
-              id="priority"
-              value={formData.priority}
-              onChange={(e) =>
-                setFormData({ ...formData, priority: e.target.value })
-              }
-              className="add-subtask__select"
-              aria-label="Subtask priority"
-            >
-              <option value="High">🔥 High</option>
-              <option value="Medium">💧 Medium</option>
-              <option value="Low">🍃 Low</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="goalId">Goal:</label>
-            <select
-              id="goalId"
-              value={formData.goalId}
-              onChange={handleGoalChange}
-              className="add-subtask__select"
-              required
-              aria-label="Goal for subtask"
-            >
-              <option value="">Select a Goal</option>
-              {goals.map((goal) => (
-                <option key={goal._id} value={goal._id}>
-                  {goal.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="taskId">Task:</label>
-            <select
-              id="taskId"
-              value={formData.taskId}
-              onChange={handleTaskChange}
-              className="add-subtask__select"
-              required
-              disabled={!formData.goalId}
-              aria-label="Task for subtask"
-            >
-              <option value="">Select a Task</option>
-              {availableTasks.map((task) => (
-                <option key={task._id} value={task._id}>
-                  {task.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="dueDate">Due Date:</label>
-            <input
-              type="date"
-              id="dueDate"
-              value={formData.dueDate}
-              onChange={(e) =>
-                setFormData({ ...formData, dueDate: e.target.value })
-              }
-              className="add-subtask__date"
-              required
-              min={taskDateRange.minDate}
-              max={taskDateRange.maxDate}
-              disabled={!formData.taskId}
-              aria-label="Subtask due date"
-            />
-            {formData.taskId && !taskDateRange.minDate && (
-              <p className="add-subtask__warning">
-                Please select a task to enable the date range.
-              </p>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="add-subtask__button"
-            aria-label="Add new subtask"
-          >
-            🚀 Add Subtask
-          </button>
-        </form>
+
+          <form onSubmit={handleSubmit}>
+            <div className="ef-form-body">
+              <div className="form-group">
+                <label htmlFor="name">Subtask Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Research Topic"
+                  required
+                  aria-label="Subtask name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="What does completing this subtask involve?"
+                  aria-label="Subtask description"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="goalId">Parent Goal</label>
+                  <select
+                    id="goalId"
+                    value={formData.goalId}
+                    onChange={handleGoalChange}
+                    required
+                    aria-label="Goal for subtask"
+                  >
+                    <option value="">Select a Goal</option>
+                    {goals.map((goal) => (
+                      <option key={goal._id} value={goal._id}>
+                        {goal.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="taskId">Parent Task</label>
+                  <select
+                    id="taskId"
+                    value={formData.taskId}
+                    onChange={handleTaskChange}
+                    required
+                    disabled={!formData.goalId}
+                    aria-label="Task for subtask"
+                  >
+                    <option value="">Select a Task</option>
+                    {availableTasks.map((task) => (
+                      <option key={task._id} value={task._id}>
+                        {task.name}
+                      </option>
+                    ))}
+                  </select>
+                  {!formData.goalId && (
+                    <span className="ef-hint">Select a goal first</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="priority">Priority</label>
+                  <select
+                    id="priority"
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                    aria-label="Subtask priority"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="dueDate">Due Date</label>
+                  <input
+                    type="date"
+                    id="dueDate"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                    required
+                    min={taskDateRange.minDate}
+                    max={taskDateRange.maxDate}
+                    disabled={!formData.taskId}
+                    aria-label="Subtask due date"
+                  />
+                  {!formData.taskId && (
+                    <span className="ef-hint">Select a task to enable date picker</span>
+                  )}
+                </div>
+              </div>
+
+              <button type="submit" className="ef-submit-btn" aria-label="Add new subtask">
+                Create Subtask
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
