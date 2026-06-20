@@ -32,17 +32,12 @@ const GoalList = () => {
   const stats = useAppSelector(selectGoalStats);
   const userInfo = useAppSelector((state) => state.user.userInfo);
 
-  // Run once on mount only — goals.length must NOT be a dep or every
-  // successful fetch triggers another fetch (infinite loop)
-  useEffect(() => {
-    dispatch(fetchGoals());
-    dispatch(fetchTags());
-  }, [dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Fetch goals and tags when userInfo is available
   useEffect(() => {
     if (userInfo) {
       dispatch(clearError());
       dispatch(fetchGoals());
+      dispatch(fetchTags());
     }
   }, [userInfo, dispatch]);
 

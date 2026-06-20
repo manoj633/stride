@@ -17,7 +17,7 @@ export const useGoalListLogic = (goals) => {
   // Add missing state declarations
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [sortBy, setSortBy] = useState("thisMonth");
+  const [sortBy, setSortBy] = useState("lastModified");
   const [viewType, setViewType] = useState("list");
   const [selectedGoals, setSelectedGoals] = useState([]);
 
@@ -51,21 +51,28 @@ export const useGoalListLogic = (goals) => {
       .filter((goal) => {
         // New filtering logic for this week, this month, and this year
         const now = new Date();
-        const goalDate = new Date(goal.duration.endDate);
+        const goalStartDate = new Date(goal.duration.startDate);
+        const goalEndDate = new Date(goal.duration.endDate);
+        
         switch (sortBy) {
-          case "thisWeek":
-            const startOfWeek = new Date(
-              now.setDate(now.getDate() - now.getDay())
-            );
-            const endOfWeek = new Date(now.setDate(startOfWeek.getDate() + 6));
-            return goalDate >= startOfWeek && goalDate <= endOfWeek;
-          case "thisMonth":
-            return (
-              goalDate.getMonth() === now.getMonth() &&
-              goalDate.getFullYear() === now.getFullYear()
-            );
-          case "thisYear":
-            return goalDate.getFullYear() === now.getFullYear();
+          case "thisWeek": {
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            return goalStartDate <= endOfWeek && goalEndDate >= startOfWeek;
+          }
+          case "thisMonth": {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            return goalStartDate <= endOfMonth && goalEndDate >= startOfMonth;
+          }
+          case "thisYear": {
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+            return goalStartDate <= endOfYear && goalEndDate >= startOfYear;
+          }
           default:
             return true; // No additional filtering for other sort options
         }
