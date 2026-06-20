@@ -179,7 +179,27 @@ const TaskDescription = () => {
           <div className="task-subtasks-section">
             <h3>Subtasks</h3>
             {subtasks.length > 0 ? (
-              <SubtaskList subtasks={subtasks} />
+              <div className="embedded-subtask-list">
+                {subtasks.map((subtask) => (
+                  <div
+                    key={subtask._id}
+                    className={`embedded-subtask-item ${subtask.completed ? "completed" : ""}`}
+                    onClick={() => navigate(`/subtasks/${subtask._id}`)}
+                  >
+                    <div className="embedded-subtask-header">
+                      <div className="embedded-subtask-title-wrap">
+                        <span className="embedded-subtask-checkbox">
+                          {subtask.completed ? "✓" : "○"}
+                        </span>
+                        <span className="embedded-subtask-title">{subtask.name}</span>
+                      </div>
+                      <span className={`task__badge task__badge--priority-${(subtask.priority || 'Medium').toLowerCase()}`}>
+                        {subtask.priority || "Medium"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
               <div
                 className="task__notice"
