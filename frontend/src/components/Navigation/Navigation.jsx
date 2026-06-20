@@ -1,6 +1,6 @@
 // src/components/Navigation/NavigationDrawer.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../store/features/users/userSlice";
 import {
@@ -164,14 +164,12 @@ const NavigationDrawer = () => {
         <ul className="nav-drawer__links">
           {mainNavItems.map((item) => (
             <li key={item.path}>
-              <a
-                href={item.path}
-                className={`nav-drawer__link ${
-                  isActive(item.path) ? "active" : ""
-                } ${!isOpen ? "collapsed" : ""}`}
+              <NavLink
+                to={item.path}
+                className={({ isActive }) => 
+                  `nav-drawer__link ${isActive ? "active" : ""} ${!isOpen ? "collapsed" : ""}`
+                }
                 onClick={(e) => {
-                  e.preventDefault();
-                  navigate(item.path);
                   closeDrawer();
                 }}
                 title={!isOpen ? item.label : ""}
@@ -180,7 +178,7 @@ const NavigationDrawer = () => {
                 {isOpen && (
                   <span className="nav-drawer__label">{item.label}</span>
                 )}
-              </a>
+              </NavLink>
             </li>
           ))}
         </ul>

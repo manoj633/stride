@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
 import DayPopover from "./DayPopover";
-import { fetchGoals, clearError as clearGoalsError } from "../../store/features/goals/goalSlice";
+import { fetchGoals, updateGoalCompletion, setSelectedGoal, clearError as clearGoalsError } from "../../store/features/goals/goalSlice";
 import {
   fetchTasks,
   setSelectedTask,
