@@ -1,5 +1,8 @@
 import express from "express";
-import { triggerWeeklyReport } from "../controllers/weeklyReportController.js";
+import {
+  triggerWeeklyReport,
+  handlePing,
+} from "../controllers/weeklyReportController.js";
 
 const router = express.Router();
 
@@ -16,7 +19,22 @@ router.post(
     }
     next();
   },
-  triggerWeeklyReport
+  triggerWeeklyReport,
+);
+
+router.post(
+  "/trigger/ping",
+  (req, res, next) => {
+    const expectedToken = process.env.REPORT_TRIGGER_SECRET;
+    const providedToken = req.headers["x-report-trigger-token"];
+    if (!expectedToken || providedToken !== expectedToken) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: Invalid or missing token" });
+    }
+    next();
+  },
+  handlePing,
 );
 
 export default router;

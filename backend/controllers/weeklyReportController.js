@@ -21,3 +21,11 @@ export const triggerWeeklyReport = asyncHandler(async (req, res) => {
       console.error("❌ Report trigger error:", error);
     });
 });
+
+//controller to handle pings
+export const handlePing = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    message: "Alive",
+    timestamp: new Date().toISOString(),
+  });
+});
