@@ -23,8 +23,8 @@ import "./Navigation.css";
 import NotificationBell from "../Notifications/NotificationBell";
 
 const NavigationDrawer = () => {
-  const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isOpen, setIsOpen] = useState(window.innerWidth >= 1024);
   const { userInfo } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const location = useLocation();

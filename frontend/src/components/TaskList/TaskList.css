@@ -62,7 +62,7 @@
 .enhanced-tasks-container {
     width: 100%;
     max-width: 100%;
-    height: 100dvh;
+    min-height: 100dvh;
     font-family: var(--font-body);
     font-size: 13.5px;
     line-height: 1.5;
@@ -88,7 +88,7 @@
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     padding: 0 16px;
-    height: 52px;
+    min-height: 52px;
     display: flex;
     align-items: center;
     position: relative;
@@ -168,6 +168,7 @@
     background: var(--bg-surface);
     border-right: 1px solid var(--border);
     overflow-y: auto;
+    overflow-x: auto;
     min-height: 0;
     padding: 0;
 }
@@ -186,6 +187,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    min-width: 550px;
 }
 
 .tk-header,
@@ -193,7 +195,7 @@
     display: grid;
     grid-template-columns: 1fr 96px 120px 96px 120px;
     align-items: center;
-    min-width: 0;
+    min-width: 550px;
     padding: 0 20px;
 }
 
@@ -284,7 +286,7 @@
     text-align: right;
 }
 
-/* ── Search & Actions (Simplified copy from GoalList) ──────── */
+/* ── Search & Actions ──────────────────────────────────────── */
 .enhanced-tasks__controls {
     display: flex;
     align-items: center;
@@ -331,9 +333,75 @@
     gap: 5px;
 }
 
-/* ── Media Queries ─────────────────────────────────────────── */
+/* ── Responsive Breakpoints ───────────────────────────────── */
 @media (max-width: 1024px) {
     .tasks__stats {
         display: none;
+    }
+
+    .enhanced-tasks__main {
+        grid-template-columns: 1fr;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .enhanced-tasks__chart-container {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .enhanced-tasks-container {
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    .enhanced-tasks {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .enhanced-tasks__sidebar {
+        padding: 12px;
+        height: auto;
+        min-height: 52px;
+    }
+
+    .enhanced-tasks__header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .enhanced-tasks__controls {
+        width: 100%;
+        margin-left: 0;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .enhanced-tasks__actions {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        width: 100%;
+        display: flex;
+    }
+
+    .enhanced-tasks__add-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .enhanced-tasks__content {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    .tk-table {
+        min-width: 550px;
+        width: 100%;
     }
 }

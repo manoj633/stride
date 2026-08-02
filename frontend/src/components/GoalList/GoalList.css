@@ -612,7 +612,7 @@
     display: grid;
     grid-template-columns: 32px 1fr 96px 120px 96px 120px;
     align-items: center;
-    min-width: 0;
+    min-width: 600px;
 }
 
 /* ── Column header ─────────────────────────────────────────── */
@@ -1782,19 +1782,19 @@
 
 @media (max-width: 768px) {
     .enhanced-goals-container {
-        height: auto;
-        min-height: 100dvh;
-        overflow: auto;
+        height: 100dvh;
+        overflow: hidden;
     }
 
     .enhanced-goals {
-        overflow: visible;
-        height: auto;
+        height: 100%;
+        overflow: hidden;
     }
 
     .enhanced-goals__sidebar {
         height: auto;
-        padding: 12px 16px;
+        min-height: 52px;
+        padding: 12px;
     }
 
     .enhanced-goals__header {
@@ -1811,6 +1811,9 @@
 
     .enhanced-goals__controls {
         width: 100%;
+        margin-left: 0;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .enhanced-goals__search-input {
@@ -1818,19 +1821,58 @@
     }
 
     .enhanced-goals__filters {
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
         width: 100%;
+    }
+
+    .enhanced-goals__filter-select,
+    .enhanced-goals__sort-select,
+    .enhanced-goals__view-select {
+        width: 100%;
+        min-width: 0;
+        padding: 0 18px 0 6px;
+    }
+
+    .enhanced-goals__actions {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        display: flex;
+        gap: 6px;
+    }
+
+    .enhanced-goals__add-btn,
+    .enhanced-goals__export-btn {
+        flex: 1;
+        justify-content: center;
     }
 
     .enhanced-goals__main {
         grid-template-columns: 1fr;
-        height: auto;
-        overflow: visible;
+        overflow: hidden;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .enhanced-goals__chart-container {
+        display: none;
     }
 
     .enhanced-goals__content {
-        height: auto;
-        max-height: 65vh;
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    .gl-table {
+        min-width: 600px;
+        width: 100%;
     }
 
     .enhanced-goals__kanban {

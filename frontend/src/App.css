@@ -1,15 +1,95 @@
+/* src/App.css */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Breakpoints Reference */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1440px;
+
+  /* Global Layout Tokens */
+  --ef-container-max: 1400px;
+  --ef-gutter: 24px;
+  
+  /* Typography */
+  --ef-font-display: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ef-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Global Color Tokens */
+  --ef-bg-app:        #F7F7F8;
+  --ef-bg-surface:    #FFFFFF;
+  --ef-bg-subtle:     #F4F4F5;
+  --ef-bg-hover:      #F0F0F2;
+  --ef-border:        #E4E4E7;
+  --ef-text-primary:  #18181B;
+  --ef-text-secondary:#52525B;
+  --ef-text-tertiary: #A1A1AA;
+  --ef-accent:        #2563EB;
+  --ef-accent-light:  #EFF6FF;
+
+  /* Spacing Scale */
+  --space-2xs: 4px;
+  --space-xs:  8px;
+  --space-sm:  12px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+
+  /* Elevation */
+  --ef-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ef-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --ef-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  background-color: var(--ef-bg-app);
+  color: var(--ef-text-primary);
+  font-family: var(--ef-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
 .main-content {
-    padding: 24px;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
 }
 
 .main-content.pomodoro {
-    background-color: #f8f8f8;
+  background-color: var(--ef-bg-app);
 }
 
 .main-content.shortBreak {
-    background-color: #e7f5fd;
+  background-color: #F0F9FF;
 }
 
 .main-content.longBreak {
-    background-color: #eeedf7;
+  background-color: #F5F3FF;
+}
+
+/* Responsive Gutter & Header Offset Adjustments */
+@media (max-width: 1023px) {
+  :root {
+    --ef-gutter: 16px;
+  }
+
+  .enhanced-goals__sidebar,
+  .enhanced-tasks__sidebar,
+  .enhanced-subtasks__sidebar,
+  .ef-topbar,
+  .dashboard-header {
+    padding-left: 54px !important;
+  }
 }

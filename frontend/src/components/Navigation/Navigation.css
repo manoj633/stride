@@ -334,8 +334,9 @@
 
 /* Adjust main content to work with the drawer */
 .main-content {
-    transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     padding: 0;
+    width: 100%;
 }
 
 /* Help define content margins */
@@ -349,13 +350,32 @@
     pointer-events: none;
 }
 
+@media (max-width: 1023px) {
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .nav-drawer__toggle {
+        top: 8px;
+        left: 12px;
+        width: 36px;
+        height: 36px;
+    }
+}
+
 @media (min-width: 1024px) {
     .main-content-wrapper.drawer-open~.main-content {
         margin-left: var(--drawer-width);
+        width: calc(100% - var(--drawer-width));
+        max-width: calc(100% - var(--drawer-width));
     }
 
     .main-content-wrapper.drawer-closed~.main-content {
         margin-left: var(--drawer-collapsed-width);
+        width: calc(100% - var(--drawer-collapsed-width));
+        max-width: calc(100% - var(--drawer-collapsed-width));
     }
 
     .nav-drawer.closed .nav-drawer__title {
