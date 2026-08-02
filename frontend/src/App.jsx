@@ -31,7 +31,11 @@ import {
 
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { useNavigate } from "react-router-dom";
-import { checkTokenExpiration } from "./store/features/auth/authSlice";
+import {
+  logout,
+  clearUserInfo,
+  checkTokenExpiration,
+} from "./store/features/users/userSlice";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
 import ResetPassword from "./components/ResetPassword/ResetPassword";
 import TwoFactorVerify from "./components/TwoFactorSetup/TwoFactorVerify";
@@ -55,56 +59,45 @@ const App = () => {
   const { userInfo } = useAppSelector((state) => state.user);
 
   useEffect(() => {
-    const checkTokenInterval = setInterval(() => {
-      if (userInfo) {
-        fetch("/api/users/refresh-token", {
-          method: "POST",
-          credentials: "include",
-        }).catch((err) => {
-          console.error("Failed to refresh token:", err);
-          dispatch(logout());
-          navigate("/login");
-        });
-      }
-    }, 15 * 60 * 1000); // Check every 15 minutes
+    // Keep the session alive while the app is open
+    const refreshInterval = setInterval(
+      () => {
+        if (userInfo) {
+          fetch("/api/users/refresh-token", {
+            method: "POST",
+            credentials: "include",
+          }).catch((err) => {
+            console.error("Failed to refresh token:", err);
+            dispatch(logout());
+            navigate("/login");
+          });
+        }
+      },
+      15 * 60 * 1000,
+    ); // Check every 15 minutes
 
-    return () => clearInterval(checkTokenInterval);
+    return () => clearInterval(refreshInterval);
   }, [userInfo, dispatch, navigate]);
 
   useEffect(() => {
-    // Listen for storage events (localStorage changes from other tabs)
-    const handleStorageChange = (e) => {
-      if (e.key === "userInfo" && !e.newValue) {
-        // User logged out in another tab
-        dispatch(logout());
-        navigate("/login");
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [dispatch, navigate]);
-
-  useEffect(() => {
-    // Check token validity on app load
-    const isExpired = dispatch(checkTokenExpiration());
-    if (isExpired) {
+    // Check token validity on app load, then periodically
+    if (dispatch(checkTokenExpiration())) {
       navigate("/login");
     }
 
-    // Check token periodically
-    const tokenCheckInterval = setInterval(() => {
-      const isExpired = dispatch(checkTokenExpiration());
-      if (isExpired) {
-        navigate("/login");
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    const expirationInterval = setInterval(
+      () => {
+        if (dispatch(checkTokenExpiration())) {
+          navigate("/login");
+        }
+      },
+      5 * 60 * 1000,
+    ); // Check every 5 minutes
 
-    // Listen for storage events (to sync across tabs)
+    // Stay in sync if the user logs out in another tab
     const handleStorageChange = (e) => {
       if (e.key === "userInfo" && !e.newValue) {
-        // User logged out in another tab
-        dispatch(clearCredentials());
+        dispatch(clearUserInfo());
         navigate("/login");
       }
     };
@@ -112,7 +105,7 @@ const App = () => {
     window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      clearInterval(tokenCheckInterval);
+      clearInterval(expirationInterval);
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [dispatch, navigate]);

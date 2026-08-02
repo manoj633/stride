@@ -497,25 +497,23 @@ const verifyAndEnableTwoFactor = asyncHandler(async (req, res) => {
   // Enable 2FA for the user
   user.isTwoFactorEnabled = true;
 
-  // Generate backup codes
-  const backupCodes = [];
+  // Generate backup codes once, then hash those exact codes for storage.
+  // The plaintext codes returned below must match what gets hashed here,
+  // otherwise the codes shown to the user will never validate later.
+  const plainBackupCodes = [];
+  const hashedBackupCodes = [];
   for (let i = 0; i < 10; i++) {
     const code = crypto.randomBytes(4).toString("hex");
-    backupCodes.push(await bcrypt.hash(code, 10));
+    plainBackupCodes.push(code);
+    hashedBackupCodes.push(await bcrypt.hash(code, 10));
   }
 
-  user.twoFactorBackupCodes = backupCodes;
+  user.twoFactorBackupCodes = hashedBackupCodes;
   await user.save();
-
-  // Return unhashed backup codes to user
-  const unhashed = [];
-  for (let i = 0; i < 10; i++) {
-    unhashed.push(crypto.randomBytes(4).toString("hex"));
-  }
 
   res.status(200).json({
     message: "2FA enabled successfully",
-    backupCodes: unhashed,
+    backupCodes: plainBackupCodes,
   });
 });
 

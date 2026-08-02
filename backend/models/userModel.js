@@ -22,10 +22,10 @@ const userSchema = new mongoose.Schema(
     isAdmin: { type: Boolean, required: true, default: false },
     isTwoFactorEnabled: { type: Boolean, default: true },
     twoFactorSecret: { type: String, default: null },
-    twoFactorBackupCodes: [{ type: String, maxlength: 32 }], // For backup/recovery
+    twoFactorBackupCodes: [{ type: String }], // bcrypt hashes, ~60 chars each
     lastActive: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Keep existing methods
@@ -35,7 +35,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

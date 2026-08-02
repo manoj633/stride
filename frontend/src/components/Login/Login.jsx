@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks.js";
 
 import { login } from "../../store/features/users/userSlice.js";
-import { setCredentials } from "../../store/features/auth/authSlice.js";
 import { toast } from "react-toastify";
 
 import LoadingSpinner from "../Common/LoadingSpinner";

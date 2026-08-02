@@ -17,7 +17,7 @@ export const login = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 export const register = createAsyncThunk(
@@ -30,19 +30,27 @@ export const register = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 export const logout = createAsyncThunk(
   "users/logout",
   async (_, { rejectWithValue }) => {
+    // Clearing the local session must not depend on the API call
+    // succeeding. If the cookie is already expired or the request
+    // fails, we still want the user logged out on this device.
     try {
       await userAPI.logout();
-      localStorage.removeItem("userInfo");
     } catch (err) {
-      return rejectWithValue(err.response.data.message);
+      localStorage.removeItem("userInfo");
+      return rejectWithValue(
+        err.response && err.response.data
+          ? err.response.data.message
+          : err.message,
+      );
     }
-  }
+    localStorage.removeItem("userInfo");
+  },
 );
 
 export const updateProfile = createAsyncThunk(
@@ -56,7 +64,7 @@ export const updateProfile = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 // Admin thunks
@@ -69,7 +77,7 @@ export const getUsers = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 export const generateTwoFactorSecret = createAsyncThunk(
@@ -81,7 +89,7 @@ export const generateTwoFactorSecret = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 // In your userActions.js or where you define your Redux actions
@@ -100,7 +108,7 @@ export const verifyAndEnableTwoFactor = createAsyncThunk(
         JSON.stringify({
           ...JSON.parse(localStorage.getItem("userInfo")),
           isTwoFactorEnabled: true,
-        })
+        }),
       );
 
       return data;
@@ -108,10 +116,10 @@ export const verifyAndEnableTwoFactor = createAsyncThunk(
       return rejectWithValue(
         err.response && err.response.data.message
           ? err.response.data.message
-          : err.message
+          : err.message,
       );
     }
-  }
+  },
 );
 
 export const disableTwoFactor = createAsyncThunk(
@@ -129,7 +137,7 @@ export const disableTwoFactor = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 export const validateTwoFactorAuth = createAsyncThunk(
@@ -146,7 +154,7 @@ export const validateTwoFactorAuth = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data.message);
     }
-  }
+  },
 );
 
 const userSlice = createSlice({
@@ -182,6 +190,14 @@ const userSlice = createSlice({
     },
     resetSuccess: (state) => {
       state.success = false;
+    },
+    // Synchronous logout for cases that can't wait on a network
+    // round trip: an expired token, or a "logged out in another tab"
+    // storage event.
+    clearUserInfo: (state) => {
+      state.userInfo = null;
+      state.users = [];
+      localStorage.removeItem("userInfo");
     },
   },
   extraReducers: (builder) => {
@@ -271,8 +287,13 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Logout
+      // Logout — clear on both outcomes, since local session data
+      // must not depend on the API call succeeding
       .addCase(logout.fulfilled, (state) => {
+        state.userInfo = null;
+        state.users = [];
+      })
+      .addCase(logout.rejected, (state) => {
         state.userInfo = null;
         state.users = [];
       })
@@ -304,6 +325,22 @@ const userSlice = createSlice({
   },
 });
 
-export const { clearError, resetSuccess, clearTwoFactorSetup } =
+export const { clearError, resetSuccess, clearTwoFactorSetup, clearUserInfo } =
   userSlice.actions;
+
+// Checks the userInfo actually driving the app (state.user), not the
+// unused, separately tracked copy that used to live in authSlice.
+export const checkTokenExpiration = () => (dispatch, getState) => {
+  const { userInfo } = getState().user;
+
+  if (userInfo && userInfo.expiresAt) {
+    const isExpired = new Date() > new Date(userInfo.expiresAt);
+    if (isExpired) {
+      dispatch(clearUserInfo());
+      return true;
+    }
+  }
+  return false;
+};
+
 export default userSlice.reducer;
