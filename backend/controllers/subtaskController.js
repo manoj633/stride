@@ -3,6 +3,7 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Subtask from "../models/subtaskModel.js";
 import logger from "../utils/logger.js";
 import Task from "../models/taskModel.js";
+import Goal from "../models/goalModel.js";
 
 /**
  * * Description: Fetch all subtasks
@@ -78,6 +79,12 @@ const createSubtask = asyncHandler(async (req, res) => {
     taskId,
     goalId,
   });
+  
+  // Update the completion percentage of the parent task
+  if (taskId) {
+    await updateTaskCompletionPercentage(taskId);
+  }
+  
   res.status(201).json(createdSubtask);
 });
 
@@ -108,6 +115,12 @@ const updateSubtask = asyncHandler(async (req, res) => {
       subtaskId: updatedSubtask._id,
       taskId: updatedSubtask.taskId,
     });
+    
+    // Update the completion percentage of the parent task
+    if (updatedSubtask.taskId) {
+      await updateTaskCompletionPercentage(updatedSubtask.taskId);
+    }
+    
     res.json(updatedSubtask);
   } else {
     logger.error("Subtask not found for update", { subtaskId: req.params.id });
@@ -177,6 +190,12 @@ const markSubtaskAsCompleted = asyncHandler(async (req, res) => {
       subtaskId: updatedSubtask._id,
       taskId: updatedSubtask.taskId,
     });
+    
+    // Update the completion percentage of the parent task
+    if (updatedSubtask.taskId) {
+      await updateTaskCompletionPercentage(updatedSubtask.taskId);
+    }
+    
     res.json(updatedSubtask);
   } else {
     logger.error("Subtask not found for completion", {

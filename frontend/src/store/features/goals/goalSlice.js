@@ -116,23 +116,29 @@ export const selectGoalStats = (state) => {
 
 export const updateGoalCompletion = createAsyncThunk(
   "goals/updateCompletion",
-  async ({ goalId, subtasks }, { getState }) => {
+  async ({ goalId }, { getState }) => {
     const state = getState();
-    const goalSubtasks = state.subtasks.items.filter(
-      (st) => st.goalId === goalId
+    const goalTasks = state.tasks.items.filter(
+      (task) => task.goalId === goalId
     );
 
-    const completedCount = goalSubtasks.filter((st) => st.completed).length;
+    const totalPercentage = goalTasks.reduce(
+      (sum, task) => sum + task.completionPercentage,
+      0
+    );
     const completionPercentage =
-      goalSubtasks.length > 0
-        ? Number((completedCount / goalSubtasks.length) * 100).toFixed(2)
+      goalTasks.length > 0
+        ? Number((totalPercentage / goalTasks.length).toFixed(2))
         : 0;
+
+    const completedTasks = goalTasks.filter((task) => task.completed).length;
+    const isCompleted = goalTasks.length > 0 && completedTasks === goalTasks.length;
 
     const goal = state.goals.items.find((goal) => goal._id === goalId);
     const updatedGoal = {
       ...goal,
       completionPercentage,
-      completed: completionPercentage === "100.00",
+      completed: isCompleted,
     };
 
     const response = await goalAPI.update(goalId, updatedGoal);
@@ -258,7 +264,7 @@ const goalSlice = createSlice({
       })
       .addCase(updateGoalCompletion.fulfilled, (state, action) => {
         const goalIndex = state.items.findIndex(
-          (goal) => goal._id === action.payload.goalId
+          (goal) => goal._id === action.payload._id
         );
         if (goalIndex !== -1) {
           state.items[goalIndex].completionPercentage =

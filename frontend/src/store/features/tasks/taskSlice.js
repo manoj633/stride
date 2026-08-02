@@ -124,7 +124,7 @@ const taskSlice = createSlice({
       // Update task completion cases
       .addCase(updateTaskCompletion.fulfilled, (state, action) => {
         const taskIndex = state.items.findIndex(
-          (task) => task._id === action.payload.taskId
+          (task) => task._id === action.payload._id
         );
         if (taskIndex !== -1) {
           state.items[taskIndex].completionPercentage =

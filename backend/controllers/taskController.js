@@ -80,6 +80,11 @@ const createTask = asyncHandler(async (req, res) => {
 
   const createdTask = await task.save();
   logger.debug("Task created successfully", { taskId: createdTask._id });
+  
+  if (createdTask.goalId) {
+    await updateGoalCompletionPercentage(createdTask.goalId);
+  }
+  
   res.status(201).json(createdTask);
 });
 
@@ -121,6 +126,11 @@ const updateTask = asyncHandler(async (req, res) => {
 
     const updatedTask = await task.save();
     logger.debug("Task updated successfully", { taskId: updatedTask._id });
+    
+    if (updatedTask.goalId) {
+      await updateGoalCompletionPercentage(updatedTask.goalId);
+    }
+    
     res.json(updatedTask);
   } else {
     logger.error("Task not found for update", { taskId: req.params.id });
@@ -204,6 +214,11 @@ const updateTaskCompletion = asyncHandler(async (req, res) => {
         completed: updatedTask.completed,
         completionPercentage: updatedTask.completionPercentage,
       });
+      
+      if (updatedTask.goalId) {
+        await updateGoalCompletionPercentage(updatedTask.goalId);
+      }
+      
       res.json(updatedTask);
     } else {
       logger.error("Task not found for completion update", {
