@@ -103,13 +103,12 @@ export const verifyAndEnableTwoFactor = createAsyncThunk(
       });
 
       // Update localStorage with new user info
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify({
-          ...JSON.parse(localStorage.getItem("userInfo")),
-          isTwoFactorEnabled: true,
-        }),
-      );
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (userInfo) {
+        userInfo.isTwoFactorEnabled = true;
+        delete userInfo.twoFactorAuthSetup;
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      }
 
       return data;
     } catch (err) {
@@ -226,6 +225,7 @@ const userSlice = createSlice({
         state.twoFactorSetup.backupCodes = action.payload.backupCodes;
         if (state.userInfo) {
           state.userInfo.isTwoFactorEnabled = true;
+          delete state.userInfo.twoFactorAuthSetup;
         }
       })
       .addCase(verifyAndEnableTwoFactor.rejected, (state, action) => {
