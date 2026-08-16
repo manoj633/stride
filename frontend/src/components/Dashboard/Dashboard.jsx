@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { fetchGoals } from "../../store/features/goals/goalSlice";
 import { fetchTasks } from "../../store/features/tasks/taskSlice";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import DonutChart from "../GoalList/DonutChart";
+import OnboardingTour from "./OnboardingTour";
 import {
   FiTarget,
   FiCheckSquare,
@@ -26,6 +27,19 @@ const Dashboard = () => {
   const tasks = useAppSelector((state) => state.tasks.items);
   const subtasks = useAppSelector((state) => state.subtasks.items);
   const loadingGoals = useAppSelector((state) => state.goals.loading);
+
+  const [showTour, setShowTour] = useState(false);
+
+  const isNewUser = useMemo(() => {
+    return goals.length === 0 && tasks.length === 0 && subtasks.length === 0;
+  }, [goals, tasks, subtasks]);
+
+  useEffect(() => {
+    const tourDismissed = localStorage.getItem("onboardingDismissed");
+    if (isNewUser && tourDismissed !== "true") {
+      setShowTour(true);
+    }
+  }, [isNewUser]);
 
   useEffect(() => {
     dispatch(fetchGoals());
@@ -164,6 +178,47 @@ const Dashboard = () => {
               </button>
             </div>
           </header>
+
+          {isNewUser && (
+            <div className="onboarding-checklist-card">
+              <div className="onboarding-checklist-card__header">
+                <h2>🚀 Get Started with Stride</h2>
+                <button className="tour-btn" onClick={() => setShowTour(true)}>
+                  Take Walkthrough Tour
+                </button>
+              </div>
+              <p>Complete these simple steps to set up your workspace and get organized:</p>
+              <div className="onboarding-steps">
+                <div className={`onboarding-step ${goals.length > 0 ? "completed" : ""}`} onClick={() => navigate("/goals/add")}>
+                  <div className="step-checkbox">
+                    {goals.length > 0 ? "✓" : "1"}
+                  </div>
+                  <div className="step-content">
+                    <h3>Create your first Goal</h3>
+                    <p>Define a high-level goal you want to work towards this year.</p>
+                  </div>
+                </div>
+                <div className={`onboarding-step ${tasks.length > 0 ? "completed" : ""}`} onClick={() => navigate("/tasks/add")}>
+                  <div className="step-checkbox">
+                    {tasks.length > 0 ? "✓" : "2"}
+                  </div>
+                  <div className="step-content">
+                    <h3>Add a Task</h3>
+                    <p>Break your goal down into actionable tasks.</p>
+                  </div>
+                </div>
+                <div className={`onboarding-step ${subtasks.length > 0 ? "completed" : ""}`} onClick={() => navigate("/subtasks/add")}>
+                  <div className="step-checkbox">
+                    {subtasks.length > 0 ? "✓" : "3"}
+                  </div>
+                  <div className="step-content">
+                    <h3>Create a Subtask</h3>
+                    <p>Create detailed sub-steps to track your daily progress.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="stats-grid">
@@ -324,6 +379,7 @@ const Dashboard = () => {
               </div>
             </aside>
           </div>
+          <OnboardingTour isOpen={showTour} onClose={() => setShowTour(false)} />
         </div>
       </div>
     </div>

@@ -480,3 +480,124 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Onboarding Checklist Card */
+.onboarding-checklist-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.onboarding-checklist-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.onboarding-checklist-card__header h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.onboarding-checklist-card p {
+    color: #64748b;
+    margin: 0;
+    font-size: 14px;
+}
+
+.tour-btn {
+    background-color: #2563eb;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tour-btn:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.onboarding-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.onboarding-step {
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.onboarding-step:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+.step-checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    background-color: #f8fafc;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.onboarding-step.completed {
+    border-color: #bbf7d0;
+    background-color: #f0fdf4;
+}
+
+.onboarding-step.completed:hover {
+    border-color: #86efac;
+}
+
+.onboarding-step.completed .step-checkbox {
+    border-color: #22c55e;
+    background-color: #22c55e;
+    color: white;
+}
+
+.step-content h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+}
+
+.step-content p {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+}
