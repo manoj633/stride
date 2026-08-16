@@ -17,6 +17,7 @@ import {
   verifyAndEnableTwoFactor,
   disableTwoFactor,
   validateTwoFactorAuth,
+  recoverWithBackupCode,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import { passwordResetLimiter, loginLimiter, registerLimiter } from "../middleware/rateLimiter.js";
@@ -106,5 +107,6 @@ router.post("/two-factor/generate", protect, generateTwoFactorSecret);
 router.post("/two-factor/verify", protect, verifyAndEnableTwoFactor);
 router.post("/two-factor/disable", protect, disableTwoFactor);
 router.post("/two-factor/validate", validateTwoFactorAuth);
+router.post("/recover-with-backup-code", passwordResetLimiter, recoverWithBackupCode);
 
 export default router;

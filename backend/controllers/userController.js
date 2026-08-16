@@ -596,6 +596,58 @@ const validateTwoFactorAuth = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Recover account / Reset password with backup code
+// @route   POST /api/users/recover-with-backup-code
+// @access  Public
+const recoverWithBackupCode = asyncHandler(async (req, res) => {
+  const { email, backupCode, newPassword } = req.body;
+
+  if (!email || !backupCode || !newPassword) {
+    res.status(400);
+    throw new Error("Please provide email, backup code, and new password");
+  }
+
+  // Find user by email
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Check if 2FA is enabled and user has backup codes
+  if (!user.isTwoFactorEnabled || !user.twoFactorBackupCodes || user.twoFactorBackupCodes.length === 0) {
+    res.status(400);
+    throw new Error("2FA or backup codes not configured for this account");
+  }
+
+  // Verify backup code
+  let validCode = false;
+  let codeIndex = -1;
+
+  for (let i = 0; i < user.twoFactorBackupCodes.length; i++) {
+    const isValid = await bcrypt.compare(backupCode, user.twoFactorBackupCodes[i]);
+    if (isValid) {
+      validCode = true;
+      codeIndex = i;
+      break;
+    }
+  }
+
+  if (!validCode) {
+    res.status(401);
+    throw new Error("Invalid backup code");
+  }
+
+  // Remove the used backup code
+  user.twoFactorBackupCodes.splice(codeIndex, 1);
+  
+  // Set new password
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({ message: "Password reset successful. Please login with your new password." });
+});
+
 export {
   authUser,
   registerUser,
@@ -613,4 +665,5 @@ export {
   verifyAndEnableTwoFactor,
   disableTwoFactor,
   validateTwoFactorAuth,
+  recoverWithBackupCode,
 };

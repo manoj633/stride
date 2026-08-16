@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { logout } from "../../store/features/users/userSlice";
 
 import LoadingSpinner from "../Common/LoadingSpinner";
@@ -11,45 +12,81 @@ import "./ForgotPassword.css";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [backupCode, setBackupCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
-    try {
-      const response = await fetch("/api/users/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+    if (useBackupCode) {
+      if (newPassword !== confirmPassword) {
+        toast.error("Passwords do not match");
+        setIsSubmitting(false);
+        return;
       }
+      try {
+        const response = await fetch("/api/users/recover-with-backup-code", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, backupCode, newPassword }),
+        });
 
-      dispatch(logout());
+        const data = await response.json();
 
-      setEmailSent(true);
-      toast.success("Password reset email sent successfully!");
-    } catch (error) {
-      setError(error.message);
-      toast.error(error.message);
-    } finally {
-      setIsSubmitting(false);
+        if (!response.ok) {
+          throw new Error(data.message || "Recovery failed");
+        }
+
+        dispatch(logout());
+        toast.success("Password reset successfully. Please login.");
+        navigate("/login");
+      } catch (error) {
+        setBackupCode("");
+        toast.error(error.message || "Invalid backup code");
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      try {
+        const response = await fetch("/api/users/forgot-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Something went wrong");
+        }
+
+        dispatch(logout());
+
+        setEmailSent(true);
+        toast.success("Password reset email sent successfully!");
+      } catch (error) {
+        toast.error(error.message || "Failed to send reset link");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  if (isSubmitting) return <LoadingSpinner message="Sending reset email..." />;
+  if (isSubmitting) return <LoadingSpinner message={useBackupCode ? "Resetting password..." : "Sending reset email..."} />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
@@ -80,15 +117,75 @@ const ForgotPassword = () => {
               />
             </div>
 
+            {useBackupCode && (
+              <>
+                <div className="forgot-password__form-group">
+                  <label className="forgot-password__label">Backup Code</label>
+                  <input
+                    className="forgot-password__input"
+                    type="text"
+                    placeholder="Enter backup code"
+                    value={backupCode}
+                    onChange={(e) => setBackupCode(e.target.value)}
+                    required
+                    aria-label="2FA backup code"
+                  />
+                </div>
+
+                <div className="forgot-password__form-group">
+                  <label className="forgot-password__label">New Password</label>
+                  <input
+                    className="forgot-password__input"
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    aria-label="New password"
+                  />
+                </div>
+
+                <div className="forgot-password__form-group">
+                  <label className="forgot-password__label">Confirm New Password</label>
+                  <input
+                    className="forgot-password__input"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    aria-label="Confirm new password"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="forgot-password__switch">
+              <button
+                type="button"
+                className="forgot-password__switch-button"
+                onClick={() => setUseBackupCode(!useBackupCode)}
+                aria-label={
+                  useBackupCode
+                    ? "Switch to email reset"
+                    : "Switch to backup code recovery"
+                }
+              >
+                {useBackupCode
+                  ? "Send reset email instead"
+                  : "Use 2FA backup code instead"}
+              </button>
+            </div>
+
             <button
               className={`forgot-password__button ${
                 isSubmitting ? "forgot-password__button--loading" : ""
               }`}
               type="submit"
               disabled={isSubmitting}
-              aria-label="Send password reset link"
+              aria-label={useBackupCode ? "Reset Password" : "Send password reset link"}
             >
-              {isSubmitting ? "Sending..." : "Send Reset Link"}
+              {isSubmitting ? "Processing..." : useBackupCode ? "Reset Password" : "Send Reset Link"}
             </button>
 
             <div className="forgot-password__footer">
