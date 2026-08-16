@@ -1,6 +1,5 @@
 // src/components/TaskCalendar/TaskCalendar.jsx
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../store/hooks.js";
@@ -23,18 +22,19 @@ import {
   FiChevronRight, 
   FiPlus, 
   FiCalendar, 
-  FiTrendingUp 
+  FiTrendingUp,
+  FiClock,
+  FiCheckCircle,
+  FiTarget,
+  FiLayers,
+  FiList,
+  FiActivity,
+  FiArrowRight,
+  FiAward
 } from "react-icons/fi";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskCalendar.css";
-
-const PRIORITY_COLORS = {
-  high: "high",
-  medium: "medium",
-  low: "low",
-  default: "default",
-};
 
 // Helper: Add item to calendar across date range
 const addItemToCalendar = (
@@ -105,14 +105,47 @@ const getDaysInMonth = (year, month) => {
   return days;
 };
 
-// Helper: Get first day of week offset
-const getFirstDayOfWeek = (year, month) => {
-  return new Date(year, month, 1).getDay();
-};
+// Helper: Get full calendar grid (all 35 or 42 days, including prev and next month padding)
+const getMonthMatrix = (year, month) => {
+  const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sunday
+  const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
 
-// Helper: Get last day of week offset
-const getLastDayOfWeek = (year, month) => {
-  return new Date(year, month + 1, 0).getDay();
+  const matrix = [];
+
+  // 1. Previous month trailing days
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    const d = new Date(year, month - 1, prevMonthDays - i);
+    matrix.push({
+      date: d,
+      isCurrentMonth: false,
+      dateStr: d.toISOString().split("T")[0],
+    });
+  }
+
+  // 2. Current month days
+  for (let day = 1; day <= totalDaysInMonth; day++) {
+    const d = new Date(year, month, day);
+    matrix.push({
+      date: d,
+      isCurrentMonth: true,
+      dateStr: d.toISOString().split("T")[0],
+    });
+  }
+
+  // 3. Next month leading days to complete grid (multiples of 7: 35 or 42)
+  const totalSlots = matrix.length > 35 ? 42 : 35;
+  const remainingSlots = totalSlots - matrix.length;
+  for (let day = 1; day <= remainingSlots; day++) {
+    const d = new Date(year, month + 1, day);
+    matrix.push({
+      date: d,
+      isCurrentMonth: false,
+      dateStr: d.toISOString().split("T")[0],
+    });
+  }
+
+  return matrix;
 };
 
 const TaskCalendar = () => {
@@ -127,8 +160,7 @@ const TaskCalendar = () => {
   const [calendarItems, setCalendarItems] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
   const [draggedTask, setDraggedTask] = useState(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [view, setView] = useState("weekly");
+  const [view, setView] = useState("monthly"); // Default to monthly view
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [showCompleted, setShowCompleted] = useState(true);
@@ -141,11 +173,6 @@ const TaskCalendar = () => {
     { max: 6, color: "#fed7aa" },
     { max: Infinity, color: "#fca5a5" },
   ]);
-
-  // Detect touch device
-  useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window);
-  }, []);
 
   // Fetch data
   useEffect(() => {
@@ -225,12 +252,18 @@ const TaskCalendar = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "ArrowLeft") navigateWeek(-1);
-      if (e.key === "ArrowRight") navigateWeek(1);
+      if (e.key === "ArrowLeft") {
+        if (view === "monthly") handlePrevMonth();
+        else navigateWeek(-1);
+      }
+      if (e.key === "ArrowRight") {
+        if (view === "monthly") handleNextMonth();
+        else navigateWeek(1);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentDate]);
+  }, [currentDate, view]);
 
   // Memoized days for weekly view
   const days = useMemo(() => getDaysInWeek(currentDate), [currentDate]);
@@ -259,8 +292,45 @@ const TaskCalendar = () => {
   const month = monthDate.getMonth();
   const year = monthDate.getFullYear();
   const daysInMonth = useMemo(() => getDaysInMonth(year, month), [year, month]);
-  const firstDayOfWeek = getFirstDayOfWeek(year, month);
-  const lastDayOfWeek = getLastDayOfWeek(year, month);
+  const monthMatrix = useMemo(() => getMonthMatrix(year, month), [year, month]);
+
+  // Monthly stats calculations
+  const monthStats = useMemo(() => {
+    let total = 0;
+    let completed = 0;
+    let highPriority = 0;
+
+    daysInMonth.forEach((date) => {
+      const dateStr = date.toISOString().split("T")[0];
+      const items = calendarItems[dateStr] || [];
+      items.forEach((item) => {
+        total++;
+        if (item.completed) completed++;
+        if (item.priority?.toLowerCase() === "high") highPriority++;
+      });
+    });
+
+    const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { total, completed, highPriority, rate };
+  }, [daysInMonth, calendarItems]);
+
+  // Upcoming items for agenda
+  const upcomingItems = useMemo(() => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const allEvents = [];
+    Object.entries(calendarItems).forEach(([dateStr, items]) => {
+      if (dateStr >= todayStr) {
+        items.forEach((item) => {
+          if (!item.completed) {
+            allEvents.push({ ...item, dateStr });
+          }
+        });
+      }
+    });
+    return allEvents
+      .sort((a, b) => a.dateStr.localeCompare(b.dateStr))
+      .slice(0, 4);
+  }, [calendarItems]);
 
   // Navigate week
   const navigateWeek = (direction) => {
@@ -284,6 +354,13 @@ const TaskCalendar = () => {
     );
   };
 
+  // Quick jump to Today
+  const handleJumpToday = () => {
+    const now = new Date();
+    setCurrentDate(now);
+    setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  };
+
   // Handle item click to navigate to detail page
   const handleItemClick = (item) => {
     const [type, id] = item.id.split("-");
@@ -303,21 +380,6 @@ const TaskCalendar = () => {
       default:
         break;
     }
-  };
-
-  // Get progress color based on percentage
-  const getProgressColor = (progress) => {
-    if (progress === 0) return "#ef4444";
-    if (progress < 35) return "#f59e0b";
-    if (progress < 75) return "#eab308";
-    if (progress < 100) return "#84cc16";
-    return "#10b981";
-  };
-
-  // Display progress (show full ring if 0%)
-  const getDisplayProgress = (progress) => {
-    if (progress === 0) return 100;
-    return progress;
   };
 
   // Drag handlers
@@ -366,54 +428,9 @@ const TaskCalendar = () => {
     setDraggedTask(null);
   };
 
-  // Toggle subtask completion
-  const toggleItem = (date, item) => {
-    const [type, id] = item.id.split("-");
-    if (type !== "subtask") return;
-
-    const updatedSubtask = {
-      ...item.originalItem,
-      completed: !item.originalItem.completed,
-    };
-
-    dispatch(updateSubtask({ id, subtaskData: updatedSubtask }))
-      .then(() => {
-        if (item.originalItem.taskId) {
-          dispatch(
-            updateTaskCompletion({ taskId: item.originalItem.taskId, subtasks })
-          ).then(() => {
-            if (item.originalItem.goalId) {
-              dispatch(
-                updateGoalCompletion({
-                  goalId: item.originalItem.goalId,
-                  subtasks,
-                })
-              ).catch((error) =>
-                console.error("Failed to update goal:", error)
-              );
-            }
-          });
-        }
-        toast.success("Subtask updated");
-      })
-      .catch((error) => {
-        console.error("Failed to update subtask:", error);
-        toast.error("Failed to update subtask");
-      });
-
-    const dateStr = date.toISOString().split("T")[0];
-    setCalendarItems((prev) => ({
-      ...prev,
-      [dateStr]:
-        prev[dateStr]?.map((i) =>
-          i.id === item.id ? { ...i, completed: !i.completed } : i
-        ) || [],
-    }));
-  };
-
   const isLoading = loadingGoals || loadingTasks || loadingSubtasks;
   
-  if (isLoading) return <LoadingSpinner message="Syncing enterprise data..." />;
+  if (isLoading) return <LoadingSpinner message="Syncing calendar data..." />;
   
   if (goalsError) return <ErrorMessage message={`Goals: ${goalsError}`} />;
   if (tasksError) return <ErrorMessage message={`Tasks: ${tasksError}`} />;
@@ -422,17 +439,46 @@ const TaskCalendar = () => {
   return (
     <div className="enhanced-calendar-container">
       <div className="enhanced-tasks">
-        {/* Top Navigation Bar */}
-        <div className="enhanced-tasks__sidebar">
+        {/* Top Header Controls Bar */}
+        <header className="enhanced-tasks__sidebar">
           <div className="enhanced-tasks__header">
             <div className="enhanced-tasks__header-title">
               <div className="header-icon--calendar">
                 <FiCalendar />
               </div>
-              <h2>Enterprise Calendar</h2>
+              <div>
+                <h2>Workspace Calendar</h2>
+                <span className="header-subtitle">Timeline & Milestones</span>
+              </div>
             </div>
 
             <div className="tasks__stats">
+              <button onClick={handleJumpToday} className="today-jump-btn">
+                Today
+              </button>
+
+              <div className="navigation-buttons">
+                <button
+                  onClick={view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)}
+                  className="nav-button"
+                  title="Previous"
+                >
+                  <FiChevronLeft size={16} />
+                </button>
+                <span className="current-date-label">
+                  {view === "monthly"
+                    ? `${monthDate.toLocaleString("default", { month: "long" })} ${year}`
+                    : `Week of ${formatDate(days[0])}`}
+                </span>
+                <button
+                  onClick={view === "monthly" ? handleNextMonth : () => navigateWeek(1)}
+                  className="nav-button"
+                  title="Next"
+                >
+                  <FiChevronRight size={16} />
+                </button>
+              </div>
+
               <div className="view-switch">
                 <button
                   onClick={() => setView("weekly")}
@@ -447,51 +493,31 @@ const TaskCalendar = () => {
                   Monthly
                 </button>
               </div>
-
-              <div className="navigation-buttons">
-                <button
-                  onClick={view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)}
-                  className="nav-button"
-                >
-                  <FiChevronLeft size={16} />
-                </button>
-                <span className="current-date-label">
-                  {view === "monthly"
-                    ? `${monthDate.toLocaleString("default", { month: "long" })} ${year}`
-                    : `Week of ${formatDate(days[0])}`}
-                </span>
-                <button
-                  onClick={view === "monthly" ? handleNextMonth : () => navigateWeek(1)}
-                  className="nav-button"
-                >
-                  <FiChevronRight size={16} />
-                </button>
-              </div>
             </div>
 
             <div className="enhanced-tasks__actions">
               <div className="calendar-filter-dropdowns">
-                 <select
-                    value={selectedPriority}
-                    onChange={(e) => setSelectedPriority(e.target.value)}
-                    className="enterprise-select"
-                  >
-                    <option value="all">All Priorities</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
+                <select
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  className="enterprise-select"
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
 
-                  <select
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className="enterprise-select"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="goal">Goals</option>
-                    <option value="task">Tasks</option>
-                    <option value="subtask">Subtasks</option>
-                  </select>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="enterprise-select"
+                >
+                  <option value="all">All Types</option>
+                  <option value="goal">Goals</option>
+                  <option value="task">Tasks</option>
+                  <option value="subtask">Subtasks</option>
+                </select>
               </div>
 
               <button className="enhanced-tasks__add-btn" onClick={() => navigate('/tasks/add')}>
@@ -499,15 +525,16 @@ const TaskCalendar = () => {
               </button>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Main Content Area */}
         <div className="enhanced-tasks__main">
-          {/* Left: The Calendar Grid */}
+          {/* Main Calendar View Area */}
           <div className="enhanced-tasks__content">
             <div className="calendar-content">
               {view === "weekly" ? (
-                <div className="calendar-grid">
+                /* Weekly Grid */
+                <div className="calendar-grid weekly">
                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                     <div key={day} className="day-header">{day}</div>
                   ))}
@@ -523,10 +550,10 @@ const TaskCalendar = () => {
                     let summaryClass = "";
 
                     if (totalSubtasks === 0) {
-                      summaryText = "No subtasks";
+                      summaryText = "Clear schedule";
                       summaryClass = "empty";
                     } else if (completedSubtasks === totalSubtasks) {
-                      summaryText = "All done 🎉";
+                      summaryText = "All completed 🎉";
                       summaryClass = "done";
                     } else {
                       summaryText = `${completedSubtasks}/${totalSubtasks} done`;
@@ -534,12 +561,11 @@ const TaskCalendar = () => {
                     }
 
                     const isToday = new Date().toDateString() === date.toDateString();
-                    const dayProgress = calculateDayProgress(dayItems);
 
                     return (
                       <div
                         key={dateStr}
-                        className={`calendar-cell ${isToday ? "today" : ""}`}
+                        className={`calendar-cell weekly ${isToday ? "today" : ""}`}
                         onDragOver={handleDragOver}
                         onDrop={() => handleDrop(date)}
                       >
@@ -552,12 +578,11 @@ const TaskCalendar = () => {
                           {dayItems.map((item) => (
                             <div
                               key={item.id}
-                              className="tk-row--mini"
-                              data-priority={item.priority?.toLowerCase() || 'default'}
+                              className={`tk-row--mini ${item.completed ? 'completed' : ''}`}
                               onClick={() => handleItemClick(item)}
                             >
-                              <div className={`mini-priority-indicator ${item.priority?.toLowerCase()}`}></div>
-                              <span className={`mini-task-text ${item.completed ? 'completed' : ''}`}>
+                              <div className={`mini-priority-indicator ${item.priority?.toLowerCase() || 'default'}`}></div>
+                              <span className="mini-task-text">
                                 {item.text}
                               </span>
                             </div>
@@ -572,29 +597,50 @@ const TaskCalendar = () => {
                   })}
                 </div>
               ) : (
-                /* Monthly View Grid (Larger version) */
+                /* Uniform Monthly Calendar Matrix (35 or 42 perfectly spaced cells) */
                 <div className="calendar-grid month">
-                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                     <div key={day} className="day-header">{day}</div>
                   ))}
 
-                  {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                    <div key={`empty-start-${i}`} className="calendar-cell empty"></div>
-                  ))}
-
-                  {daysInMonth.map((date) => {
-                    const dateStr = date.toISOString().split('T')[0];
-                    const items = filteredItems[dateStr] || [];
-                    const isToday = new Date().toDateString() === date.toDateString();
+                  {monthMatrix.map((cell) => {
+                    const items = filteredItems[cell.dateStr] || [];
+                    const isToday = new Date().toDateString() === cell.date.toDateString();
 
                     return (
                       <div
-                        key={dateStr}
-                        className={`calendar-cell monthly ${isToday ? "today" : ""}`}
-                        onClick={() => setSelectedDay({ date, items })}
+                        key={cell.dateStr}
+                        className={`calendar-cell monthly ${cell.isCurrentMonth ? "in-month" : "out-of-month"} ${isToday ? "today" : ""}`}
+                        onClick={() => setSelectedDay({ date: cell.date, items })}
                       >
-                        <span className="date-number">{date.getDate()}</span>
-                        {items.length > 0 && <span className="item-count-dot">{items.length}</span>}
+                        <div className="cell-top-bar">
+                          <span className="date-number">{cell.date.getDate()}</span>
+                          {items.length > 0 && (
+                            <span className="cell-event-badge">{items.length}</span>
+                          )}
+                        </div>
+
+                        <div className="monthly-chips-container">
+                          {items.slice(0, 2).map((item) => (
+                            <div
+                              key={item.id}
+                              className={`cal-event-chip ${item.priority?.toLowerCase() || "default"} ${item.completed ? "completed" : ""}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleItemClick(item);
+                              }}
+                              title={item.text}
+                            >
+                              <span className="chip-dot" />
+                              <span className="chip-text">{item.text}</span>
+                            </div>
+                          ))}
+                          {items.length > 2 && (
+                            <div className="cal-more-chip">
+                              +{items.length - 2} more
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -603,17 +649,68 @@ const TaskCalendar = () => {
             </div>
           </div>
 
-          {/* Right: Insights Sidebar */}
-          <div className="enhanced-tasks__chart-container calendar-insights">
+          {/* Right: Dynamic Insights & Agenda Sidebar */}
+          <aside className="enhanced-tasks__chart-container calendar-insights">
             <div className="insights-header">
-              <h3>Calendar Insights</h3>
-              <p>Visualizing your timeline</p>
+              <h3>Monthly Summary</h3>
+              <p>{monthDate.toLocaleString("default", { month: "long" })} Overview</p>
             </div>
 
+            {/* Monthly Performance Quick Stats */}
+            <div className="month-stats-grid">
+              <div className="cal-stat-card">
+                <span className="cal-stat-label">Total Events</span>
+                <span className="cal-stat-val">{monthStats.total}</span>
+              </div>
+              <div className="cal-stat-card">
+                <span className="cal-stat-label">Completed</span>
+                <span className="cal-stat-val">{monthStats.rate}%</span>
+              </div>
+              <div className="cal-stat-card">
+                <span className="cal-stat-label">High Priority</span>
+                <span className="cal-stat-val high">{monthStats.highPriority}</span>
+              </div>
+            </div>
+
+            {/* Upcoming Deadlines Agenda */}
             <div className="insight-widget">
-              <h4 className="widget-title">Activity Heatmap</h4>
+              <div className="widget-header-row">
+                <h4 className="widget-title">Upcoming Agenda</h4>
+                <span className="widget-badge">{upcomingItems.length}</span>
+              </div>
+              <div className="agenda-items-list">
+                {upcomingItems.length === 0 ? (
+                  <div className="empty-agenda">
+                    <FiCheckCircle size={20} />
+                    <span>No upcoming deadlines</span>
+                  </div>
+                ) : (
+                  upcomingItems.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="agenda-item"
+                      onClick={() => handleItemClick(item)}
+                    >
+                      <div className={`agenda-type-icon ${item.type}`}>
+                        {item.type === "goal" ? <FiTarget /> : item.type === "task" ? <FiList /> : <FiLayers />}
+                      </div>
+                      <div className="agenda-info">
+                        <span className="agenda-title">{item.text}</span>
+                        <span className="agenda-date"><FiClock /> {new Date(item.dateStr).toLocaleDateString()}</span>
+                      </div>
+                      <span className={`agenda-p-pill ${item.priority?.toLowerCase() || "medium"}`}>
+                        {item.priority || "Med"}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Activity Heatmap */}
+            <div className="insight-widget">
+              <h4 className="widget-title">Activity Density</h4>
               <div className="mini-heatmap-grid">
-                 {/* Mini monthly view for heatmap */}
                  {daysInMonth.map((date) => {
                     const dateStr = date.toISOString().split('T')[0];
                     const count = (filteredItems[dateStr] || []).length;
@@ -624,7 +721,7 @@ const TaskCalendar = () => {
                         key={dateStr} 
                         className="mini-heatmap-cell" 
                         style={{ background: cellColor }}
-                        title={`${count} items`}
+                        title={`${date.getDate()} ${monthDate.toLocaleString('default', { month: 'short' })}: ${count} items`}
                       ></div>
                     );
                  })}
@@ -635,18 +732,10 @@ const TaskCalendar = () => {
                       <div key={i} className="swatch" style={{ background: level.color }}></div>
                     ))}
                  </div>
-                 <span>Productivity Level</span>
+                 <span>Activity Level</span>
               </div>
             </div>
-
-            <div className="insight-widget mt-auto">
-              <div className="productivity-promo">
-                <div className="promo-icon"><FiTrendingUp /></div>
-                <h4>Peak Performance</h4>
-                <p>You are most active on <strong>Tuesdays</strong>. Keep the momentum!</p>
-              </div>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
 
