@@ -15,6 +15,11 @@ import {
   FiArrowRight,
   FiCalendar,
   FiTrendingUp,
+  FiPlus,
+  FiTag,
+  FiCompass,
+  FiAward,
+  FiChevronRight,
 } from "react-icons/fi";
 import "./Dashboard.css";
 
@@ -29,10 +34,64 @@ const Dashboard = () => {
   const loadingGoals = useAppSelector((state) => state.goals.loading);
 
   const [showTour, setShowTour] = useState(false);
+  const [activeTab, setActiveTab] = useState("tasks");
+  const [sidebarTab, setSidebarTab] = useState("activity");
 
   const isNewUser = useMemo(() => {
     return goals.length === 0 && tasks.length === 0 && subtasks.length === 0;
   }, [goals, tasks, subtasks]);
+
+  const greeting = useMemo(() => {
+    const hrs = new Date().getHours();
+    if (hrs < 12) return "Good morning";
+    if (hrs < 18) return "Good afternoon";
+    return "Good evening";
+  }, []);
+
+  const recentMilestones = useMemo(() => {
+    const completedTasks = tasks
+      .filter((t) => t.completed && t.updatedAt)
+      .map((t) => ({
+        id: t._id,
+        type: "task",
+        name: t.name,
+        date: new Date(t.updatedAt),
+        label: "Task Completed",
+      }));
+    const completedGoals = goals
+      .filter((g) => g.completed && g.updatedAt)
+      .map((g) => ({
+        id: g._id,
+        type: "goal",
+        name: g.title,
+        date: new Date(g.updatedAt),
+        label: "Goal Achieved",
+      }));
+    const completedSub = subtasks
+      .filter((s) => s.completed && s.updatedAt)
+      .map((s) => ({
+        id: s._id,
+        type: "subtask",
+        name: s.name,
+        date: new Date(s.updatedAt),
+        label: "Subtask Finished",
+      }));
+
+    return [...completedTasks, ...completedGoals, ...completedSub]
+      .sort((a, b) => b.date - a.date)
+      .slice(0, 4);
+  }, [tasks, goals, subtasks]);
+
+  const formatTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
 
   useEffect(() => {
     const tourDismissed = localStorage.getItem("onboardingDismissed");
@@ -149,258 +208,306 @@ const Dashboard = () => {
   console.log(highPriorityGoalsThisYear);
 
   return (
-    <div className="enhanced-dashboard">
+    <div className="enhanced-dashboard compact-view">
       <div className="dashboard-shell">
-        {/* Main Content Area */}
         <div className="dashboard-main">
-          <header className="dashboard-header">
-            <div className="header-left">
-              <span className="breadcrumb">Enterprise / Overview</span>
+          {/* Top Bar: Greeting + Inline Metrics + Action Buttons */}
+          <header className="dashboard-topbar">
+            <div className="topbar-left">
               <h1>
-                Welcome back, {userInfo?.name?.split(" ")[0]} <span>👋</span>
+                {greeting}, {userInfo?.name?.split(" ")[0]} <span>👋</span>
               </h1>
-              <p className="subtitle">
-                Here's what's happening with your projects today.
-              </p>
+              <span className="topbar-sub">Workspace Overview</span>
             </div>
-            <div className="header-actions">
+
+            <div className="topbar-metrics">
+              <div className="metric-pill">
+                <span className="metric-icon goal"><FiTarget /></span>
+                <div className="metric-data">
+                  <span className="metric-count">{activeGoals}</span>
+                  <span className="metric-label">Active Goals</span>
+                </div>
+              </div>
+              <div className="metric-pill">
+                <span className="metric-icon task"><FiCheckSquare /></span>
+                <div className="metric-data">
+                  <span className="metric-count">{pendingTasks}</span>
+                  <span className="metric-label">Pending Tasks</span>
+                </div>
+              </div>
+              <div className="metric-pill">
+                <span className="metric-icon efficiency"><FiActivity /></span>
+                <div className="metric-data">
+                  <span className="metric-count">{completionRate}%</span>
+                  <span className="metric-label">Efficiency</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="topbar-actions">
               <button
-                className="secondary-btn"
+                className="topbar-btn secondary"
                 onClick={() => navigate("/calendar")}
               >
-                <FiCalendar /> View Calendar
+                <FiCalendar /> Calendar
               </button>
               <button
-                className="primary-btn"
+                className="topbar-btn primary"
                 onClick={() => navigate("/tasks/add")}
               >
-                <FiPlusCircle /> New Task
+                <FiPlus /> New Task
               </button>
             </div>
           </header>
 
           {isNewUser && (
-            <div className="onboarding-checklist-card">
+            <div className="onboarding-checklist-card compact">
               <div className="onboarding-checklist-card__header">
                 <h2>🚀 Get Started with Stride</h2>
                 <button className="tour-btn" onClick={() => setShowTour(true)}>
-                  Take Walkthrough Tour
+                  <FiCompass /> Take Tour
                 </button>
               </div>
-              <p>Complete these simple steps to set up your workspace and get organized:</p>
               <div className="onboarding-steps">
                 <div className={`onboarding-step ${goals.length > 0 ? "completed" : ""}`} onClick={() => navigate("/goals/add")}>
-                  <div className="step-checkbox">
-                    {goals.length > 0 ? "✓" : "1"}
-                  </div>
+                  <div className="step-checkbox">{goals.length > 0 ? "✓" : "1"}</div>
                   <div className="step-content">
-                    <h3>Create your first Goal</h3>
-                    <p>Define a high-level goal you want to work towards this year.</p>
+                    <h3>Create a Goal</h3>
                   </div>
                 </div>
                 <div className={`onboarding-step ${tasks.length > 0 ? "completed" : ""}`} onClick={() => navigate("/tasks/add")}>
-                  <div className="step-checkbox">
-                    {tasks.length > 0 ? "✓" : "2"}
-                  </div>
+                  <div className="step-checkbox">{tasks.length > 0 ? "✓" : "2"}</div>
                   <div className="step-content">
                     <h3>Add a Task</h3>
-                    <p>Break your goal down into actionable tasks.</p>
                   </div>
                 </div>
                 <div className={`onboarding-step ${subtasks.length > 0 ? "completed" : ""}`} onClick={() => navigate("/subtasks/add")}>
-                  <div className="step-checkbox">
-                    {subtasks.length > 0 ? "✓" : "3"}
-                  </div>
+                  <div className="step-checkbox">{subtasks.length > 0 ? "✓" : "3"}</div>
                   <div className="step-content">
                     <h3>Create a Subtask</h3>
-                    <p>Create detailed sub-steps to track your daily progress.</p>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Stats Grid */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon goal-bg">
-                <FiTarget />
-              </div>
-              <div className="stat-info">
-                <label>Active Goals</label>
-                <div className="stat-value">{activeGoals}</div>
-              </div>
-              <div className="stat-trend positive">
-                <FiTrendingUp /> 12%
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon task-bg">
-                <FiCheckSquare />
-              </div>
-              <div className="stat-info">
-                <label>Pending Tasks</label>
-                <div className="stat-value">{pendingTasks}</div>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon efficiency-bg">
-                <FiActivity />
-              </div>
-              <div className="stat-info">
-                <label>Overall Efficiency</label>
-                <div className="stat-value">{completionRate}%</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="dashboard-content-layout">
-            {/* Left: Focus Today */}
-            <div className="focus-section">
-              <div className="section-header">
-                <h2>Today's Focus</h2>
-                <button className="text-btn" onClick={() => navigate("/tasks")}>
-                  View all <FiArrowRight />
-                </button>
+          {/* Main 3-Panel Unified Grid */}
+          <div className="compact-dashboard-grid">
+            {/* Panel 1: Today's Focus */}
+            <section className="dashboard-panel focus-panel">
+              <div className="panel-header">
+                <div className="panel-title-group">
+                  <h2>Today's Focus</h2>
+                  <span className="panel-badge">{activeTab === "tasks" ? tasksToday.length : subtasksToday.length} due</span>
+                </div>
+                
+                <div className="panel-tabs">
+                  <button 
+                    className={`tab-toggle ${activeTab === "tasks" ? "active" : ""}`}
+                    onClick={() => setActiveTab("tasks")}
+                  >
+                    Tasks ({tasksToday.length})
+                  </button>
+                  <button 
+                    className={`tab-toggle ${activeTab === "subtasks" ? "active" : ""}`}
+                    onClick={() => setActiveTab("subtasks")}
+                  >
+                    Subtasks ({subtasksToday.length})
+                  </button>
+                </div>
               </div>
 
-              <div className="focus-list">
-                {tasksToday.length === 0 && subtasksToday.length === 0 ? (
-                  <div className="empty-focus">
-                    <FiCheckSquare size={40} />
-                    <p>Your schedule is clear for today!</p>
-                  </div>
+              <div className="panel-scroll-content">
+                {activeTab === "tasks" ? (
+                  tasksToday.length === 0 ? (
+                    <div className="empty-state">
+                      <FiCheckSquare size={28} />
+                      <p>All tasks clear for today!</p>
+                      <button className="panel-add-btn" onClick={() => navigate("/tasks/add")}>
+                        <FiPlus /> Add Task
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="compact-items-list">
+                      {tasksToday.map((task) => (
+                        <div
+                          key={task._id}
+                          className="compact-item-row"
+                          onClick={() => navigate(`/tasks/${task._id}`)}
+                        >
+                          <span className={`priority-indicator-dot ${task.priority?.toLowerCase() || "medium"}`} />
+                          <div className="compact-item-info">
+                            <div className="compact-item-title">{task.name}</div>
+                            <div className="compact-item-meta">
+                              <span className={`priority-tag ${task.priority?.toLowerCase() || "medium"}`}>
+                                {task.priority || "Medium"}
+                              </span>
+                              <span><FiCalendar /> {new Date(task.endDate).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <FiChevronRight className="row-chevron" />
+                        </div>
+                      ))}
+                    </div>
+                  )
                 ) : (
-                  <>
-                    {tasksToday.map((task) => (
-                      <div
-                        key={task._id}
-                        className="focus-item"
-                        onClick={() => navigate(`/tasks/${task._id}`)}
-                      >
+                  subtasksToday.length === 0 ? (
+                    <div className="empty-state">
+                      <FiCheckSquare size={28} />
+                      <p>No subtasks due today.</p>
+                      <button className="panel-add-btn" onClick={() => navigate("/subtasks/add")}>
+                        <FiPlus /> Add Subtask
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="compact-items-list">
+                      {subtasksToday.map((st) => (
                         <div
-                          className={`priority-indicator ${getPriorityClass(task.priority)}`}
-                        ></div>
-                        <div className="focus-item-content">
-                          <span className="item-type">Task</span>
-                          <h3>{task.name}</h3>
+                          key={st._id}
+                          className="compact-item-row"
+                          onClick={() => navigate(`/subtasks/${st._id}`)}
+                        >
+                          <span className={`priority-indicator-dot ${st.priority?.toLowerCase() || "medium"}`} />
+                          <div className="compact-item-info">
+                            <div className="compact-item-title">{st.name}</div>
+                            <div className="compact-item-meta">
+                              <span className={`priority-tag ${st.priority?.toLowerCase() || "medium"}`}>
+                                {st.priority || "Medium"}
+                              </span>
+                              <span className="due-tag"><FiClock /> Due Today</span>
+                            </div>
+                          </div>
+                          <FiChevronRight className="row-chevron" />
                         </div>
-                        <div className="focus-item-meta">
-                          <span className="due-label">Active</span>
-                        </div>
-                      </div>
-                    ))}
-                    {subtasksToday.map((st) => (
-                      <div
-                        key={st._id}
-                        className="focus-item subtask"
-                        onClick={() => navigate(`/subtasks/${st._id}`)}
-                      >
-                        <div
-                          className={`priority-indicator ${getPriorityClass(st.priority)}`}
-                        ></div>
-                        <div className="focus-item-content">
-                          <span className="item-type">Subtask</span>
-                          <h3>{st.name}</h3>
-                        </div>
-                        <div className="focus-item-meta">
-                          <span className="due-label">Due Today</span>
-                        </div>
-                      </div>
-                    ))}
-                  </>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
+            </section>
 
-              {/* Goal Progress Section */}
-              <div className="section-header mt-8">
-                <h2>Goal Progression</h2>
-                <button className="text-btn" onClick={() => navigate("/goals")}>
+            {/* Panel 2: Goal Progression */}
+            <section className="dashboard-panel goals-panel">
+              <div className="panel-header">
+                <div className="panel-title-group">
+                  <h2>Goal Progression</h2>
+                  <span className="panel-badge">{goals.length} total</span>
+                </div>
+                <button className="panel-link-btn" onClick={() => navigate("/goals")}>
                   Manage <FiArrowRight />
                 </button>
               </div>
-              <div className="goals-progress-grid">
-                {goals.slice(0, 4).map((goal) => (
-                  <div key={goal._id} className="goal-mini-card">
-                    <div className="goal-mini-header">
-                      <h3>{goal.title}</h3>
-                      <span>{goal.completionPercentage}%</span>
-                    </div>
-                    <div className="progress-bar-container">
-                      <div
-                        className="progress-bar-fill"
-                        style={{ width: `${goal.completionPercentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Right: Insights Sidebar */}
-            <aside className="dashboard-sidebar">
-              <div className="sidebar-widget">
-                <h3>Activity Distribution</h3>
-                <div className="chart-container">
-                  <DonutChart data={chartData} />
+              <div className="panel-scroll-content">
+                {goals.slice(0, 4).length === 0 ? (
+                  <div className="empty-state">
+                    <FiTarget size={28} />
+                    <p>No active goals for this year.</p>
+                    <button className="panel-add-btn" onClick={() => navigate("/goals/add")}>
+                      <FiPlus /> New Goal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="compact-goals-list">
+                    {goals.slice(0, 4).map((goal) => (
+                      <div 
+                        key={goal._id} 
+                        className="compact-goal-card"
+                        onClick={() => navigate(`/goals/${goal._id}`)}
+                      >
+                        <div className="compact-goal-header">
+                          <div className="compact-goal-title">{goal.title}</div>
+                          <span className="goal-pct">{goal.completionPercentage}%</span>
+                        </div>
+                        <div className="compact-progress-track">
+                          <div
+                            className="compact-progress-fill"
+                            style={{ width: `${goal.completionPercentage}%` }}
+                          />
+                        </div>
+                        <div className="compact-goal-footer">
+                          <span className={`priority-tag ${goal.priority?.toLowerCase() || "medium"}`}>
+                            {goal.priority || "Medium"}
+                          </span>
+                          <span>Target: {new Date(goal.duration.endDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Panel 3: Insights & Quick Tools (Tabbed Chart vs Achievements) */}
+            <section className="dashboard-panel insights-panel">
+              <div className="panel-header">
+                <div className="panel-title-group">
+                  <h2>Insights & Activity</h2>
+                </div>
+                <div className="panel-tabs">
+                  <button 
+                    className={`tab-toggle ${sidebarTab === "activity" ? "active" : ""}`}
+                    onClick={() => setSidebarTab("activity")}
+                  >
+                    Chart
+                  </button>
+                  <button 
+                    className={`tab-toggle ${sidebarTab === "achievements" ? "active" : ""}`}
+                    onClick={() => setSidebarTab("achievements")}
+                  >
+                    Milestones
+                  </button>
                 </div>
               </div>
 
-              <div className="sidebar-widget">
-                <h3>Recent Milestones</h3>
-                <div className="milestones-list">
-                  <div className="milestone-item">
-                    <div className="milestone-icon">
-                      <FiClock />
-                    </div>
-                    <div className="milestone-text">
-                      <p>Weekly report generated</p>
-                      <span>2 hours ago</span>
-                    </div>
+              <div className="panel-scroll-content">
+                {sidebarTab === "activity" ? (
+                  <div className="chart-wrapper">
+                    <DonutChart data={chartData} height="190px" />
                   </div>
-                  <div className="milestone-item">
-                    <div className="milestone-icon success">
-                      <FiCheckSquare />
-                    </div>
-                    <div className="milestone-text">
-                      <p>Project Alpha completed</p>
-                      <span>Yesterday</span>
-                    </div>
+                ) : (
+                  <div className="compact-milestones-list">
+                    {recentMilestones.length === 0 ? (
+                      <div className="empty-state">
+                        <FiAward size={28} />
+                        <p>Complete tasks or goals to see achievements here.</p>
+                      </div>
+                    ) : (
+                      recentMilestones.map((milestone) => (
+                        <div key={milestone.id} className="compact-milestone-row">
+                          <div className={`milestone-badge-icon ${milestone.type}`}>
+                            {milestone.type === "goal" ? <FiTarget /> : <FiCheckSquare />}
+                          </div>
+                          <div className="compact-milestone-content">
+                            <div className="milestone-name">{milestone.name}</div>
+                            <span className="milestone-sub">{milestone.label} • {formatTimeAgo(milestone.date)}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                </div>
+                )}
               </div>
 
-              <div className="sidebar-promo">
-                <FiTarget size={24} />
-                <p>
-                  Stay focused! You're on track to complete 85% of your goals
-                  this month.
-                </p>
+              <div className="panel-quick-toolbar">
+                <button onClick={() => navigate("/pomodoro")} className="quick-tool-btn">
+                  <FiClock /> Pomodoro
+                </button>
+                <button onClick={() => navigate("/tags/manage")} className="quick-tool-btn">
+                  <FiTag /> Tags
+                </button>
+                <button onClick={() => navigate("/calendar")} className="quick-tool-btn">
+                  <FiCalendar /> Calendar
+                </button>
               </div>
-            </aside>
+            </section>
           </div>
+
           <OnboardingTour isOpen={showTour} onClose={() => setShowTour(false)} />
         </div>
       </div>
     </div>
   );
 };
-
-const FiPlusCircle = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="16" />
-    <line x1="8" y1="12" x2="16" y2="12" />
-  </svg>
-);
 
 export default Dashboard;
