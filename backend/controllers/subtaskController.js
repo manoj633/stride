@@ -3,7 +3,6 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Subtask from "../models/subtaskModel.js";
 import logger from "../utils/logger.js";
 import Task from "../models/taskModel.js";
-import Goal from "../models/goalModel.js";
 
 /**
  * * Description: Fetch all subtasks
@@ -32,11 +31,6 @@ const getSubtaskById = asyncHandler(async (req, res) => {
 
   const subtask = await Subtask.findById(req.params.id);
   if (subtask) {
-    console.log(
-      subtask.createdBy,
-      req.userId,
-      !subtask.createdBy.equals(req.userId)
-    );
     if (subtask.createdBy.equals(req.userId)) {
       logger.debug("Subtask found successfully", { subtaskId: req.params.id });
       return res.json(subtask);
@@ -79,12 +73,6 @@ const createSubtask = asyncHandler(async (req, res) => {
     taskId,
     goalId,
   });
-  
-  // Update the completion percentage of the parent task
-  if (taskId) {
-    await updateTaskCompletionPercentage(taskId);
-  }
-  
   res.status(201).json(createdSubtask);
 });
 
@@ -115,12 +103,6 @@ const updateSubtask = asyncHandler(async (req, res) => {
       subtaskId: updatedSubtask._id,
       taskId: updatedSubtask.taskId,
     });
-    
-    // Update the completion percentage of the parent task
-    if (updatedSubtask.taskId) {
-      await updateTaskCompletionPercentage(updatedSubtask.taskId);
-    }
-    
     res.json(updatedSubtask);
   } else {
     logger.error("Subtask not found for update", { subtaskId: req.params.id });
@@ -190,12 +172,6 @@ const markSubtaskAsCompleted = asyncHandler(async (req, res) => {
       subtaskId: updatedSubtask._id,
       taskId: updatedSubtask.taskId,
     });
-    
-    // Update the completion percentage of the parent task
-    if (updatedSubtask.taskId) {
-      await updateTaskCompletionPercentage(updatedSubtask.taskId);
-    }
-    
     res.json(updatedSubtask);
   } else {
     logger.error("Subtask not found for completion", {
@@ -220,7 +196,7 @@ const updateTaskCompletionPercentage = async (taskId) => {
           completionPercentage: 0,
           completed: false,
         },
-        { new: true }
+        { new: true },
       );
 
       // Also update the parent goal
@@ -232,7 +208,7 @@ const updateTaskCompletionPercentage = async (taskId) => {
 
     // Calculate completion percentage based on completed subtasks
     const completedSubtasks = subtasks.filter(
-      (subtask) => subtask.completed
+      (subtask) => subtask.completed,
     ).length;
     const completionPercentage = (completedSubtasks / subtasks.length) * 100;
     const isCompleted = completedSubtasks === subtasks.length;
@@ -244,7 +220,7 @@ const updateTaskCompletionPercentage = async (taskId) => {
         completionPercentage: Math.round(completionPercentage),
         completed: isCompleted,
       },
-      { new: true }
+      { new: true },
     );
 
     logger.debug("Updated task completion percentage", {
@@ -281,7 +257,7 @@ const updateGoalCompletionPercentage = async (goalId) => {
     // Calculate the average completion percentage
     const totalPercentage = tasks.reduce(
       (sum, task) => sum + task.completionPercentage,
-      0
+      0,
     );
     const averagePercentage =
       tasks.length > 0 ? totalPercentage / tasks.length : 0;
