@@ -24,6 +24,14 @@ const userSchema = new mongoose.Schema(
     twoFactorSecret: { type: String, default: null },
     twoFactorBackupCodes: [{ type: String }], // bcrypt hashes, ~60 chars each
     lastActive: { type: Date, default: Date.now },
+    xp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    streak: { type: Number, default: 0 },
+    lastTaskCompletedDate: { type: Date, default: null },
+    totalTasksCompleted: { type: Number, default: 0 },
+    totalGoalsCompleted: { type: Number, default: 0 },
+    totalPomodorosCompleted: { type: Number, default: 0 },
+    achievements: [{ type: String }],
   },
   { timestamps: true },
 );

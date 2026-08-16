@@ -18,6 +18,7 @@ import {
   disableTwoFactor,
   validateTwoFactorAuth,
   recoverWithBackupCode,
+  completePomodoro,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import { passwordResetLimiter, loginLimiter, registerLimiter } from "../middleware/rateLimiter.js";
@@ -108,5 +109,6 @@ router.post("/two-factor/verify", protect, verifyAndEnableTwoFactor);
 router.post("/two-factor/disable", protect, disableTwoFactor);
 router.post("/two-factor/validate", validateTwoFactorAuth);
 router.post("/recover-with-backup-code", passwordResetLimiter, recoverWithBackupCode);
+router.post("/pomodoro/complete", protect, completePomodoro);
 
 export default router;

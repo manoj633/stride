@@ -249,13 +249,13 @@ const App = () => {
 
 const RootApp = () => {
   return (
-    <TimerProvider>
-      <Provider store={store}>
+    <Provider store={store}>
+      <TimerProvider>
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </Provider>
-    </TimerProvider>
+      </TimerProvider>
+    </Provider>
   );
 };
 

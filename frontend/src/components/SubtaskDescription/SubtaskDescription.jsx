@@ -11,6 +11,7 @@ import {
 } from "../../store/features/subtasks/subtaskSlice";
 import "./SubtaskDescription.css";
 import { updateTaskCompletion } from "../../store/features/tasks/taskSlice";
+import { getProfile } from "../../store/features/users/userSlice";
 import { updateGoalCompletion } from "../../store/features/goals/goalSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
@@ -61,6 +62,7 @@ const SubtaskDescription = () => {
             );
           }
         }
+        dispatch(getProfile());
       })(),
       {
         pending: "Updating subtask...",

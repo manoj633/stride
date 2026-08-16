@@ -214,9 +214,23 @@ const Dashboard = () => {
           {/* Top Bar: Greeting + Inline Metrics + Action Buttons */}
           <header className="dashboard-topbar">
             <div className="topbar-left">
-              <h1>
-                {greeting}, {userInfo?.name?.split(" ")[0]} <span>👋</span>
-              </h1>
+              <div className="dashboard-greeting-row">
+                <h1>
+                  {greeting}, {userInfo?.name?.split(" ")[0]} <span>👋</span>
+                </h1>
+                {userInfo?.level !== undefined && (
+                  <div className="dashboard-level-badge" title={`${userInfo?.xp || 0} Total XP`}>
+                    <span className="lvl-num">Lvl {userInfo.level}</span>
+                    <div className="lvl-xp-bar">
+                      <div 
+                        className="lvl-xp-fill" 
+                        style={{ width: `${(userInfo.xp || 0) % 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="lvl-xp-text">{(userInfo.xp || 0) % 100}/100 XP</span>
+                  </div>
+                )}
+              </div>
               <span className="topbar-sub">Workspace Overview</span>
             </div>
 

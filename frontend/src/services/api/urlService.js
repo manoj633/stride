@@ -80,6 +80,9 @@ export const userAPI = {
 
   validateTwoFactorAuth: (data) =>
     axiosInstance.post("/users/two-factor/validate", data),
+
+  completePomodoro: () =>
+    axiosInstance.post("/users/pomodoro/complete"),
 };
 
 export const goalTemplateAPI = {

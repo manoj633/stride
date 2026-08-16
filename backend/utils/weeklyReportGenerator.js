@@ -724,10 +724,10 @@ export const generateAndSendWeeklyReports = async () => {
   <title>Stride Weekly Productivity Report</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700,800" rel="stylesheet" type="text/css">
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; -webkit-text-size-adjust: none; text-size-adjust: none; }
+    body { margin: 0; padding: 0; -webkit-text-size-adjust: none; text-size-adjust: none; background-color: #f8fafc; }
     a[x-apple-data-detectors] { color: inherit !important; text-decoration: inherit !important; }
     #MessageViewBody a { color: inherit; text-decoration: none; }
     p { line-height: inherit }
@@ -739,189 +739,254 @@ export const generateAndSendWeeklyReports = async () => {
   </style>
 </head>
 
-<body style="background-color: #FFFFFF; margin: 0; padding: 0;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #FFFFFF;">
+<body style="background-color: #f8fafc; margin: 0; padding: 0;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #f8fafc; padding: 20px 0;">
     <tr>
       <td>
 
-        <!-- HEADER / BANNER -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-image:url('https://d1oco4z2z1fhwp.cloudfront.net/templates/default/2546/Background_first_Element.png');background-position:center top;background-repeat:no-repeat;">
+        <!-- MAIN CONTAINER -->
+        <table align="center" width="680" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto; background-color:#ffffff; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
           <tr>
             <td>
-              <table align="center" width="680" style="margin:0 auto;">
+
+              <!-- HEADER / BANNER -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 40px 30px; text-align: center;">
                 <tr>
-                  <td align="center" style="padding-top:30px;">
-                    <img src="https://d1oco4z2z1fhwp.cloudfront.net/templates/default/2546/Logo_Sport.png" width="80" alt="Stride Logo">
+                  <td align="center">
+                    <span style="font-family:Montserrat,Arial,sans-serif;color:#3b82f6;font-size:24px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Stride</span>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:46px;padding:20px 10px 0;">
-                    <strong>Great Progress!</strong>
+                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#ffffff;font-size:36px;font-weight:800;padding:20px 10px 8px;letter-spacing:-1px;line-height:1.2;">
+                    Weekly Review
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:28px;padding:10px;">
-                    You’re Advancing Towards Your Goals
+                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#94a3b8;font-size:15px;padding:0 20px 24px;line-height:1.5;">
+                    Here is your productivity snapshot for <strong style="color:#ffffff;">${startDateStr} - ${endDateStr}</strong>. Keep up the momentum!
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:18px;padding-top:10px;">
-                    <strong>Your Weekly Report: ${startDateStr} - ${endDateStr}</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding:20px;">
-                    <div style="background-color:#2db9e8;color:#fff;font-family:Montserrat,Arial,sans-serif;font-size:58px;border-radius:4px;display:inline-block;padding:0 45px;">
-                      <strong>${tasksCompletedThisPeriod}</strong>
-                    </div>
-                    <div style="background-color:#e7f7ff;color:#2db9e8;font-family:Montserrat,Arial,sans-serif;font-size:18px;border-radius:24px;display:inline-block;padding:5px 45px;margin-top:10px;">
-                      <strong>Avg Progress: ${
-                        weeklyProgressData.totalProgressPercentage
-                      }%</strong>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding:30px;">
-                    <img src="cid:weeklyProgressChart" width="680" alt="Weekly Progress Chart" style="width:100%;border:0;display:block;">
+                  <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                      <tr>
+                        <td style="padding:0 8px;">
+                          <div style="background-color:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#ffffff;font-family:Montserrat,Arial,sans-serif;font-size:13px;border-radius:30px;padding:8px 20px;display:inline-block;font-weight:600;">
+                            Completed: <strong style="color:#3b82f6;">${tasksCompletedThisPeriod} Tasks</strong>
+                          </div>
+                        </td>
+                        <td style="padding:0 8px;">
+                          <div style="background-color:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#ffffff;font-family:Montserrat,Arial,sans-serif;font-size:13px;border-radius:30px;padding:8px 20px;display:inline-block;font-weight:600;">
+                            Avg Progress: <strong style="color:#10b981;">${weeklyProgressData.totalProgressPercentage}%</strong>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-        </table>
 
-        <!-- SECTION 1: FAVORITE GOAL / FEATURED ACHIEVEMENT -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#fce2e5;">
-          <tr>
-            <td>
-              <table align="center" width="680" style="margin:0 auto;">
+              <!-- MAIN SUMMARY CHART -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#ffffff; padding: 30px 30px 20px;">
                 <tr>
-                  <td style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:38px;text-align:left;padding:40px 20px 10px;">
-                    <strong>Your Top Performing Goal</strong>
+                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:18px;font-weight:700;padding-bottom:15px;">
+                    Weekly Workload Trend
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:0 20px;">
-                    <hr style="border-top:3px solid #E9707D;width:20%;margin:10px 0;">
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding:20px;">
-                    <img src="cid:goalProgressChart" alt="Goal Progress" width="680" style="width:100%;border:0;display:block;">
+                  <td align="center">
+                    <img src="cid:weeklyProgressChart" width="620" alt="Weekly Progress Chart" style="width:100%;max-width:620px;border-radius:12px;border:1px solid #e2e8f0;display:block;">
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-        </table>
 
-        <!-- SECTION 2: DAILY PERFORMANCE -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#fbfdff;">
-          <tr>
-            <td>
-              <table align="center" width="680" style="margin:0 auto;">
+              <!-- GAMIFICATION PROGRESSION -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:30px 20px;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;">
                 <tr>
-                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:38px;padding:40px 20px 10px;">
-                    <strong>Daily Productivity Snapshot</strong>
+                  <td colspan="3" align="center" style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:18px;font-weight:700;padding-bottom:20px;text-transform:uppercase;letter-spacing:1px;">
+                    🏆 Progression & Badges
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding:20px;">
-                    <img src="cid:dailyProductivityChart" alt="Daily Productivity Chart" width="637" style="width:100%;border:0;display:block;">
+                  <!-- Level Card -->
+                  <td width="33.33%" style="padding:0 8px; vertical-align:top;">
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                      <tr>
+                        <td style="font-size:32px;padding-bottom:10px;">🌟</td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#0f172a;font-weight:700;">Level ${user.level || 1}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0 4px;">
+                          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;border-radius:3px;height:6px;overflow:hidden;">
+                            <tr>
+                              <td width="${(user.xp || 0) % 100}%" style="background-color:#3b82f6;border-radius:3px;height:6px;"></td>
+                              <td width="${100 - ((user.xp || 0) % 100)}%" style="height:6px;"></td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:Montserrat,Arial,sans-serif;font-size:11px;color:#64748b;">${user.xp || 0} Total XP</td>
+                      </tr>
+                    </table>
                   </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-
-        <!-- SECTION 3: INSIGHTS GRID -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#fbfdff;">
-          <tr>
-            <td>
-              <table align="center" width="680" style="margin:0 auto;">
-                <!-- Card 1 -->
-                <tr>
-                  <td width="66.66%" style="background-color:#f9f9f9;padding:20px;vertical-align:top;">
-                    <h3 style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:22px;">Consistency Rate</h3>
-                    <p style="font-family:Montserrat,Arial,sans-serif;color:#848484;font-size:14px;line-height:1.6;">
-                      You maintained a steady workflow throughout the week. Keep focusing on your streak to maintain momentum.
-                    </p>
+                  <!-- Streak Card -->
+                  <td width="33.33%" style="padding:0 8px; vertical-align:top;">
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#fffdfa;border:1px solid #fed7aa;border-radius:16px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                      <tr>
+                        <td style="font-size:32px;padding-bottom:10px;">🔥</td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#ea580c;font-weight:700;">${user.streak || 0} Day Streak</td>
+                      </tr>
+                      <tr>
+                        <td style="height:6px;padding:8px 0 4px;"></td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:Montserrat,Arial,sans-serif;font-size:11px;color:#c2410c;">Consistency Streak</td>
+                      </tr>
+                    </table>
                   </td>
-                  <td width="33.33%" style="background-color:#88d2a3;padding:20px;text-align:right;color:#fff;font-family:Montserrat,Arial,sans-serif;">
-                    <strong style="font-size:24px;">${
-                      weeklyProgressData.trend.percentage || 75
-                    }%</strong>
-                    <p style="margin:5px 0 0;">Consistency</p>
-                    <img src="cid:consistencyChart" alt="Consistency Graph" width="180" style="margin-top:10px;width:100%;border:0;">
-                  </td>
-                </tr>
-
-                <!-- Card 2 -->
-                <tr>
-                  <td width="66.66%" style="background-color:#f9f9f9;padding:20px;vertical-align:top;">
-                    <h3 style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:22px;">Focus Time</h3>
-                    <p style="font-family:Montserrat,Arial,sans-serif;color:#848484;font-size:14px;line-height:1.6;">
-                      Your average productive hours have shown a healthy balance. Optimize your deep-work slots for even better output.
-                    </p>
-                  </td>
-                  <td width="33.33%" style="background-color:#64a2d8;padding:20px;text-align:right;color:#fff;font-family:Montserrat,Arial,sans-serif;">
-                    <strong style="font-size:24px;">${
-                      focusHours || 6.5
-                    }h</strong>
-                    <p style="margin:5px 0 0;">Avg Focus / Day</p>
-                    <img src="cid:focusChart" alt="Focus Time Graph" width="180" style="margin-top:10px;width:100%;border:0;">
-                  </td>
-                </tr>
-
-                <!-- Card 3 -->
-                <tr>
-                  <td width="66.66%" style="background-color:#f9f9f9;padding:20px;vertical-align:top;">
-                    <h3 style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:22px;">Completed Goals</h3>
-                    <p style="font-family:Montserrat,Arial,sans-serif;color:#848484;font-size:14px;line-height:1.6;">
-                      You’ve completed ${completedGoals} goals this week. Each milestone is a testament to your persistence and clarity.
-                    </p>
-                  </td>
-                  <td width="33.33%" style="background-color:#6f73d2;padding:20px;text-align:right;color:#fff;font-family:Montserrat,Arial,sans-serif;">
-                    <strong style="font-size:24px;">${completedGoals}</strong>
-                    <p style="margin:5px 0 0;">Goals Achieved</p>
-                    <img src="cid:goalCompletionChart" alt="Goal Completion Chart" width="180" style="margin-top:10px;width:100%;border:0;">
+                  <!-- Badges Card -->
+                  <td width="33.33%" style="padding:0 8px; vertical-align:top;">
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#fefdf0;border:1px solid #fef08a;border-radius:16px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                      <tr>
+                        <td style="font-size:32px;padding-bottom:10px;">🏅</td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#a16207;font-weight:700;">${(user.achievements || []).length} Badge${(user.achievements || []).length === 1 ? "" : "s"}</td>
+                      </tr>
+                      <tr>
+                        <td style="height:6px;padding:8px 0 4px;"></td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:Montserrat,Arial,sans-serif;font-size:11px;color:#a16207;">Unlocked Badges</td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-        </table>
 
-        <!-- FOOTER -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#e7f7ff;">
-          <tr>
-            <td>
-              <table align="center" width="680" style="margin:0 auto;text-align:center;">
+              <!-- SECTION 1: GOAL PROGRESS -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#ffffff;padding:35px 30px;border-bottom:1px solid #e2e8f0;">
                 <tr>
-                  <td style="padding:30px 20px 10px;">
-                    <img src="https://d1oco4z2z1fhwp.cloudfront.net/templates/default/2546/Logo_Sport.png" width="80" alt="Stride Logo">
-                    <p style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:14px;line-height:1.8;margin-top:15px;">
-                      This is an automated report from Stride. Keep striving for consistency and balance each week.
+                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:18px;font-weight:700;padding-bottom:15px;">
+                    Goal Completion Overview
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <img src="cid:goalProgressChart" alt="Goal Progress" width="620" style="width:100%;max-width:620px;border-radius:12px;border:1px solid #e2e8f0;display:block;">
+                  </td>
+                </tr>
+              </table>
+
+              <!-- SECTION 2: DAILY PERFORMANCE -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#ffffff;padding:35px 30px;border-bottom:1px solid #e2e8f0;">
+                <tr>
+                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:18px;font-weight:700;padding-bottom:15px;">
+                    Daily Activity Snapshots
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <img src="cid:dailyProductivityChart" alt="Daily Productivity Chart" width="620" style="width:100%;max-width:620px;border-radius:12px;border:1px solid #e2e8f0;display:block;">
+                  </td>
+                </tr>
+              </table>
+
+              <!-- SECTION 3: INSIGHTS SPLIT GRID -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:35px 30px;">
+                <tr>
+                  <td align="center" style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:18px;font-weight:700;padding-bottom:20px;text-transform:uppercase;letter-spacing:1px;">
+                    💡 Productivity Insights
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <!-- Card 1 -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+                      <tr>
+                        <td width="66.66%" style="background-color:#ffffff;border:1px solid #e2e8f0;border-right:none;border-top-left-radius:16px;border-bottom-left-radius:16px;padding:20px;vertical-align:top;">
+                          <h4 style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:16px;font-weight:700;margin:0 0 6px 0;">Consistency Rate</h4>
+                          <p style="font-family:Montserrat,Arial,sans-serif;color:#64748b;font-size:13px;line-height:1.5;margin:0;">
+                            You maintained a steady workflow throughout the week. Keep focusing on your streak to maintain momentum.
+                          </p>
+                        </td>
+                        <td width="33.33%" style="background-color:#e6f4ea;border:1px solid #e2e8f0;border-top-right-radius:16px;border-bottom-right-radius:16px;padding:20px;text-align:right;font-family:Montserrat,Arial,sans-serif;vertical-align:middle;">
+                          <strong style="font-size:26px;color:#137333;display:block;font-weight:800;">${
+                            weeklyProgressData.trend.percentage || 75
+                          }%</strong>
+                          <span style="margin:2px 0 0;font-size:10px;color:#137333;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;">Consistency</span>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Card 2 -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+                      <tr>
+                        <td width="66.66%" style="background-color:#ffffff;border:1px solid #e2e8f0;border-right:none;border-top-left-radius:16px;border-bottom-left-radius:16px;padding:20px;vertical-align:top;">
+                          <h4 style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:16px;font-weight:700;margin:0 0 6px 0;">Focus Time</h4>
+                          <p style="font-family:Montserrat,Arial,sans-serif;color:#64748b;font-size:13px;line-height:1.5;margin:0;">
+                            Your average productive hours have shown a healthy balance. Optimize your deep-work slots for even better output.
+                          </p>
+                        </td>
+                        <td width="33.33%" style="background-color:#e8f0fe;border:1px solid #e2e8f0;border-top-right-radius:16px;border-bottom-right-radius:16px;padding:20px;text-align:right;font-family:Montserrat,Arial,sans-serif;vertical-align:middle;">
+                          <strong style="font-size:26px;color:#1a73e8;display:block;font-weight:800;">${
+                            focusHours || 6.5
+                          }h</strong>
+                          <span style="margin:2px 0 0;font-size:10px;color:#1a73e8;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;">Avg Focus/Day</span>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Card 3 -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0;">
+                      <tr>
+                        <td width="66.66%" style="background-color:#ffffff;border:1px solid #e2e8f0;border-right:none;border-top-left-radius:16px;border-bottom-left-radius:16px;padding:20px;vertical-align:top;">
+                          <h4 style="font-family:Montserrat,Arial,sans-serif;color:#0f172a;font-size:16px;font-weight:700;margin:0 0 6px 0;">Completed Goals</h4>
+                          <p style="font-family:Montserrat,Arial,sans-serif;color:#64748b;font-size:13px;line-height:1.5;margin:0;">
+                            You’ve completed ${completedGoals} goals this week. Each milestone is a testament to your persistence and clarity.
+                          </p>
+                        </td>
+                        <td width="33.33%" style="background-color:#f3e8ff;border:1px solid #e2e8f0;border-top-right-radius:16px;border-bottom-right-radius:16px;padding:20px;text-align:right;font-family:Montserrat,Arial,sans-serif;vertical-align:middle;">
+                          <strong style="font-size:26px;color:#7e22ce;display:block;font-weight:800;">${completedGoals}</strong>
+                          <span style="margin:2px 0 0;font-size:10px;color:#7e22ce;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;">Goals Completed</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- FOOTER -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0f172a;color:#ffffff;padding:40px 30px;text-align:center;">
+                <tr>
+                  <td>
+                    <span style="font-family:Montserrat,Arial,sans-serif;color:#3b82f6;font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Stride</span>
+                    <p style="font-family:Montserrat,Arial,sans-serif;color:#94a3b8;font-size:13px;line-height:1.6;margin-top:10px;padding:0 20px;">
+                      This is an automated weekly digest from Stride to help you track work-life balance and execution speed.
                     </p>
-                    <div style="margin-top:10px;">
+                    <div style="margin-top:15px;">
                       <a href="${
                         process.env.FRONTEND_URL || "http://localhost:5173"
-                      }/dashboard" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:14px;text-decoration:none;margin:0 8px;">View Dashboard</a> |
+                      }/dashboard" style="font-family:Montserrat,Arial,sans-serif;color:#3b82f6;font-size:13px;text-decoration:none;margin:0 10px;font-weight:600;">View Dashboard</a> |
                       <a href="${
                         process.env.FRONTEND_URL || "http://localhost:5173"
-                      }/account/preferences" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:14px;text-decoration:none;margin:0 8px;">Preferences</a> |
+                      }/account/preferences" style="font-family:Montserrat,Arial,sans-serif;color:#3b82f6;font-size:13px;text-decoration:none;margin:0 10px;font-weight:600;">Preferences</a> |
                       <a href="${
                         process.env.FRONTEND_URL || "http://localhost:5173"
-                      }/help" style="font-family:Montserrat,Arial,sans-serif;color:#011936;font-size:14px;text-decoration:none;margin:0 8px;">Help</a>
+                      }/help" style="font-family:Montserrat,Arial,sans-serif;color:#3b82f6;font-size:13px;text-decoration:none;margin:0 10px;font-weight:600;">Help Center</a>
                     </div>
-                    <p style="font-family:Montserrat,Arial,sans-serif;color:#999;font-size:12px;margin-top:20px;">
+                    <p style="font-family:Montserrat,Arial,sans-serif;color:#475569;font-size:11px;margin-top:25px;border-top:1px solid #1e293b;padding-top:20px;">
                       © ${new Date().getFullYear()} Stride. All rights reserved.
                     </p>
                   </td>
                 </tr>
               </table>
+
             </td>
           </tr>
         </table>
@@ -931,7 +996,7 @@ export const generateAndSendWeeklyReports = async () => {
   </table>
 </body>
 </html>
-`;
+        `;
 
         // Prepare email attachments
         const attachments = [

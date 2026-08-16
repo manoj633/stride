@@ -1,5 +1,8 @@
 // src/components/Pomodoro/TimerContext.jsx
 import React, { createContext, useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getProfile } from "../../store/features/users/userSlice";
+import { userAPI } from "../../services/api/urlService";
 
 // Define timer constants
 export const TIMER_STATES = {
@@ -18,6 +21,9 @@ const TIMER_DURATIONS = {
 const TimerContext = createContext();
 
 const TimerProvider = ({ children }) => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.user);
+
   const [activeTimer, setActiveTimer] = useState(TIMER_STATES.POMODORO);
   const [minutes, setMinutes] = useState(
     TIMER_DURATIONS[TIMER_STATES.POMODORO]
@@ -62,6 +68,17 @@ const TimerProvider = ({ children }) => {
               const newCompletedCount = completedPomodoros + 1;
               setCompletedPomodoros(newCompletedCount);
 
+              // Log completed Pomodoro to backend
+              if (userInfo) {
+                userAPI.completePomodoro()
+                  .then(() => {
+                    dispatch(getProfile());
+                  })
+                  .catch((err) => {
+                    console.error("Failed to log completed Pomodoro:", err);
+                  });
+              }
+
               // Check if it's time for a long break
               if (newCompletedCount % POMODOROS_BEFORE_LONG_BREAK === 0) {
                 setActiveTimer(TIMER_STATES.LONG_BREAK);
@@ -83,7 +100,7 @@ const TimerProvider = ({ children }) => {
 
       return () => clearInterval(intervalRef.current);
     }
-  }, [isActive, minutes, seconds, activeTimer, completedPomodoros]);
+  }, [isActive, minutes, seconds, activeTimer, completedPomodoros, userInfo, dispatch]);
 
   // Start the timer
   const startTimer = () => {

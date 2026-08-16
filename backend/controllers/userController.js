@@ -7,6 +7,7 @@ import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { verifyUserStreakActive, handlePomodoroCompletionXP } from "../utils/gamification.js";
 
 //@desc     Auth User & get token
 //@route    POST /api/users/login
@@ -19,6 +20,7 @@ const authUser = asyncHandler(async (req, res) => {
   if (user && (await user.matchPassword(password))) {
     // Update lastActive on login
     user.lastActive = new Date();
+    verifyUserStreakActive(user);
     await user.save();
 
     // Check if 2FA is enabled
@@ -41,6 +43,13 @@ const authUser = asyncHandler(async (req, res) => {
       isAdmin: user.isAdmin,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
       accessToken,
+      xp: user.xp || 0,
+      level: user.level || 1,
+      streak: user.streak || 0,
+      totalTasksCompleted: user.totalTasksCompleted || 0,
+      totalGoalsCompleted: user.totalGoalsCompleted || 0,
+      totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+      achievements: user.achievements || [],
     });
   } else {
     res.status(401);
@@ -98,6 +107,13 @@ const registerUser = asyncHandler(async (req, res) => {
         qrCodeUrl,
         secret: secret.base32,
       },
+      xp: user.xp || 0,
+      level: user.level || 1,
+      streak: user.streak || 0,
+      totalTasksCompleted: user.totalTasksCompleted || 0,
+      totalGoalsCompleted: user.totalGoalsCompleted || 0,
+      totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+      achievements: user.achievements || [],
     });
   } else {
     res.status(400);
@@ -124,11 +140,21 @@ const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
+    verifyUserStreakActive(user);
+    await user.save();
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      xp: user.xp || 0,
+      level: user.level || 1,
+      streak: user.streak || 0,
+      totalTasksCompleted: user.totalTasksCompleted || 0,
+      totalGoalsCompleted: user.totalGoalsCompleted || 0,
+      totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+      achievements: user.achievements || [],
     });
   } else {
     res.status(404);
@@ -150,6 +176,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       user.password = req.body.password;
     }
 
+    verifyUserStreakActive(user);
     const updatedUser = await user.save();
 
     res.status(200).json({
@@ -157,6 +184,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       name: updatedUser.name,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
+      xp: updatedUser.xp || 0,
+      level: updatedUser.level || 1,
+      streak: updatedUser.streak || 0,
+      totalTasksCompleted: updatedUser.totalTasksCompleted || 0,
+      totalGoalsCompleted: updatedUser.totalGoalsCompleted || 0,
+      totalPomodorosCompleted: updatedUser.totalPomodorosCompleted || 0,
+      achievements: updatedUser.achievements || [],
     });
   } else {
     res.status(400);
@@ -586,6 +620,9 @@ const validateTwoFactorAuth = asyncHandler(async (req, res) => {
   // Generate token and send response (similar to your regular login)
   const accessToken = generateToken(res, user._id);
 
+  verifyUserStreakActive(user);
+  await user.save();
+
   res.status(200).json({
     _id: user._id,
     name: user.name,
@@ -593,6 +630,13 @@ const validateTwoFactorAuth = asyncHandler(async (req, res) => {
     isAdmin: user.isAdmin,
     isTwoFactorEnabled: user.isTwoFactorEnabled,
     accessToken,
+    xp: user.xp || 0,
+    level: user.level || 1,
+    streak: user.streak || 0,
+    totalTasksCompleted: user.totalTasksCompleted || 0,
+    totalGoalsCompleted: user.totalGoalsCompleted || 0,
+    totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+    achievements: user.achievements || [],
   });
 });
 
@@ -648,6 +692,33 @@ const recoverWithBackupCode = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Password reset successful. Please login with your new password." });
 });
 
+// @desc    Complete Pomodoro session
+// @route   POST /api/users/pomodoro/complete
+// @access  Private
+const completePomodoro = asyncHandler(async (req, res) => {
+  const updatedUser = await handlePomodoroCompletionXP(req.user._id);
+
+  if (updatedUser) {
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+      isTwoFactorEnabled: updatedUser.isTwoFactorEnabled,
+      xp: updatedUser.xp || 0,
+      level: updatedUser.level || 1,
+      streak: updatedUser.streak || 0,
+      totalTasksCompleted: updatedUser.totalTasksCompleted || 0,
+      totalGoalsCompleted: updatedUser.totalGoalsCompleted || 0,
+      totalPomodorosCompleted: updatedUser.totalPomodorosCompleted || 0,
+      achievements: updatedUser.achievements || [],
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
 export {
   authUser,
   registerUser,
@@ -666,4 +737,5 @@ export {
   disableTwoFactor,
   validateTwoFactorAuth,
   recoverWithBackupCode,
+  completePomodoro,
 };

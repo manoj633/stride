@@ -45,12 +45,59 @@ const Profile = () => {
     return name ? name.charAt(0).toUpperCase() : "U";
   };
 
+  const getAchievementsList = (unlockedAchievements = []) => {
+    const achievements = [
+      {
+        id: "first-step",
+        title: "First Step",
+        description: "Complete your first task or focus session",
+        icon: "🌱",
+      },
+      {
+        id: "task-master",
+        title: "Task Master",
+        description: "Complete 10 tasks in total",
+        icon: "⚡",
+      },
+      {
+        id: "goal-getter",
+        title: "Goal Getter",
+        description: "Achieve your first goal",
+        icon: "🏆",
+      },
+      {
+        id: "focus-fanatic",
+        title: "Focus Fanatic",
+        description: "Complete 5 focus sessions",
+        icon: "🧠",
+      },
+      {
+        id: "streak-starter",
+        title: "Streak Starter",
+        description: "Maintain a 3-day activity streak",
+        icon: "🔥",
+      },
+      {
+        id: "streak-legend",
+        title: "Streak Legend",
+        description: "Maintain a 10-day activity streak",
+        icon: "👑",
+      },
+    ];
+
+    return achievements.map(ach => ({
+      ...ach,
+      unlocked: unlockedAchievements.includes(ach.id),
+    }));
+  };
+
   if (loading) return <LoadingSpinner message="Loading profile..." />;
   if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="profile">
       <div className="profile__container">
+        {/* Left Column: Profile Settings */}
         <div className="profile__sidebar">
           <div className="profile__header">
             <div
@@ -133,6 +180,69 @@ const Profile = () => {
               </div>
             </button>
           </form>
+        </div>
+
+        {/* Right Column: Gamification Stats & Achievements */}
+        <div className="profile__gamification">
+          <div className="gamification-header">
+            <h2>Activity & Progression</h2>
+            <p>Track your productivity milestones and badges</p>
+          </div>
+
+          {/* XP & Level Panel */}
+          <div className="gamification-card level-card">
+            <div className="level-card__header">
+              <span className="level-card__badge">Level {userInfo?.level || 1}</span>
+              <span className="level-card__xp">{userInfo?.xp || 0} Total XP</span>
+            </div>
+            <div className="level-card__bar">
+              <div 
+                className="level-card__fill" 
+                style={{ width: `${(userInfo?.xp || 0) % 100}%` }}
+              ></div>
+            </div>
+            <span className="level-card__sub">{(userInfo?.xp || 0) % 100}/100 XP to Level {(userInfo?.level || 1) + 1}</span>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="gamification-stats-grid">
+            <div className="stat-box streak">
+              <span className="stat-box__icon">🔥</span>
+              <span className="stat-box__value">{userInfo?.streak || 0} Days</span>
+              <span className="stat-box__label">Current Streak</span>
+            </div>
+            <div className="stat-box tasks">
+              <span className="stat-box__icon">✅</span>
+              <span className="stat-box__value">{userInfo?.totalTasksCompleted || 0}</span>
+              <span className="stat-box__label">Tasks Done</span>
+            </div>
+            <div className="stat-box goals">
+              <span className="stat-box__icon">🏆</span>
+              <span className="stat-box__value">{userInfo?.totalGoalsCompleted || 0}</span>
+              <span className="stat-box__label">Goals Achieved</span>
+            </div>
+            <div className="stat-box pomodoro">
+              <span className="stat-box__icon">⏱️</span>
+              <span className="stat-box__value">{userInfo?.totalPomodorosCompleted || 0}</span>
+              <span className="stat-box__label">Focus Sessions</span>
+            </div>
+          </div>
+
+          {/* Achievements Grid */}
+          <div className="achievements-section">
+            <h3>Achievements Badges</h3>
+            <div className="achievements-grid">
+              {getAchievementsList(userInfo?.achievements || []).map(ach => (
+                <div key={ach.id} className={`achievement-medal ${ach.unlocked ? 'unlocked' : 'locked'}`} title={ach.description}>
+                  <div className="medal-icon">{ach.icon}</div>
+                  <div className="medal-info">
+                    <span className="medal-title">{ach.title}</span>
+                    <span className="medal-desc">{ach.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

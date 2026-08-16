@@ -69,6 +69,19 @@ export const updateProfile = createAsyncThunk(
   },
 );
 
+export const getProfile = createAsyncThunk(
+  "users/profile/get",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await userAPI.getProfile();
+      setUserToStorage(data);
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response.data.message);
+    }
+  },
+);
+
 // Admin thunks
 export const getUsers = createAsyncThunk(
   "users/getAll",
@@ -311,6 +324,19 @@ const userSlice = createSlice({
         state.success = true;
       })
       .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Get Profile
+      .addCase(getProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userInfo = action.payload;
+        state.error = null;
+      })
+      .addCase(getProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
