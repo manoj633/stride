@@ -59,6 +59,18 @@ const App = () => {
   const { userInfo } = useAppSelector((state) => state.user);
 
   useEffect(() => {
+    if (
+      userInfo &&
+      userInfo.twoFactorAuthSetup &&
+      location.pathname !== "/two-factor-setup" &&
+      location.pathname !== "/two-factor-success" &&
+      location.pathname !== "/login"
+    ) {
+      navigate("/two-factor-setup");
+    }
+  }, [userInfo, location.pathname, navigate]);
+
+  useEffect(() => {
     // Keep the session alive while the app is open
     const refreshInterval = setInterval(
       () => {

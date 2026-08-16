@@ -62,8 +62,13 @@ const NavigationDrawer = () => {
     }
   };
 
-  if (!userInfo) {
-    return null; // Don't show nav when not logged in
+  if (
+    !userInfo ||
+    userInfo.twoFactorAuthSetup ||
+    location.pathname === "/two-factor-setup" ||
+    location.pathname === "/two-factor-success"
+  ) {
+    return null; // Don't show nav when not logged in or during 2FA setup/success
   }
 
   const mainNavItems = [

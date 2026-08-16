@@ -94,8 +94,15 @@
     letter-spacing: 1px;
 }
 
-.two-factor-success__copy-button {
-    width: 100%;
+.two-factor-success__buttons-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.two-factor-success__copy-button,
+.two-factor-success__download-button {
+    flex: 1;
     padding: 0.8rem;
     background-color: #f0f0f0;
     color: #333;
@@ -108,11 +115,17 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
 }
 
-.two-factor-success__copy-button:hover {
+.two-factor-success__copy-button:hover,
+.two-factor-success__download-button:hover {
     background-color: #e6e6e6;
+}
+
+.two-factor-success__button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
 }
 
 .two-factor-success__actions {

@@ -7,6 +7,9 @@ const PrivateRoute = ({ children }) => {
   if (!userInfo) {
     return <Navigate to="/login" replace />;
   }
+  if (userInfo.twoFactorAuthSetup) {
+    return <Navigate to="/two-factor-setup" replace />;
+  }
   return children;
 };
 

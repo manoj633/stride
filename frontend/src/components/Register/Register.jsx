@@ -24,7 +24,11 @@ const Register = () => {
 
   useEffect(() => {
     if (userInfo) {
-      navigate(redirect);
+      if (userInfo.twoFactorAuthSetup) {
+        navigate("/two-factor-setup");
+      } else {
+        navigate(redirect);
+      }
     }
   }, [userInfo, redirect, navigate]);
 
