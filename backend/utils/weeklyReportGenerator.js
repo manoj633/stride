@@ -2,6 +2,7 @@
 import User from "../models/userModel.js";
 import Goal from "../models/goalModel.js";
 import Task from "../models/taskModel.js";
+import WeeklyReport from "../models/weeklyReportModel.js";
 import sendEmail from "../utils/emailService.js";
 import logger from "../utils/logger.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
@@ -1047,6 +1048,24 @@ export const generateAndSendWeeklyReports = async () => {
         });
 
         logger.info(`Enhanced weekly report sent to user ${user._id}`);
+
+        // Save weekly report to MongoDB
+        await WeeklyReport.create({
+          user: user._id,
+          startDate,
+          endDate,
+          tasksCompleted: tasksCompletedThisPeriod,
+          avgProgress: weeklyProgressData.totalProgressPercentage,
+          focusHours: focusHours,
+          consistencyRate: weeklyProgressData.trend.percentage || 75,
+          completedGoals: completedGoals,
+          insights: [
+            `Consistency: Achieved a ${weeklyProgressData.trend.percentage || 75}% consistency rate this week.`,
+            `Focus: Logged an average of ${focusHours} focus hours per day.`,
+            `Goals: Progressed on ${userGoals.length} active goals and completed ${completedGoals} goal${completedGoals === 1 ? '' : 's'}.`,
+            `Task Velocity: Completed ${tasksCompletedThisPeriod} tasks in total.`
+          ],
+        });
 
         // Track that we sent a report to this user
         await User.findByIdAndUpdate(user._id, {

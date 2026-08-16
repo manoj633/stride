@@ -4,6 +4,8 @@ import logger from "../utils/logger.js";
 import Task from "../models/taskModel.js";
 import Subtask from "../models/subtaskModel.js";
 import Comment from "../models/commentModel.js";
+import User from "../models/userModel.js";
+import { getAICoachPrediction } from "../utils/aiCoach.js";
 
 /**
  * * Description: Fetch all goals
@@ -486,6 +488,92 @@ const archiveGoal = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get goal completion prediction and AI coach assessment
+// @route   GET /api/goals/:id/prediction
+// @access  Private
+const getGoalPrediction = asyncHandler(async (req, res) => {
+  const goal = await Goal.findById(req.params.id);
+  if (!goal) {
+    res.status(404);
+    throw new Error("Goal not found");
+  }
+
+  // Ensure owner or collaborator
+  if (goal.createdBy.toString() !== req.userId && !goal.collaborators.includes(req.userId)) {
+    res.status(403);
+    throw new Error("Not authorized to access this goal prediction");
+  }
+
+  const tasks = await Task.find({ goalId: goal._id });
+  const completedTasksCount = tasks.filter((t) => t.completed).length;
+  const remainingTasksCount = tasks.length - completedTasksCount;
+
+  const now = new Date();
+  const startDate = new Date(goal.duration.startDate);
+  const endDate = new Date(goal.duration.endDate);
+
+  const daysElapsed = Math.max(1, Math.round((now - startDate) / (1000 * 60 * 60 * 24)));
+  const daysRemaining = Math.max(0, Math.round((endDate - now) / (1000 * 60 * 60 * 24)));
+
+  // Calculate local velocity (tasks completed per day on this goal)
+  const localVelocity = completedTasksCount / daysElapsed;
+
+  // Calculate global velocity (tasks completed per day globally for the user)
+  const user = await User.findById(req.userId);
+  const daysSinceAccountCreated = Math.max(1, Math.round((now - user.createdAt) / (1000 * 60 * 60 * 24)));
+  const globalVelocity = (user.totalTasksCompleted || 0) / daysSinceAccountCreated;
+
+  // Blend local and global velocity to resolve cold starts
+  const blendedVelocity = completedTasksCount > 0 ? localVelocity : Math.max(0.2, globalVelocity || 0.2);
+
+  // Days needed to finish remaining tasks
+  const daysNeeded = blendedVelocity > 0 ? remainingTasksCount / blendedVelocity : remainingTasksCount;
+
+  // Status calculation
+  let status = "neutral";
+  let onTrack = true;
+
+  if (tasks.length === 0) {
+    status = "neutral";
+    onTrack = true;
+  } else if (goal.completed || goal.completionPercentage === 100) {
+    status = "completed";
+    onTrack = true;
+  } else if (daysRemaining <= 0) {
+    status = "overdue";
+    onTrack = false;
+  } else if (daysNeeded <= daysRemaining) {
+    status = "on-track";
+    onTrack = true;
+  } else {
+    status = "at-risk";
+    onTrack = false;
+  }
+
+  // Get AI Coach assessment text
+  const aiCoachAssessment = await getAICoachPrediction(
+    goal.title,
+    goal.description,
+    completedTasksCount,
+    tasks.length,
+    daysRemaining,
+    daysNeeded,
+    status
+  );
+
+  res.json({
+    onTrack,
+    completionVelocity: blendedVelocity,
+    daysRemaining,
+    daysNeeded,
+    status,
+    aiCoachAssessment,
+    totalTasks: tasks.length,
+    completedTasks: completedTasksCount,
+    remainingTasks: remainingTasksCount,
+  });
+});
+
 export {
   getGoals,
   getGoalById,
@@ -501,4 +589,5 @@ export {
   removeComment,
   updateGoalStatus,
   archiveGoal,
+  getGoalPrediction,
 };

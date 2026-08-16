@@ -22,6 +22,7 @@ export const goalAPI = {
 
   updateStatus: (id, data) => axiosInstance.patch(`/goals/${id}/status`, data),
   archive: (id) => axiosInstance.post(`/goals/${id}/archive`),
+  getGoalPrediction: (id) => axiosInstance.get(`/goals/${id}/prediction`),
 };
 
 export const taskAPI = {
@@ -91,4 +92,8 @@ export const goalTemplateAPI = {
   update: (id, templateData) =>
     axiosInstance.put(`/goal-templates/${id}`, templateData),
   delete: (id) => axiosInstance.delete(`/goal-templates/${id}`),
+};
+
+export const reportAPI = {
+  getMyReports: () => axiosInstance.get("/reports/my-reports"),
 };

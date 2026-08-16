@@ -2,6 +2,7 @@
 import React from "react";
 import InfoSection from "./InfoSection.jsx";
 import ProgressChart from "./ProgressChart.jsx";
+import AIPrediction from "./AIPrediction.jsx";
 import Collaborators from "./Collaborators.jsx";
 import Dependencies from "./Dependencies.jsx";
 import TaskSection from "./TaskSection.jsx";
@@ -31,6 +32,7 @@ const Content = ({
       onAddTag={onAddTag}
     />
     <ProgressChart goal={goal} />
+    <AIPrediction goalId={goal._id} />
     {/* <Collaborators collaborators={collaborators} /> */}
     {/* <Dependencies dependencies={dependencies} /> */}
     <TaskSection tasks={tasks} goalDateRange={goalDateRange} />

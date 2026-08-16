@@ -14,6 +14,7 @@ import {
   removeComment,
   updateGoalStatus,
   archiveGoal,
+  getGoalPrediction,
 } from "../controllers/goalController.js";
 import extractUser from "../utils/extractUser.js";
 import { check } from "express-validator";
@@ -155,5 +156,7 @@ router
 router.route("/:id/status").patch(extractUser, updateGoalStatus);
 
 router.route("/:id/archive").post(extractUser, archiveGoal);
+
+router.route("/:id/prediction").get(extractUser, getGoalPrediction);
 
 export default router;

@@ -1,8 +1,10 @@
 import express from "express";
+import { getMyReports } from "../controllers/reportController.js";
 import {
   triggerWeeklyReport,
   handlePing,
 } from "../controllers/weeklyReportController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -36,5 +38,7 @@ router.post(
   },
   handlePing,
 );
+
+router.get("/my-reports", protect, getMyReports);
 
 export default router;
