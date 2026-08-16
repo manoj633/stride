@@ -12,7 +12,9 @@ export const login = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const { data } = await userAPI.login(credentials);
-      setUserToStorage(data);
+      if (!data.requiresTwoFactor) {
+        setUserToStorage(data);
+      }
       return data;
     } catch (err) {
       return rejectWithValue(err.response.data.message);
@@ -260,7 +262,9 @@ const userSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
-        state.userInfo = action.payload;
+        if (!action.payload.requiresTwoFactor) {
+          state.userInfo = action.payload;
+        }
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
