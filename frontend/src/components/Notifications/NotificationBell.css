@@ -121,11 +121,15 @@
     color: #7f8c8d;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 1023px) {
     .notif-dropdown {
-        min-width: 95vw;
-        left: 0;
-        right: 0;
-        margin: 0 auto;
+        position: fixed;
+        top: 58px;
+        right: 12px;
+        left: auto;
+        margin: 0;
+        width: 320px;
+        max-width: calc(100vw - 24px);
+        z-index: 1100;
     }
 }

@@ -241,3 +241,58 @@
   color: var(--ef-text-tertiary);
   margin-top: 2px;
 }
+
+/* ── Responsive Breakpoints ───────────────────────────────── */
+@media (max-width: 1023px) {
+  .add-task-container {
+    height: auto;
+    min-height: calc(100dvh - 56px);
+    overflow-y: auto;
+  }
+
+  .ef-topbar {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ef-body {
+    padding: 16px 12px;
+  }
+
+  .ef-form-header {
+    padding: 20px 18px 16px;
+  }
+
+  .ef-form-body {
+    padding: 20px 18px;
+    gap: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .ef-submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ef-topbar {
+    height: auto;
+    min-height: 52px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .ef-topbar__title {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .ef-topbar__back {
+    margin-left: auto;
+  }
+}

@@ -511,3 +511,53 @@
   text-align: center;
   margin: 0;
 }
+
+/* ── Responsive Breakpoints ───────────────────────────────── */
+@media (max-width: 1023px) {
+  .tm-container {
+    height: auto;
+    min-height: calc(100dvh - 56px);
+    overflow-y: auto;
+  }
+
+  .tm-main {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  .tm-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tm-right {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tm-table {
+    min-width: 480px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tm-topbar {
+    height: auto;
+    min-height: 52px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tm-topbar__title {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .tm-topbar__stats {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}

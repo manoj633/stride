@@ -133,3 +133,25 @@
 .timer-tab.active.long-break {
     background-color: #3F51B5;
 }
+
+@media (max-width: 768px) {
+    .pomodoro-container {
+        padding: 20px 12px;
+        min-height: calc(100dvh - 56px);
+        align-items: flex-start;
+    }
+
+    .pomodoro-wrapper {
+        padding: 20px 16px;
+        border-radius: 14px;
+    }
+
+    .pomodoro-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .timer-display {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+    }
+}

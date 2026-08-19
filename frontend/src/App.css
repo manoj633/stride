@@ -79,17 +79,13 @@ html, body {
   background-color: #F5F3FF;
 }
 
-/* Responsive Gutter & Header Offset Adjustments */
+/* Responsive Gutter & Mobile Topbar Adjustments */
 @media (max-width: 1023px) {
   :root {
     --ef-gutter: 16px;
   }
 
-  .enhanced-goals__sidebar,
-  .enhanced-tasks__sidebar,
-  .enhanced-subtasks__sidebar,
-  .ef-topbar,
-  .dashboard-header {
-    padding-left: 54px !important;
+  .main-content.has-mobile-topbar {
+    padding-top: 56px;
   }
 }

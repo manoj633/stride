@@ -678,12 +678,19 @@
 @media (max-width: 1180px) {
     .dashboard-topbar {
         flex-wrap: wrap;
+        gap: 12px;
     }
     
     .topbar-metrics {
         order: 3;
         width: 100%;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .metric-pill {
+        justify-content: center;
     }
     
     .compact-dashboard-grid {
@@ -697,7 +704,12 @@
     .enhanced-dashboard {
         height: auto;
         max-height: none;
+        min-height: calc(100dvh - 56px);
         overflow-y: auto;
+    }
+
+    .dashboard-shell {
+        height: auto;
     }
     
     .dashboard-main {
@@ -717,14 +729,42 @@
     
     .dashboard-main {
         padding: 12px;
+        gap: 12px;
     }
     
     .topbar-metrics {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
     
-    .metric-pill {
+    .topbar-left {
         width: 100%;
+    }
+
+    .dashboard-greeting-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .topbar-actions {
+        width: 100%;
+    }
+
+    .topbar-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .onboarding-checklist-card.compact .onboarding-steps {
+        flex-direction: column;
+    }
+
+    .dashboard-panel {
+        min-height: 280px;
+        max-height: 380px;
+    }
+
+    .panel-scroll-content {
+        max-height: 300px;
     }
 }
 

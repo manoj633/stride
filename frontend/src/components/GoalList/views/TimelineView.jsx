@@ -41,8 +41,12 @@ const TimelineView = ({ goals }) => {
             </div>
 
             <div className="timeline-footer">
-              <span className={`priority-badge ${goal.priority.toLowerCase()}`}>
-                {goal.priority}
+              <span
+                className={`priority-badge ${
+                  goal.priority ? goal.priority.toLowerCase() : "low"
+                }`}
+              >
+                {goal.priority || "Low"}
               </span>
               {goal.category && (
                 <span className="category-badge">{goal.category}</span>

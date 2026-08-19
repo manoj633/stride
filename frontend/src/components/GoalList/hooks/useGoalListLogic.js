@@ -23,32 +23,44 @@ export const useGoalListLogic = (goals) => {
 
   // src/components/GoalList/hooks/useGoalListLogic.js
   const filteredAndSortedGoals = useMemo(() => {
+    if (!Array.isArray(goals)) return [];
     return goals
       .filter((goal) => {
+        if (!goal) return false;
         // Match search term against goal title
-        const matchesSearch = goal?.title
+        const matchesSearch = goal.title
           ? goal.title.toLowerCase().includes(searchTerm.toLowerCase())
           : false;
 
         // Apply status filters
         if (filterStatus === "all") return matchesSearch;
         if (filterStatus === "completed")
-          return goal.completionPercentage === 100 && matchesSearch;
+          return (goal.completionPercentage === 100 || goal.completed) && matchesSearch;
         if (filterStatus === "in-progress")
           return (
             goal.completionPercentage > 0 &&
             goal.completionPercentage < 100 &&
+            !goal.completed &&
             matchesSearch
           );
         if (filterStatus === "overdue") {
           const isOverdue =
+            goal.duration?.endDate &&
             new Date() > new Date(goal.duration.endDate) &&
-            goal.completionPercentage < 100;
+            goal.completionPercentage < 100 &&
+            !goal.completed;
           return isOverdue && matchesSearch;
         }
         return matchesSearch;
       })
       .filter((goal) => {
+        if (!goal) return false;
+        if (!["thisWeek", "thisMonth", "thisYear"].includes(sortBy)) {
+          return true;
+        }
+        if (!goal.duration?.startDate || !goal.duration?.endDate) {
+          return true;
+        }
         // New filtering logic for this week, this month, and this year
         const now = new Date();
         const goalStartDate = new Date(goal.duration.startDate);
@@ -74,25 +86,35 @@ export const useGoalListLogic = (goals) => {
             return goalStartDate <= endOfYear && goalEndDate >= startOfYear;
           }
           default:
-            return true; // No additional filtering for other sort options
+            return true;
         }
       })
       .sort((a, b) => {
+        if (!a || !b) return 0;
         // Apply different sorting strategies
         switch (sortBy) {
           case "dueDate":
-            return new Date(a.duration.endDate) - new Date(b.duration.endDate);
-          case "priority":
+            return (
+              new Date(a.duration?.endDate || 0) -
+              new Date(b.duration?.endDate || 0)
+            );
+          case "priority": {
             const priorityOrder = { High: 3, Medium: 2, Low: 1 };
-            return priorityOrder[b.priority] - priorityOrder[a.priority];
+            const pA = priorityOrder[a.priority] || 0;
+            const pB = priorityOrder[b.priority] || 0;
+            return pB - pA;
+          }
           case "completion":
-            return b.completionPercentage - a.completionPercentage;
+            return (b.completionPercentage || 0) - (a.completionPercentage || 0);
           case "alphabetical":
-            return a.title.localeCompare(b.title);
+            return (a.title || "").localeCompare(b.title || "");
           case "created":
-            return new Date(a.createdAt) - new Date(b.createdAt);
+            return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
           case "lastModified":
-            return new Date(b.updatedAt) - new Date(a.updatedAt);
+            return (
+              new Date(b.updatedAt || b.createdAt || 0) -
+              new Date(a.updatedAt || a.createdAt || 0)
+            );
           default:
             return 0;
         }

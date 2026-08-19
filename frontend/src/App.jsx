@@ -122,9 +122,21 @@ const App = () => {
     };
   }, [dispatch, navigate]);
 
+  const showNav =
+    Boolean(
+      userInfo &&
+      !userInfo.twoFactorAuthSetup &&
+      location.pathname !== "/two-factor-setup" &&
+      location.pathname !== "/two-factor-success" &&
+      location.pathname !== "/login" &&
+      location.pathname !== "/register" &&
+      location.pathname !== "/forgot-password" &&
+      !location.pathname.startsWith("/reset-password")
+    );
+
   const mainClass = `main-content ${
-    location.pathname === "/pomodoro" ? activeTimer : ""
-  }`;
+    showNav ? "has-mobile-topbar" : ""
+  } ${location.pathname === "/pomodoro" ? activeTimer : ""}`.trim();
 
   return (
     <>

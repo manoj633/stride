@@ -25,6 +25,8 @@
     text-align: center;
 }
 
+
+
 .two-factor-verify__description {
     color: #666;
     font-size: 16px;
@@ -119,4 +121,15 @@
 .two-factor-verify__link:hover {
     color: #4a90e2;
     text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .two-factor-verify {
+        padding: 16px 12px;
+        margin: 1rem auto;
+    }
+
+    .two-factor-verify__container {
+        padding: 24px 16px;
+    }
 }

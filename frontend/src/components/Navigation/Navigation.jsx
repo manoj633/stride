@@ -31,17 +31,27 @@ const NavigationDrawer = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    let prevIsMobile = window.innerWidth < 1024;
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile !== prevIsMobile) {
+        setIsOpen(!mobile);
+        prevIsMobile = mobile;
+      }
     };
 
     window.addEventListener("resize", handleResize);
-    handleResize(); // Initial check
-
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setIsOpen(false);
+    }
+  }, [location.pathname]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -90,16 +100,29 @@ const NavigationDrawer = () => {
 
   return (
     <>
-      {/* Mobile toggle button */}
-      {isMobile && (
+      {/* Mobile Top Navigation Bar */}
+      <header className="mobile-topbar">
         <button
-          className="nav-drawer__toggle"
+          className="mobile-topbar__menu-btn"
           onClick={toggleDrawer}
           aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
         >
-          {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+          {isOpen ? <FiX size={22} /> : <FiMenu size={22} />}
         </button>
-      )}
+        <div className="mobile-topbar__brand" onClick={() => { navigate("/"); closeDrawer(); }}>
+          <span className="mobile-topbar__logo">Stride</span>
+        </div>
+        <div className="mobile-topbar__actions">
+          <NotificationBell />
+          <button
+            className="mobile-topbar__avatar"
+            onClick={() => { navigate("/profile"); closeDrawer(); }}
+            aria-label="View profile"
+          >
+            {userInfo?.name?.charAt(0)?.toUpperCase() || "U"}
+          </button>
+        </div>
+      </header>
 
       {/* Collapse/Expand button for desktop */}
       {!isMobile && (

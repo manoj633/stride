@@ -453,30 +453,32 @@ const TaskCalendar = () => {
             </div>
 
             <div className="tasks__stats">
-              <button onClick={handleJumpToday} className="today-jump-btn">
-                Today
-              </button>
+              <div className="tasks__stats-nav-row">
+                <button onClick={handleJumpToday} className="today-jump-btn">
+                  Today
+                </button>
 
-              <div className="navigation-buttons">
-                <button
-                  onClick={view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)}
-                  className="nav-button"
-                  title="Previous"
-                >
-                  <FiChevronLeft size={16} />
-                </button>
-                <span className="current-date-label">
-                  {view === "monthly"
-                    ? `${monthDate.toLocaleString("default", { month: "long" })} ${year}`
-                    : `Week of ${formatDate(days[0])}`}
-                </span>
-                <button
-                  onClick={view === "monthly" ? handleNextMonth : () => navigateWeek(1)}
-                  className="nav-button"
-                  title="Next"
-                >
-                  <FiChevronRight size={16} />
-                </button>
+                <div className="navigation-buttons">
+                  <button
+                    onClick={view === "monthly" ? handlePrevMonth : () => navigateWeek(-1)}
+                    className="nav-button"
+                    title="Previous"
+                  >
+                    <FiChevronLeft size={16} />
+                  </button>
+                  <span className="current-date-label">
+                    {view === "monthly"
+                      ? `${monthDate.toLocaleString("default", { month: "long" })} ${year}`
+                      : `Week of ${formatDate(days[0])}`}
+                  </span>
+                  <button
+                    onClick={view === "monthly" ? handleNextMonth : () => navigateWeek(1)}
+                    className="nav-button"
+                    title="Next"
+                  >
+                    <FiChevronRight size={16} />
+                  </button>
+                </div>
               </div>
 
               <div className="view-switch">

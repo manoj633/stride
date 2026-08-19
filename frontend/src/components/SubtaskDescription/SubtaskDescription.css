@@ -296,3 +296,57 @@
   margin: 0;
   font-weight: 600;
 }
+
+/* ── Responsive Breakpoints ───────────────────────────────── */
+@media (max-width: 1023px) {
+  .subtask-description {
+    height: auto;
+    min-height: calc(100dvh - 56px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .ef-topbar {
+    height: auto;
+    min-height: 52px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ef-topbar__title {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .ef-topbar__actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ef-body {
+    padding: 16px 12px;
+  }
+
+  .subtask-card__header {
+    padding: 20px 16px;
+  }
+
+  .subtask-card__header h2 {
+    font-size: 20px;
+  }
+
+  .subtask-card__body {
+    padding: 20px 16px;
+    gap: 18px;
+  }
+
+  .subtask__info-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

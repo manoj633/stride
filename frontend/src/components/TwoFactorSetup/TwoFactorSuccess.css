@@ -156,3 +156,14 @@
         padding: 1rem;
     }
 }
+
+@media (max-width: 480px) {
+    .two-factor-success {
+        padding: 16px 12px;
+        margin: 1rem auto;
+    }
+
+    .two-factor-success__container {
+        padding: 24px 16px;
+    }
+}

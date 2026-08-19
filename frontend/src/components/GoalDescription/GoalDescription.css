@@ -389,7 +389,48 @@
   font-size: 13px;
 }
 
+@media (max-width: 1023px) {
+  .goal-description {
+    height: auto;
+    min-height: calc(100dvh - 56px);
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 768px) {
+  .ef-topbar {
+    height: auto;
+    min-height: 52px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ef-topbar__title {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .ef-topbar__actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ef-body {
+    padding: 16px 12px;
+  }
+
+  .goal-description__header {
+    padding: 20px 16px;
+  }
+
+  .goal-description__title {
+    font-size: 20px;
+  }
+
   .goal-description__content {
     grid-template-columns: 1fr;
   }
