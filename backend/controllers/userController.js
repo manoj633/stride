@@ -263,12 +263,17 @@ const refreshToken = async (req, res) => {
 // @access  Public
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
+  const genericMessage = "If that email exists, a reset link was sent";
+
+  if (!email) {
+    res.status(400);
+    throw new Error("Please provide an email address");
+  }
 
   // Find user by email
   const user = await User.findOne({ email });
   if (!user) {
-    res.status(404);
-    throw new Error("No account with that email exists");
+    return res.status(200).json({ message: genericMessage });
   }
 
   // Delete any existing reset tokens for this user
@@ -325,7 +330,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
       html,
     });
 
-    res.status(200).json({ message: "Password reset email sent" });
+    res.status(200).json({ message: genericMessage });
   } catch (error) {
     await PasswordReset.deleteMany({ userId: user._id });
     res.status(500);
