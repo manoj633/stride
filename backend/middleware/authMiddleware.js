@@ -29,10 +29,10 @@ const protect = asyncHandler(async (req, res, next) => {
 
 // Admin middleware
 const admin = (req, res, next) => {
-  if (req.user.name === "Admin" && req.user.isAdmin === true) {
+  if (req.user && req.user.isAdmin === true) {
     next();
   } else {
-    res.status(401);
+    res.status(403);
     throw new Error("Not authorized as admin");
   }
 };

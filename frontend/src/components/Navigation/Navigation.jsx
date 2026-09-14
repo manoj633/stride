@@ -12,6 +12,7 @@ import {
   FiClock,
   FiTag,
   FiUser,
+  FiShield,
   FiPlusCircle,
   FiLogOut,
   FiMenu,
@@ -90,6 +91,9 @@ const NavigationDrawer = () => {
     { path: "/pomodoro", label: "Pomodoro", icon: <FiClock /> },
     { path: "/tags/manage", label: "Tags", icon: <FiTag /> },
     { path: "/profile", label: "Profile", icon: <FiUser /> },
+    ...(userInfo?.isAdmin
+      ? [{ path: "/admin", label: "Admin", icon: <FiShield /> }]
+      : []),
   ];
 
   const quickAddItems = [

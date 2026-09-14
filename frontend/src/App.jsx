@@ -48,6 +48,8 @@ ReactGA.initialize("G-TEK9P0HRHD"); // Replace with your ID
 
 import AnalyticsTracker from "./utils/AnalyticsTracker";
 import PrivateRoute from "./components/Common/PrivateRoute";
+import AdminRoute from "./components/Common/AdminRoute";
+import AdminDashboard from "./components/Admin/AdminDashboard";
 
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
@@ -239,6 +241,14 @@ const App = () => {
               <PrivateRoute>
                 <TagManager />
               </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
           />
           {/* Public routes */}

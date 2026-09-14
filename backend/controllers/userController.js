@@ -8,6 +8,9 @@ import qrcode from "qrcode";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { verifyUserStreakActive, handlePomodoroCompletionXP } from "../utils/gamification.js";
+import Goal from "../models/goalModel.js";
+import Task from "../models/taskModel.js";
+import Subtask from "../models/subtaskModel.js";
 
 //@desc     Auth User & get token
 //@route    POST /api/users/login
@@ -198,32 +201,161 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-//@desc     Get users profile
+//@desc     Get all users (paginated and searchable)
 //@route    GET /api/users
 //@access   Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
-  res.send("get users");
+  const pageSize = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const search = req.query.search ? req.query.search.trim() : "";
+
+  const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const query = escapedSearch
+    ? {
+        $or: [
+          { name: { $regex: escapedSearch, $options: "i" } },
+          { email: { $regex: escapedSearch, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const totalUsers = await User.countDocuments(query);
+  const users = await User.find(query)
+    .select("-password -twoFactorBackupCodes")
+    .sort({ createdAt: -1 })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+
+  // Map users to safe projection: do NOT expose twoFactorSecret itself, only boolean flag
+  const safeUsers = users.map((user) => ({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt,
+    isAdmin: Boolean(user.isAdmin),
+    isTwoFactorEnabled: Boolean(user.isTwoFactorEnabled),
+    hasTwoFactorSecret: Boolean(user.twoFactorSecret),
+    xp: user.xp || 0,
+    level: user.level || 1,
+    streak: user.streak || 0,
+    totalTasksCompleted: user.totalTasksCompleted || 0,
+    totalGoalsCompleted: user.totalGoalsCompleted || 0,
+    totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+    lastActive: user.lastActive || user.updatedAt,
+  }));
+
+  res.json({
+    users: safeUsers,
+    page,
+    pages: Math.ceil(totalUsers / pageSize) || 1,
+    totalUsers,
+  });
 });
 
-//@desc     Get users profile by ID
+//@desc     Get user details by ID for admin
 //@route    GET /api/users/:id
 //@access   Private/Admin
 const getUserById = asyncHandler(async (req, res) => {
-  res.send("get user by id");
+  const user = await User.findById(req.params.id).select(
+    "-password -twoFactorBackupCodes"
+  );
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const [goalsCount, tasksCount, subtasksCount] = await Promise.all([
+    Goal.countDocuments({ createdBy: user._id }),
+    Task.countDocuments({ createdBy: user._id }),
+    Subtask.countDocuments({ createdBy: user._id }),
+  ]);
+
+  res.json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt,
+    isAdmin: Boolean(user.isAdmin),
+    isTwoFactorEnabled: Boolean(user.isTwoFactorEnabled),
+    hasTwoFactorSecret: Boolean(user.twoFactorSecret),
+    xp: user.xp || 0,
+    level: user.level || 1,
+    streak: user.streak || 0,
+    totalTasksCompleted: user.totalTasksCompleted || 0,
+    totalGoalsCompleted: user.totalGoalsCompleted || 0,
+    totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+    achievements: user.achievements || [],
+    lastActive: user.lastActive || user.updatedAt,
+    goalsCount,
+    tasksCount,
+    subtasksCount,
+  });
+});
+
+//@desc     Get system-wide metrics for admin dashboard
+//@route    GET /api/users/admin/stats
+//@access   Private/Admin
+const getAdminStats = asyncHandler(async (req, res) => {
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const [totalUsers, totalGoals, totalTasks, signupsThisWeek] = await Promise.all([
+    User.countDocuments(),
+    Goal.countDocuments(),
+    Task.countDocuments(),
+    User.countDocuments({ createdAt: { $gte: oneWeekAgo } }),
+  ]);
+
+  res.json({
+    totalUsers,
+    totalGoals,
+    totalTasks,
+    signupsThisWeek,
+  });
 });
 
 //@desc     Delete users profile
 //@route    DELETE /api/users/:id
 //@access   Private/Admin
 const deleteUser = asyncHandler(async (req, res) => {
-  res.send("delete users");
+  const user = await User.findById(req.params.id);
+  if (user) {
+    if (user.isAdmin && (await User.countDocuments({ isAdmin: true })) <= 1) {
+      res.status(400);
+      throw new Error("Cannot delete the last admin account");
+    }
+    await User.deleteOne({ _id: user._id });
+    res.json({ message: "User removed successfully" });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
 });
 
 //@desc     Update users profile
 //@route    PUT /api/users/:id
 //@access   Private/Admin
 const updateUser = asyncHandler(async (req, res) => {
-  res.send("update users");
+  const user = await User.findById(req.params.id);
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    if (req.body.isAdmin !== undefined) {
+      user.isAdmin = Boolean(req.body.isAdmin);
+    }
+    const updatedUser = await user.save();
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
 });
 
 //@desc     Refresh User Token
@@ -743,4 +875,5 @@ export {
   validateTwoFactorAuth,
   recoverWithBackupCode,
   completePomodoro,
+  getAdminStats,
 };

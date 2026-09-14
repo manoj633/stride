@@ -12,13 +12,13 @@ import {
   refreshToken,
   forgotPassword,
   resetPassword,
-  // Add new imports
   generateTwoFactorSecret,
   verifyAndEnableTwoFactor,
   disableTwoFactor,
   validateTwoFactorAuth,
   recoverWithBackupCode,
   completePomodoro,
+  getAdminStats,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import { passwordResetLimiter, loginLimiter, registerLimiter, twoFactorLimiter } from "../middleware/rateLimiter.js";
@@ -51,6 +51,7 @@ router
     registerUser
   )
   .get(protect, admin, getUsers);
+
 router.post("/logout", protect, logoutUser);
 router.post(
   "/login",
@@ -67,10 +68,15 @@ router.post(
   ],
   authUser
 );
+
 router
   .route("/profile")
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
+
+// Admin stats route (must come before /:id)
+router.get("/admin/stats", protect, admin, getAdminStats);
+
 router
   .route("/:id")
   .get(protect, admin, getUserById)
@@ -99,6 +105,7 @@ router
     ],
     updateUser
   );
+
 router.post("/refresh-token", refreshToken);
 router.post("/forgot-password", passwordResetLimiter, forgotPassword);
 router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
