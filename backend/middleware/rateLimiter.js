@@ -22,6 +22,14 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const twoFactorLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 2FA verification attempts per windowMs
+  message: "Too many 2FA verification attempts. Please try again after 15 minutes.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // limit each IP to 5 registration requests per windowMs
@@ -38,4 +46,4 @@ const commentLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export { limiter, passwordResetLimiter, loginLimiter, registerLimiter, commentLimiter };
+export { limiter, passwordResetLimiter, loginLimiter, twoFactorLimiter, registerLimiter, commentLimiter };

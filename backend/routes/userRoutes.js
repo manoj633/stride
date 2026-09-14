@@ -21,7 +21,7 @@ import {
   completePomodoro,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
-import { passwordResetLimiter, loginLimiter, registerLimiter } from "../middleware/rateLimiter.js";
+import { passwordResetLimiter, loginLimiter, registerLimiter, twoFactorLimiter } from "../middleware/rateLimiter.js";
 import { check } from "express-validator";
 import { validate } from "../middleware/validationMiddleware.js";
 
@@ -105,9 +105,9 @@ router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
 
 // New 2FA routes
 router.post("/two-factor/generate", protect, generateTwoFactorSecret);
-router.post("/two-factor/verify", protect, verifyAndEnableTwoFactor);
+router.post("/two-factor/verify", protect, twoFactorLimiter, verifyAndEnableTwoFactor);
 router.post("/two-factor/disable", protect, disableTwoFactor);
-router.post("/two-factor/validate", validateTwoFactorAuth);
+router.post("/two-factor/validate", twoFactorLimiter, validateTwoFactorAuth);
 router.post("/recover-with-backup-code", passwordResetLimiter, recoverWithBackupCode);
 router.post("/pomodoro/complete", protect, completePomodoro);
 
