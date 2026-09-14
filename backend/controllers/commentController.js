@@ -11,7 +11,7 @@ import logger from "../utils/logger.js";
 const createComment = asyncHandler(async (req, res) => {
   logger.info("Creating new comment", {
     goalId: req.body.goalId,
-    authorId: req.body.authorId,
+    authorId: req.userId || req.body.authorId,
     endpoint: "/api/comments",
   });
 
@@ -20,7 +20,7 @@ const createComment = asyncHandler(async (req, res) => {
   const comment = new Comment({
     goalId,
     text,
-    authorId,
+    authorId: req.userId || authorId,
     date: new Date(),
   });
 
@@ -77,24 +77,33 @@ const updateComment = asyncHandler(async (req, res) => {
 
   const comment = await Comment.findById(commentId);
 
-  if (comment) {
-    comment.text = text;
-    comment.date = new Date();
-    const updatedComment = await comment.save();
-    const populatedComment = await Comment.findById(
-      updatedComment._id
-    ).populate("authorId", "name email avatar");
-
-    logger.debug("Comment updated successfully", {
-      commentId,
-      goalId: comment.goalId,
-    });
-    res.json(populatedComment);
-  } else {
+  if (!comment) {
     logger.error("Comment not found for update", { commentId });
     res.status(404);
     throw new Error("Comment not found");
   }
+
+  if (!comment.authorId || !comment.authorId.equals(req.userId)) {
+    logger.error("Not authorized to update comment", {
+      commentId,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this comment");
+  }
+
+  comment.text = text;
+  comment.date = new Date();
+  const updatedComment = await comment.save();
+  const populatedComment = await Comment.findById(
+    updatedComment._id
+  ).populate("authorId", "name email avatar");
+
+  logger.debug("Comment updated successfully", {
+    commentId,
+    goalId: comment.goalId,
+  });
+  res.json(populatedComment);
 });
 
 /**
@@ -111,18 +120,27 @@ const deleteComment = asyncHandler(async (req, res) => {
 
   const comment = await Comment.findById(commentId);
 
-  if (comment) {
-    await Comment.deleteOne({ _id: commentId });
-    logger.debug("Comment deleted successfully", {
-      commentId,
-      goalId: comment.goalId,
-    });
-    res.json({ message: "Comment removed" });
-  } else {
+  if (!comment) {
     logger.error("Comment not found for deletion", { commentId });
     res.status(404);
     throw new Error("Comment not found");
   }
+
+  if (!comment.authorId || !comment.authorId.equals(req.userId)) {
+    logger.error("Not authorized to delete comment", {
+      commentId,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to delete this comment");
+  }
+
+  await Comment.deleteOne({ _id: commentId });
+  logger.debug("Comment deleted successfully", {
+    commentId,
+    goalId: comment.goalId,
+  });
+  res.json({ message: "Comment removed" });
 });
 
 export { createComment, getGoalComments, updateComment, deleteComment };
