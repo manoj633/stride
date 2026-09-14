@@ -31,7 +31,7 @@ const getTaskById = asyncHandler(async (req, res) => {
 
   const task = await Task.findById(req.params.id);
   if (task) {
-    if (task?.createdBy === req.userId) {
+    if (task.createdBy && task.createdBy.equals(req.userId)) {
       logger.debug("Task found successfully", { taskId: req.params.id });
       return res.json(task);
     } else {
@@ -114,35 +114,44 @@ const updateTask = asyncHandler(async (req, res) => {
 
   const task = await Task.findById(req.params.id);
 
-  if (task) {
-    const wasCompleted = task.completed;
-    task.name = name || task.name;
-    task.description = description || task.description;
-    task.priority = priority || task.priority;
-    task.startDate = startDate || task.startDate;
-    task.endDate = endDate || task.endDate;
-    task.goalId = goalId || task.goalId;
-    task.completionPercentage =
-      completionPercentage ?? task.completionPercentage;
-    task.completed = completed !== undefined ? completed : task.completed;
-
-    const updatedTask = await task.save();
-    logger.debug("Task updated successfully", { taskId: updatedTask._id });
-    
-    if (updatedTask.completed && !wasCompleted) {
-      await handleTaskCompletionXP(req.userId);
-    }
-
-    if (updatedTask.goalId) {
-      await updateGoalCompletionPercentage(updatedTask.goalId);
-    }
-    
-    res.json(updatedTask);
-  } else {
+  if (!task) {
     logger.error("Task not found for update", { taskId: req.params.id });
     res.status(404);
     throw new Error("Task not found");
   }
+
+  if (!task.createdBy || !task.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to update task", {
+      taskId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this task");
+  }
+
+  const wasCompleted = task.completed;
+  task.name = name || task.name;
+  task.description = description || task.description;
+  task.priority = priority || task.priority;
+  task.startDate = startDate || task.startDate;
+  task.endDate = endDate || task.endDate;
+  task.goalId = goalId || task.goalId;
+  task.completionPercentage =
+    completionPercentage ?? task.completionPercentage;
+  task.completed = completed !== undefined ? completed : task.completed;
+
+  const updatedTask = await task.save();
+  logger.debug("Task updated successfully", { taskId: updatedTask._id });
+  
+  if (updatedTask.completed && !wasCompleted) {
+    await handleTaskCompletionXP(req.userId);
+  }
+
+  if (updatedTask.goalId) {
+    await updateGoalCompletionPercentage(updatedTask.goalId);
+  }
+  
+  res.json(updatedTask);
 });
 
 /**
@@ -158,29 +167,38 @@ const deleteTask = asyncHandler(async (req, res) => {
 
   const task = await Task.findById(req.params.id);
 
-  if (task) {
-    // Delete all subtasks associated with this task
-    await Subtask.deleteMany({ taskId: req.params.id });
-    logger.debug("Deleted subtasks for task", { taskId: req.params.id });
-
-    // Delete the task itself
-    await Task.deleteOne({ _id: req.params.id });
-    logger.debug("Task deleted successfully", { taskId: req.params.id });
-
-    // Update the completion percentage of the parent goal
-    if (task.goalId) {
-      await updateGoalCompletionPercentage(task.goalId);
-    }
-
-    res.json({
-      message: "Task and all related subtasks removed",
-      goalId: task.goalId,
-    });
-  } else {
+  if (!task) {
     logger.error("Task not found for deletion", { taskId: req.params.id });
     res.status(404);
     throw new Error("Task not found");
   }
+
+  if (!task.createdBy || !task.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to delete task", {
+      taskId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to delete this task");
+  }
+
+  // Delete all subtasks associated with this task
+  await Subtask.deleteMany({ taskId: req.params.id });
+  logger.debug("Deleted subtasks for task", { taskId: req.params.id });
+
+  // Delete the task itself
+  await Task.deleteOne({ _id: req.params.id });
+  logger.debug("Task deleted successfully", { taskId: req.params.id });
+
+  // Update the completion percentage of the parent goal
+  if (task.goalId) {
+    await updateGoalCompletionPercentage(task.goalId);
+  }
+
+  res.json({
+    message: "Task and all related subtasks removed",
+    goalId: task.goalId,
+  });
 });
 
 /**
@@ -200,44 +218,53 @@ const updateTaskCompletion = asyncHandler(async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
 
-    if (task) {
-      const wasCompleted = task.completed;
-      if (completed !== undefined) task.completed = completed;
-      if (completionPercentage !== undefined) {
-        if (completionPercentage < 0 || completionPercentage > 100) {
-          logger.warn("Invalid completion percentage", {
-            taskId: req.params.id,
-            completionPercentage,
-          });
-          res.status(400);
-          throw new Error("Completion percentage must be between 0 and 100");
-        }
-        task.completionPercentage = completionPercentage;
-      }
-
-      const updatedTask = await task.save();
-      logger.debug("Task completion updated successfully", {
-        taskId: updatedTask._id,
-        completed: updatedTask.completed,
-        completionPercentage: updatedTask.completionPercentage,
-      });
-      
-      if (updatedTask.completed && !wasCompleted) {
-        await handleTaskCompletionXP(req.userId);
-      }
-
-      if (updatedTask.goalId) {
-        await updateGoalCompletionPercentage(updatedTask.goalId);
-      }
-      
-      res.json(updatedTask);
-    } else {
+    if (!task) {
       logger.error("Task not found for completion update", {
         taskId: req.params.id,
       });
       res.status(404);
       throw new Error("Task not found");
     }
+
+    if (!task.createdBy || !task.createdBy.equals(req.userId)) {
+      logger.error("Not authorized to update task completion", {
+        taskId: req.params.id,
+        userId: req.userId,
+      });
+      res.status(403);
+      throw new Error("Not authorized to update this task");
+    }
+
+    const wasCompleted = task.completed;
+    if (completed !== undefined) task.completed = completed;
+    if (completionPercentage !== undefined) {
+      if (completionPercentage < 0 || completionPercentage > 100) {
+        logger.warn("Invalid completion percentage", {
+          taskId: req.params.id,
+          completionPercentage,
+        });
+        res.status(400);
+        throw new Error("Completion percentage must be between 0 and 100");
+      }
+      task.completionPercentage = completionPercentage;
+    }
+
+    const updatedTask = await task.save();
+    logger.debug("Task completion updated successfully", {
+      taskId: updatedTask._id,
+      completed: updatedTask.completed,
+      completionPercentage: updatedTask.completionPercentage,
+    });
+    
+    if (updatedTask.completed && !wasCompleted) {
+      await handleTaskCompletionXP(req.userId);
+    }
+
+    if (updatedTask.goalId) {
+      await updateGoalCompletionPercentage(updatedTask.goalId);
+    }
+    
+    res.json(updatedTask);
   } catch (error) {
     logger.error("Error updating task completion", {
       taskId: req.params.id,

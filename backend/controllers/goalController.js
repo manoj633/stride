@@ -34,7 +34,14 @@ const getGoalById = asyncHandler(async (req, res) => {
   if (goal) {
     logger.debug("Goal found successfully", { goalId: req.params.id });
 
-    if (goal?.createdBy === req.userId) {
+    const isOwner = goal.createdBy && goal.createdBy.equals(req.userId);
+    const isCollaborator =
+      goal.collaborators &&
+      goal.collaborators.some((c) =>
+        c.equals ? c.equals(req.userId) : c.toString() === req.userId
+      );
+
+    if (isOwner || isCollaborator) {
       return res.json(goal);
     } else {
       res.status(404);
@@ -88,33 +95,42 @@ const updateGoal = asyncHandler(async (req, res) => {
 
   const goal = await Goal.findById(req.params.id);
 
-  if (goal) {
-    Object.assign(goal, {
-      title: req.body.title || goal.title,
-      description: req.body.description || goal.description,
-      category: req.body.category || goal.category,
-      priority: req.body.priority || goal.priority,
-      duration: req.body.duration || goal.duration,
-      collaborators: req.body.collaborators || goal.collaborators,
-      tags: req.body.tags || goal.tags,
-      completionPercentage:
-        typeof req.body.completionPercentage !== "undefined"
-          ? req.body.completionPercentage
-          : goal.completionPercentage,
-      completed:
-        typeof req.body.completed !== "undefined"
-          ? req.body.completed
-          : goal.completed,
-    });
-
-    const updatedGoal = await goal.save();
-    logger.debug("Goal updated successfully", { goalId: updatedGoal._id });
-    res.json(updatedGoal);
-  } else {
+  if (!goal) {
     logger.error("Goal not found for update", { goalId: req.params.id });
     res.status(404);
     throw new Error("Goal not found");
   }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to update goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this goal");
+  }
+
+  Object.assign(goal, {
+    title: req.body.title || goal.title,
+    description: req.body.description || goal.description,
+    category: req.body.category || goal.category,
+    priority: req.body.priority || goal.priority,
+    duration: req.body.duration || goal.duration,
+    collaborators: req.body.collaborators || goal.collaborators,
+    tags: req.body.tags || goal.tags,
+    completionPercentage:
+      typeof req.body.completionPercentage !== "undefined"
+        ? req.body.completionPercentage
+        : goal.completionPercentage,
+    completed:
+      typeof req.body.completed !== "undefined"
+        ? req.body.completed
+        : goal.completed,
+  });
+
+  const updatedGoal = await goal.save();
+  logger.debug("Goal updated successfully", { goalId: updatedGoal._id });
+  res.json(updatedGoal);
 });
 
 /**
@@ -130,53 +146,62 @@ const deleteGoal = asyncHandler(async (req, res) => {
 
   const goal = await Goal.findById(req.params.id);
 
-  if (goal) {
-    const tasks = await Task.find({ goalId: req.params.id });
-
-    // Get all task IDs for subtask deletion
-    const taskIds = tasks.map((task) => task._id);
-
-    // Count subtasks before deletion (fix for #11)
-    let deletedSubtasksCount = 0;
-    if (taskIds.length > 0) {
-      deletedSubtasksCount = await Subtask.countDocuments({
-        taskId: { $in: taskIds },
-      });
-      await Subtask.deleteMany({ taskId: { $in: taskIds } });
-      logger.debug("Deleted subtasks for goal's tasks", {
-        goalId: req.params.id,
-        taskCount: taskIds.length,
-        deletedSubtasksCount,
-      });
-    }
-
-    // Delete all comments associated with this goal (fix for #15)
-    const deletedComments = await Comment.deleteMany({ goalId: req.params.id });
-    logger.debug("Deleted comments for goal", {
-      goalId: req.params.id,
-      deletedCommentsCount: deletedComments.deletedCount,
-    });
-
-    // Delete all tasks associated with this goal
-    await Task.deleteMany({ goalId: req.params.id });
-    logger.debug("Deleted tasks for goal", {
-      goalId: req.params.id,
-      taskCount: tasks.length,
-    });
-
-    await Goal.deleteOne({ _id: req.params.id });
-    logger.debug("Goal deleted successfully", { goalId: req.params.id });
-    res.json({
-      message: "Goal and all related tasks, subtasks, and comments removed",
-      deletedTasksCount: tasks.length,
-      deletedSubtasksCount,
-      deletedCommentsCount: deletedComments.deletedCount,
-    });
-  } else {
+  if (!goal) {
     logger.error("Goal not found for deletion", { goalId: req.params.id });
     res.status(404);
     throw new Error("Goal not found");
   }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to delete goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to delete this goal");
+  }
+
+  const tasks = await Task.find({ goalId: req.params.id });
+
+  // Get all task IDs for subtask deletion
+  const taskIds = tasks.map((task) => task._id);
+
+  // Count subtasks before deletion (fix for #11)
+  let deletedSubtasksCount = 0;
+  if (taskIds.length > 0) {
+    deletedSubtasksCount = await Subtask.countDocuments({
+      taskId: { $in: taskIds },
+    });
+    await Subtask.deleteMany({ taskId: { $in: taskIds } });
+    logger.debug("Deleted subtasks for goal's tasks", {
+      goalId: req.params.id,
+      taskCount: taskIds.length,
+      deletedSubtasksCount,
+    });
+  }
+
+  // Delete all comments associated with this goal (fix for #15)
+  const deletedComments = await Comment.deleteMany({ goalId: req.params.id });
+  logger.debug("Deleted comments for goal", {
+    goalId: req.params.id,
+    deletedCommentsCount: deletedComments.deletedCount,
+  });
+
+  // Delete all tasks associated with this goal
+  await Task.deleteMany({ goalId: req.params.id });
+  logger.debug("Deleted tasks for goal", {
+    goalId: req.params.id,
+    taskCount: tasks.length,
+  });
+
+  await Goal.deleteOne({ _id: req.params.id });
+  logger.debug("Goal deleted successfully", { goalId: req.params.id });
+  res.json({
+    message: "Goal and all related tasks, subtasks, and comments removed",
+    deletedTasksCount: tasks.length,
+    deletedSubtasksCount,
+    deletedCommentsCount: deletedComments.deletedCount,
+  });
 });
 
 /**
@@ -193,26 +218,35 @@ const updateGoalCompletion = asyncHandler(async (req, res) => {
 
   const goal = await Goal.findById(req.params.id);
 
-  if (goal) {
-    if (req.body.completed !== undefined) goal.completed = req.body.completed;
-    if (req.body.completionPercentage !== undefined) {
-      goal.completionPercentage = req.body.completionPercentage;
-    }
-
-    const updatedGoal = await goal.save();
-    logger.debug("Goal completion updated successfully", {
-      goalId: updatedGoal._id,
-      completed: updatedGoal.completed,
-      completionPercentage: updatedGoal.completionPercentage,
-    });
-    res.json(updatedGoal);
-  } else {
+  if (!goal) {
     logger.error("Goal not found for completion update", {
       goalId: req.params.id,
     });
     res.status(404);
     throw new Error("Goal not found");
   }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to update goal completion", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this goal");
+  }
+
+  if (req.body.completed !== undefined) goal.completed = req.body.completed;
+  if (req.body.completionPercentage !== undefined) {
+    goal.completionPercentage = req.body.completionPercentage;
+  }
+
+  const updatedGoal = await goal.save();
+  logger.debug("Goal completion updated successfully", {
+    goalId: updatedGoal._id,
+    completed: updatedGoal.completed,
+    completionPercentage: updatedGoal.completionPercentage,
+  });
+  res.json(updatedGoal);
 });
 
 /**
@@ -230,29 +264,42 @@ const addCollaborator = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
   const { collaboratorId } = req.body;
 
-  if (goal) {
-    if (!goal.collaborators.includes(collaboratorId)) {
-      goal.collaborators.push(collaboratorId);
-      const updatedGoal = await goal.save();
-      logger.debug("Collaborator added successfully", {
-        goalId: goal._id,
-        collaboratorId,
-      });
-      return res.json(updatedGoal);
-    } else {
-      logger.warn("Collaborator already exists", {
-        goalId: goal._id,
-        collaboratorId,
-      });
-      res.status(400);
-      throw new Error("Collaborator already added");
-    }
-  } else {
+  if (!goal) {
     logger.error("Goal not found for adding collaborator", {
       goalId: req.params.id,
     });
     res.status(404);
     throw new Error("Goal not found");
+  }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to add collaborator to goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this goal");
+  }
+
+  const alreadyAdded = goal.collaborators.some(
+    (c) => (c.equals ? c.equals(collaboratorId) : c.toString() === collaboratorId)
+  );
+
+  if (!alreadyAdded) {
+    goal.collaborators.push(collaboratorId);
+    const updatedGoal = await goal.save();
+    logger.debug("Collaborator added successfully", {
+      goalId: goal._id,
+      collaboratorId,
+    });
+    return res.json(updatedGoal);
+  } else {
+    logger.warn("Collaborator already exists", {
+      goalId: goal._id,
+      collaboratorId,
+    });
+    res.status(400);
+    throw new Error("Collaborator already added");
   }
 });
 
@@ -271,23 +318,32 @@ const removeCollaborator = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
   const { collaboratorId } = req.body;
 
-  if (goal) {
-    goal.collaborators = goal.collaborators.filter(
-      (collaborator) => collaborator.toString() !== collaboratorId
-    );
-    const updatedGoal = await goal.save();
-    logger.debug("Collaborator removed successfully", {
-      goalId: goal._id,
-      collaboratorId,
-    });
-    res.json(updatedGoal);
-  } else {
+  if (!goal) {
     logger.error("Goal not found for removing collaborator", {
       goalId: req.params.id,
     });
     res.status(404);
     throw new Error("Goal not found");
   }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to remove collaborator from goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this goal");
+  }
+
+  goal.collaborators = goal.collaborators.filter(
+    (collaborator) => collaborator.toString() !== collaboratorId
+  );
+  const updatedGoal = await goal.save();
+  logger.debug("Collaborator removed successfully", {
+    goalId: goal._id,
+    collaboratorId,
+  });
+  res.json(updatedGoal);
 });
 
 /**
@@ -305,21 +361,34 @@ const addTag = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
   const { tagId } = req.body;
 
-  if (goal) {
-    if (!goal.tags.includes(tagId)) {
-      goal.tags.push(tagId);
-      const updatedGoal = await goal.save();
-      logger.debug("Tag added successfully", { goalId: goal._id, tagId });
-      return res.json(updatedGoal);
-    } else {
-      logger.warn("Tag already exists", { goalId: goal._id, tagId });
-      res.status(400);
-      throw new Error("Tag already added");
-    }
-  } else {
+  if (!goal) {
     logger.error("Goal not found for adding tag", { goalId: req.params.id });
     res.status(404);
     throw new Error("Goal not found");
+  }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to add tag to goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this goal");
+  }
+
+  const alreadyTagged = goal.tags.some(
+    (t) => (t.equals ? t.equals(tagId) : t.toString() === tagId)
+  );
+
+  if (!alreadyTagged) {
+    goal.tags.push(tagId);
+    const updatedGoal = await goal.save();
+    logger.debug("Tag added successfully", { goalId: goal._id, tagId });
+    return res.json(updatedGoal);
+  } else {
+    logger.warn("Tag already exists", { goalId: goal._id, tagId });
+    res.status(400);
+    throw new Error("Tag already added");
   }
 });
 
@@ -338,16 +407,25 @@ const removeTag = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
   const { tagId } = req.body;
 
-  if (goal) {
-    goal.tags = goal.tags.filter((tag) => tag.toString() !== tagId);
-    const updatedGoal = await goal.save();
-    logger.debug("Tag removed successfully", { goalId: goal._id, tagId });
-    res.json(updatedGoal);
-  } else {
+  if (!goal) {
     logger.error("Goal not found for removing tag", { goalId: req.params.id });
     res.status(404);
     throw new Error("Goal not found");
   }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to remove tag from goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this goal");
+  }
+
+  goal.tags = goal.tags.filter((tag) => tag.toString() !== tagId);
+  const updatedGoal = await goal.save();
+  logger.debug("Tag removed successfully", { goalId: goal._id, tagId });
+  res.json(updatedGoal);
 });
 
 /**
@@ -429,19 +507,27 @@ const updateGoalStatus = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { completed, completionPercentage } = req.body;
 
-    const updatedGoal = await Goal.findByIdAndUpdate(
-      id,
-      {
-        completed: completed || false,
-        completionPercentage: completionPercentage || 0,
-      },
-      { new: true }
-    );
+    const goal = await Goal.findById(id);
 
-    if (!updatedGoal) {
+    if (!goal) {
       logger.error("Goal not found for status update", { goalId: id });
       return res.status(404).json({ message: "Goal not found" });
     }
+
+    if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+      logger.error("Not authorized to update goal status", {
+        goalId: id,
+        userId: req.userId,
+      });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this goal status" });
+    }
+
+    goal.completed = completed || false;
+    goal.completionPercentage = completionPercentage || 0;
+
+    const updatedGoal = await goal.save();
 
     logger.debug("Goal status updated successfully", {
       goalId: id,
@@ -476,16 +562,25 @@ const archiveGoal = asyncHandler(async (req, res) => {
 
   const goal = await Goal.findById(req.params.id);
 
-  if (goal) {
-    goal.archived = true;
-    const updatedGoal = await goal.save();
-    logger.debug("Goal archived successfully", { goalId: updatedGoal._id });
-    res.json(updatedGoal);
-  } else {
+  if (!goal) {
     logger.error("Goal not found for archiving", { goalId: req.params.id });
     res.status(404);
     throw new Error("Goal not found");
   }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to archive goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to archive this goal");
+  }
+
+  goal.archived = true;
+  const updatedGoal = await goal.save();
+  logger.debug("Goal archived successfully", { goalId: updatedGoal._id });
+  res.json(updatedGoal);
 });
 
 // @desc    Get goal completion prediction and AI coach assessment
@@ -498,8 +593,15 @@ const getGoalPrediction = asyncHandler(async (req, res) => {
     throw new Error("Goal not found");
   }
 
+  const isOwner = goal.createdBy && goal.createdBy.equals(req.userId);
+  const isCollaborator =
+    goal.collaborators &&
+    goal.collaborators.some((c) =>
+      c.equals ? c.equals(req.userId) : c.toString() === req.userId
+    );
+
   // Ensure owner or collaborator
-  if (goal.createdBy.toString() !== req.userId && !goal.collaborators.includes(req.userId)) {
+  if (!isOwner && !isCollaborator) {
     res.status(403);
     throw new Error("Not authorized to access this goal prediction");
   }

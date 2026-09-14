@@ -93,30 +93,39 @@ const updateSubtask = asyncHandler(async (req, res) => {
   const { name, description, priority, dueDate, completed } = req.body;
   const subtask = await Subtask.findById(req.params.id);
 
-  if (subtask) {
-    const wasCompleted = subtask.completed;
-    subtask.name = name || subtask.name;
-    subtask.description = description || subtask.description;
-    subtask.priority = priority || subtask.priority;
-    subtask.dueDate = dueDate || subtask.dueDate;
-    subtask.completed = completed !== undefined ? completed : subtask.completed;
-
-    const updatedSubtask = await subtask.save();
-    logger.debug("Subtask updated successfully", {
-      subtaskId: updatedSubtask._id,
-      taskId: updatedSubtask.taskId,
-    });
-
-    if (updatedSubtask.completed && !wasCompleted) {
-      await handleSubtaskCompletionXP(req.userId);
-    }
-
-    res.json(updatedSubtask);
-  } else {
+  if (!subtask) {
     logger.error("Subtask not found for update", { subtaskId: req.params.id });
     res.status(404);
     throw new Error("Subtask not found");
   }
+
+  if (!subtask.createdBy || !subtask.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to update subtask", {
+      subtaskId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this subtask");
+  }
+
+  const wasCompleted = subtask.completed;
+  subtask.name = name || subtask.name;
+  subtask.description = description || subtask.description;
+  subtask.priority = priority || subtask.priority;
+  subtask.dueDate = dueDate || subtask.dueDate;
+  subtask.completed = completed !== undefined ? completed : subtask.completed;
+
+  const updatedSubtask = await subtask.save();
+  logger.debug("Subtask updated successfully", {
+    subtaskId: updatedSubtask._id,
+    taskId: updatedSubtask.taskId,
+  });
+
+  if (updatedSubtask.completed && !wasCompleted) {
+    await handleSubtaskCompletionXP(req.userId);
+  }
+
+  res.json(updatedSubtask);
 });
 
 /**
@@ -132,32 +141,41 @@ const deleteSubtask = asyncHandler(async (req, res) => {
 
   const subtask = await Subtask.findById(req.params.id);
 
-  if (subtask) {
-    const taskId = subtask.taskId;
-
-    await Subtask.deleteOne({ _id: req.params.id });
-    logger.debug("Subtask deleted successfully", {
-      subtaskId: req.params.id,
-      taskId: subtask.taskId,
-    });
-
-    // Update the completion percentage of the parent task
-    if (taskId) {
-      await updateTaskCompletionPercentage(taskId);
-    }
-
-    res.json({
-      message: "Subtask removed",
-      taskId: subtask.taskId,
-      goalId: subtask.goalId,
-    });
-  } else {
+  if (!subtask) {
     logger.error("Subtask not found for deletion", {
       subtaskId: req.params.id,
     });
     res.status(404);
     throw new Error("Subtask not found");
   }
+
+  if (!subtask.createdBy || !subtask.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to delete subtask", {
+      subtaskId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to delete this subtask");
+  }
+
+  const taskId = subtask.taskId;
+
+  await Subtask.deleteOne({ _id: req.params.id });
+  logger.debug("Subtask deleted successfully", {
+    subtaskId: req.params.id,
+    taskId: subtask.taskId,
+  });
+
+  // Update the completion percentage of the parent task
+  if (taskId) {
+    await updateTaskCompletionPercentage(taskId);
+  }
+
+  res.json({
+    message: "Subtask removed",
+    taskId: subtask.taskId,
+    goalId: subtask.goalId,
+  });
 });
 
 /**
@@ -173,27 +191,36 @@ const markSubtaskAsCompleted = asyncHandler(async (req, res) => {
 
   const subtask = await Subtask.findById(req.params.id);
 
-  if (subtask) {
-    const wasCompleted = subtask.completed;
-    subtask.completed = true;
-    const updatedSubtask = await subtask.save();
-    logger.debug("Subtask marked as completed", {
-      subtaskId: updatedSubtask._id,
-      taskId: updatedSubtask.taskId,
-    });
-
-    if (updatedSubtask.completed && !wasCompleted) {
-      await handleSubtaskCompletionXP(req.userId);
-    }
-
-    res.json(updatedSubtask);
-  } else {
+  if (!subtask) {
     logger.error("Subtask not found for completion", {
       subtaskId: req.params.id,
     });
     res.status(404);
     throw new Error("Subtask not found");
   }
+
+  if (!subtask.createdBy || !subtask.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to mark subtask as completed", {
+      subtaskId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to update this subtask");
+  }
+
+  const wasCompleted = subtask.completed;
+  subtask.completed = true;
+  const updatedSubtask = await subtask.save();
+  logger.debug("Subtask marked as completed", {
+    subtaskId: updatedSubtask._id,
+    taskId: updatedSubtask.taskId,
+  });
+
+  if (updatedSubtask.completed && !wasCompleted) {
+    await handleSubtaskCompletionXP(req.userId);
+  }
+
+  res.json(updatedSubtask);
 });
 
 // Helper function to update task completion percentage
