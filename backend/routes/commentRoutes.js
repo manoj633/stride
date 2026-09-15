@@ -23,10 +23,19 @@ router
     [
       commentLimiter,
       extractUser,
-      check("content")
-        .trim()
-        .isLength({ min: 1, max: 500 })
-        .withMessage("Comment content must be 1-500 characters"),
+      check("text")
+        .custom((value, { req }) => {
+          const textValue = (req.body.text !== undefined ? req.body.text : req.body.content);
+          if (!textValue || typeof textValue !== "string" || textValue.trim().length === 0) {
+            throw new Error("Comment text is required");
+          }
+          if (textValue.trim().length > 500) {
+            throw new Error("Comment text must be between 1 and 500 characters");
+          }
+          // Normalize text onto req.body.text so controller reliably reads it
+          req.body.text = textValue.trim();
+          return true;
+        }),
       validate,
     ],
     createComment
@@ -37,11 +46,21 @@ router
   .put(
     [
       extractUser,
-      check("content")
+      check("text")
         .optional()
-        .trim()
-        .isLength({ min: 1, max: 500 })
-        .withMessage("Comment content must be 1-500 characters"),
+        .custom((value, { req }) => {
+          const textValue = (req.body.text !== undefined ? req.body.text : req.body.content);
+          if (textValue !== undefined) {
+            if (typeof textValue !== "string" || textValue.trim().length === 0) {
+              throw new Error("Comment text cannot be empty");
+            }
+            if (textValue.trim().length > 500) {
+              throw new Error("Comment text must be between 1 and 500 characters");
+            }
+            req.body.text = textValue.trim();
+          }
+          return true;
+        }),
       validate,
     ],
     updateComment

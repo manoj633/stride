@@ -12,6 +12,7 @@ import Goal from "../models/goalModel.js";
 import Task from "../models/taskModel.js";
 import Subtask from "../models/subtaskModel.js";
 import Comment from "../models/commentModel.js";
+import Notification from "../models/notificationModel.js";
 import AuditLog from "../models/auditLogModel.js";
 import logAdminAction from "../utils/auditLogger.js";
 
@@ -359,28 +360,47 @@ const deleteUser = asyncHandler(async (req, res) => {
   const userGoals = await Goal.find({ createdBy: user._id }).select("_id");
   const userGoalIds = userGoals.map((g) => g._id);
 
-  // 2. Cascade delete subtasks (both created by user or linked to user's tasks)
+  // 2. Find all tasks created by user OR linked to user's goals
+  const userTasks = await Task.find({
+    $or: [{ createdBy: user._id }, { goalId: { $in: userGoalIds } }],
+  }).select("_id");
+  const userTaskIds = userTasks.map((t) => t._id);
+
+  // 3. Cascade delete subtasks (created by user, on user's tasks, or on user's goals)
   const deletedSubtasks = await Subtask.deleteMany({
-    $or: [{ createdBy: user._id }, { taskId: { $in: await Task.find({ createdBy: user._id }).distinct("_id") } }],
+    $or: [
+      { createdBy: user._id },
+      { goalId: { $in: userGoalIds } },
+      { taskId: { $in: userTaskIds } },
+    ],
   });
 
-  // 3. Cascade delete tasks created by user or belonging to user's goals
+  // 4. Cascade delete tasks created by user or belonging to user's goals
   const deletedTasks = await Task.deleteMany({
     $or: [{ createdBy: user._id }, { goalId: { $in: userGoalIds } }],
   });
 
-  // 4. Cascade delete comments authored by user OR on user's goals
+  // 5. Cascade delete comments authored by user OR on user's goals
   const deletedComments = await Comment.deleteMany({
     $or: [{ authorId: user._id }, { goalId: { $in: userGoalIds } }],
   });
 
-  // 5. Cascade delete goals created by user
+  // 6. Cascade delete goals created by user
   const deletedGoals = await Goal.deleteMany({ createdBy: user._id });
 
-  // 6. Delete password reset tokens for user's email
-  await PasswordReset.deleteMany({ email: user.email });
+  // 7. Prune deleted user from collaborators list on any goals they were part of
+  await Goal.updateMany(
+    { collaborators: user._id },
+    { $pull: { collaborators: user._id } }
+  );
 
-  // 7. Finally, delete the user document
+  // 8. Cascade delete notifications for this user
+  const deletedNotifications = await Notification.deleteMany({ user: user._id });
+
+  // 9. Delete password reset tokens for user (keyed on userId, not email)
+  await PasswordReset.deleteMany({ userId: user._id });
+
+  // 10. Finally, delete the user document
   await User.deleteOne({ _id: user._id });
 
   // Log admin audit action
@@ -395,6 +415,7 @@ const deleteUser = asyncHandler(async (req, res) => {
       deletedTasksCount: deletedTasks.deletedCount,
       deletedSubtasksCount: deletedSubtasks.deletedCount,
       deletedCommentsCount: deletedComments.deletedCount,
+      deletedNotificationsCount: deletedNotifications.deletedCount,
     },
   });
 
@@ -405,6 +426,7 @@ const deleteUser = asyncHandler(async (req, res) => {
       tasks: deletedTasks.deletedCount,
       subtasks: deletedSubtasks.deletedCount,
       comments: deletedComments.deletedCount,
+      notifications: deletedNotifications.deletedCount,
     },
   });
 });
@@ -426,24 +448,6 @@ const updateUser = asyncHandler(async (req, res) => {
   if (req.body.name && req.body.name.trim() !== user.name) {
     auditChanges.name = { from: user.name, to: req.body.name.trim() };
     user.name = req.body.name.trim();
-  }
-
-  // Email update
-  if (req.body.email && req.body.email.trim().toLowerCase() !== user.email) {
-    const emailCandidate = req.body.email.trim().toLowerCase();
-    const emailExists = await User.findOne({ email: emailCandidate });
-    if (emailExists && !emailExists._id.equals(user._id)) {
-      res.status(400);
-      throw new Error("Email is already in use by another account");
-    }
-    auditChanges.email = { from: user.email, to: emailCandidate };
-    user.email = emailCandidate;
-  }
-
-  // Password update (if provided)
-  if (req.body.password) {
-    user.password = req.body.password; // pre-save hook handles bcrypt hash
-    auditChanges.password = "Updated password";
   }
 
   // Admin promotion / demotion

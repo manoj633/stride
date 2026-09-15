@@ -16,10 +16,28 @@ const protect = asyncHandler(async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_KEY);
       req.user = await User.findById(decoded.userId).select("-password");
+
+      if (!req.user) {
+        res.status(401);
+        throw new Error("User not found");
+      }
+
+      if (req.user.isSuspended) {
+        res.status(403);
+        throw new Error(
+          req.user.suspensionReason
+            ? `Account suspended: ${req.user.suspensionReason}`
+            : "Your account has been suspended. Please contact support."
+        );
+      }
+
       next();
     } catch (error) {
+      if (res.statusCode === 403) {
+        throw error;
+      }
       res.status(401);
-      throw new Error("Not Authorized, token failed");
+      throw new Error(error.message || "Not Authorized, token failed");
     }
   } else {
     res.status(401);

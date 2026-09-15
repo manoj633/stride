@@ -92,17 +92,6 @@ router
         .trim()
         .isLength({ min: 2, max: 50 })
         .withMessage("Name must be 2-50 characters"),
-      check("email")
-        .optional()
-        .trim()
-        .isEmail()
-        .withMessage("Valid email is required")
-        .isLength({ max: 100 })
-        .toLowerCase(),
-      check("password")
-        .optional()
-        .isLength({ min: 6, max: 128 })
-        .withMessage("Password must be 6-128 characters"),
       validate,
     ],
     updateUser

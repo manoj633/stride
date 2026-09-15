@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
-const extractUser = (req, res, next) => {
+const extractUser = async (req, res, next) => {
   const token = req.cookies.jwt;
 
   if (!token) {
@@ -17,6 +18,19 @@ const extractUser = (req, res, next) => {
       return res
         .status(401)
         .json({ message: "Token expired, please login again" });
+    }
+
+    const user = await User.findById(decoded.userId).select("isSuspended suspensionReason");
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    if (user.isSuspended) {
+      return res.status(403).json({
+        message: user.suspensionReason
+          ? `Account suspended: ${user.suspensionReason}`
+          : "Your account has been suspended. Please contact support.",
+      });
     }
 
     req.userId = decoded.userId;
