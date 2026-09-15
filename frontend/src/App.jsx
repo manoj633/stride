@@ -251,17 +251,38 @@ const App = () => {
               </AdminRoute>
             }
           />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/pomodoro"
+            element={
+              <PrivateRoute>
+                <Pomodoro />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <PrivateRoute>
+                <Notifications />
+              </PrivateRoute>
+            }
+          />
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/pomodoro" element={<Pomodoro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/two-factor-verify" element={<TwoFactorVerify />} />
           <Route path="/two-factor-setup" element={<TwoFactorSetup />} />
           <Route path="/two-factor-success" element={<TwoFactorSuccess />} />
-          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </main>
       <ToastContainer />
