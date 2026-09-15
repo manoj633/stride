@@ -4,13 +4,18 @@ import {
   getGoalComments,
   updateComment,
   deleteComment,
+  adminGetComments,
 } from "../controllers/commentController.js";
 import extractUser from "../utils/extractUser.js";
+import { protect, admin } from "../middleware/authMiddleware.js";
 import { check } from "express-validator";
 import { validate } from "../middleware/validationMiddleware.js";
 import { commentLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
+
+// Admin comment moderation (placed before dynamic routes)
+router.get("/admin/all", protect, admin, adminGetComments);
 
 router
   .route("/")

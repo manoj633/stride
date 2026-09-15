@@ -11,6 +11,9 @@ import { verifyUserStreakActive, handlePomodoroCompletionXP } from "../utils/gam
 import Goal from "../models/goalModel.js";
 import Task from "../models/taskModel.js";
 import Subtask from "../models/subtaskModel.js";
+import Comment from "../models/commentModel.js";
+import AuditLog from "../models/auditLogModel.js";
+import logAdminAction from "../utils/auditLogger.js";
 
 //@desc     Auth User & get token
 //@route    POST /api/users/login
@@ -21,6 +24,15 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
+    if (user.isSuspended) {
+      res.status(403);
+      throw new Error(
+        user.suspensionReason
+          ? `Account suspended: ${user.suspensionReason}`
+          : "Your account has been suspended. Please contact support."
+      );
+    }
+
     // Update lastActive on login
     user.lastActive = new Date();
     verifyUserStreakActive(user);
@@ -234,6 +246,8 @@ const getUsers = asyncHandler(async (req, res) => {
     email: user.email,
     createdAt: user.createdAt,
     isAdmin: Boolean(user.isAdmin),
+    isSuspended: Boolean(user.isSuspended),
+    suspensionReason: user.suspensionReason || null,
     isTwoFactorEnabled: Boolean(user.isTwoFactorEnabled),
     hasTwoFactorSecret: Boolean(user.twoFactorSecret),
     xp: user.xp || 0,
@@ -278,6 +292,8 @@ const getUserById = asyncHandler(async (req, res) => {
     email: user.email,
     createdAt: user.createdAt,
     isAdmin: Boolean(user.isAdmin),
+    isSuspended: Boolean(user.isSuspended),
+    suspensionReason: user.suspensionReason || null,
     isTwoFactorEnabled: Boolean(user.isTwoFactorEnabled),
     hasTwoFactorSecret: Boolean(user.twoFactorSecret),
     xp: user.xp || 0,
@@ -316,46 +332,221 @@ const getAdminStats = asyncHandler(async (req, res) => {
   });
 });
 
-//@desc     Delete users profile
+//@desc     Delete user account and cascade all associated data
 //@route    DELETE /api/users/:id
 //@access   Private/Admin
 const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (user) {
-    if (user.isAdmin && (await User.countDocuments({ isAdmin: true })) <= 1) {
-      res.status(400);
-      throw new Error("Cannot delete the last admin account");
-    }
-    await User.deleteOne({ _id: user._id });
-    res.json({ message: "User removed successfully" });
-  } else {
+  if (!user) {
     res.status(404);
     throw new Error("User not found");
   }
+
+  // Safeguard 1: Admin cannot delete themselves
+  if (req.user && req.user._id && user._id.equals(req.user._id)) {
+    res.status(400);
+    throw new Error("You cannot delete your own account from the admin dashboard");
+  }
+
+  // Safeguard 2: Cannot delete the last active admin account
+  if (user.isAdmin && (await User.countDocuments({ isAdmin: true })) <= 1) {
+    res.status(400);
+    throw new Error("Cannot delete the last admin account");
+  }
+
+  // Cascade cleanup across all associated collections:
+  // 1. Find all goals created by this user
+  const userGoals = await Goal.find({ createdBy: user._id }).select("_id");
+  const userGoalIds = userGoals.map((g) => g._id);
+
+  // 2. Cascade delete subtasks (both created by user or linked to user's tasks)
+  const deletedSubtasks = await Subtask.deleteMany({
+    $or: [{ createdBy: user._id }, { taskId: { $in: await Task.find({ createdBy: user._id }).distinct("_id") } }],
+  });
+
+  // 3. Cascade delete tasks created by user or belonging to user's goals
+  const deletedTasks = await Task.deleteMany({
+    $or: [{ createdBy: user._id }, { goalId: { $in: userGoalIds } }],
+  });
+
+  // 4. Cascade delete comments authored by user OR on user's goals
+  const deletedComments = await Comment.deleteMany({
+    $or: [{ authorId: user._id }, { goalId: { $in: userGoalIds } }],
+  });
+
+  // 5. Cascade delete goals created by user
+  const deletedGoals = await Goal.deleteMany({ createdBy: user._id });
+
+  // 6. Delete password reset tokens for user's email
+  await PasswordReset.deleteMany({ email: user.email });
+
+  // 7. Finally, delete the user document
+  await User.deleteOne({ _id: user._id });
+
+  // Log admin audit action
+  await logAdminAction({
+    req,
+    action: "USER_DELETE",
+    targetType: "User",
+    targetId: user._id,
+    targetIdentifier: `${user.name} (${user.email})`,
+    details: {
+      deletedGoalsCount: deletedGoals.deletedCount,
+      deletedTasksCount: deletedTasks.deletedCount,
+      deletedSubtasksCount: deletedSubtasks.deletedCount,
+      deletedCommentsCount: deletedComments.deletedCount,
+    },
+  });
+
+  res.json({
+    message: "User and all associated data deleted successfully",
+    cascaded: {
+      goals: deletedGoals.deletedCount,
+      tasks: deletedTasks.deletedCount,
+      subtasks: deletedSubtasks.deletedCount,
+      comments: deletedComments.deletedCount,
+    },
+  });
 });
 
-//@desc     Update users profile
+//@desc     Update user profile & administrative controls (promote, suspend, reset 2FA)
 //@route    PUT /api/users/:id
 //@access   Private/Admin
 const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    if (req.body.isAdmin !== undefined) {
-      user.isAdmin = Boolean(req.body.isAdmin);
-    }
-    const updatedUser = await user.save();
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      isAdmin: updatedUser.isAdmin,
-    });
-  } else {
+  if (!user) {
     res.status(404);
     throw new Error("User not found");
   }
+
+  const isSelf = req.user && req.user._id && user._id.equals(req.user._id);
+  const auditChanges = {};
+
+  // Name update
+  if (req.body.name && req.body.name.trim() !== user.name) {
+    auditChanges.name = { from: user.name, to: req.body.name.trim() };
+    user.name = req.body.name.trim();
+  }
+
+  // Email update
+  if (req.body.email && req.body.email.trim().toLowerCase() !== user.email) {
+    const emailCandidate = req.body.email.trim().toLowerCase();
+    const emailExists = await User.findOne({ email: emailCandidate });
+    if (emailExists && !emailExists._id.equals(user._id)) {
+      res.status(400);
+      throw new Error("Email is already in use by another account");
+    }
+    auditChanges.email = { from: user.email, to: emailCandidate };
+    user.email = emailCandidate;
+  }
+
+  // Password update (if provided)
+  if (req.body.password) {
+    user.password = req.body.password; // pre-save hook handles bcrypt hash
+    auditChanges.password = "Updated password";
+  }
+
+  // Admin promotion / demotion
+  if (req.body.isAdmin !== undefined) {
+    const targetAdminState = Boolean(req.body.isAdmin);
+    if (user.isAdmin !== targetAdminState) {
+      if (isSelf && !targetAdminState) {
+        res.status(400);
+        throw new Error("You cannot remove your own admin privileges");
+      }
+      if (user.isAdmin && !targetAdminState && (await User.countDocuments({ isAdmin: true })) <= 1) {
+        res.status(400);
+        throw new Error("Cannot demote the last remaining admin account");
+      }
+      auditChanges.isAdmin = { from: user.isAdmin, to: targetAdminState };
+      user.isAdmin = targetAdminState;
+    }
+  }
+
+  // Suspension / Activation
+  if (req.body.isSuspended !== undefined) {
+    const targetSuspendedState = Boolean(req.body.isSuspended);
+    if (user.isSuspended !== targetSuspendedState) {
+      if (isSelf && targetSuspendedState) {
+        res.status(400);
+        throw new Error("You cannot suspend your own account");
+      }
+      auditChanges.isSuspended = { from: user.isSuspended, to: targetSuspendedState };
+      user.isSuspended = targetSuspendedState;
+      user.suspensionReason = targetSuspendedState
+        ? req.body.suspensionReason || "Suspended by administrator"
+        : null;
+      if (req.body.suspensionReason) {
+        auditChanges.suspensionReason = req.body.suspensionReason;
+      }
+    }
+  }
+
+  // Force-reset / disable 2FA for locked-out user
+  if (req.body.forceDisable2FA === true || req.body.isTwoFactorEnabled === false) {
+    if (user.twoFactorSecret || user.isTwoFactorEnabled) {
+      auditChanges.twoFactor = "Forced 2FA reset and disabled";
+      user.isTwoFactorEnabled = false;
+      user.twoFactorSecret = null;
+      user.twoFactorBackupCodes = [];
+    }
+  }
+
+  const updatedUser = await user.save();
+
+  // Log admin action if changes were recorded
+  if (Object.keys(auditChanges).length > 0) {
+    await logAdminAction({
+      req,
+      action: auditChanges.isSuspended
+        ? auditChanges.isSuspended.to
+          ? "USER_SUSPEND"
+          : "USER_UNSUSPEND"
+        : auditChanges.isAdmin
+        ? auditChanges.isAdmin.to
+          ? "USER_PROMOTE"
+          : "USER_DEMOTE"
+        : auditChanges.twoFactor
+        ? "USER_RESET_2FA"
+        : "USER_UPDATE",
+      targetType: "User",
+      targetId: user._id,
+      targetIdentifier: `${updatedUser.name} (${updatedUser.email})`,
+      details: auditChanges,
+    });
+  }
+
+  res.json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    isAdmin: Boolean(updatedUser.isAdmin),
+    isSuspended: Boolean(updatedUser.isSuspended),
+    suspensionReason: updatedUser.suspensionReason,
+    isTwoFactorEnabled: Boolean(updatedUser.isTwoFactorEnabled),
+    hasTwoFactorSecret: Boolean(updatedUser.twoFactorSecret),
+  });
+});
+
+//@desc     Get administrative audit logs
+//@route    GET /api/users/admin/audit-logs
+//@access   Private/Admin
+const getAuditLogs = asyncHandler(async (req, res) => {
+  const pageSize = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const page = Math.max(Number(req.query.page) || 1, 1);
+
+  const totalLogs = await AuditLog.countDocuments();
+  const logs = await AuditLog.find()
+    .sort({ createdAt: -1 })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+
+  res.json({
+    logs,
+    page,
+    pages: Math.ceil(totalLogs / pageSize) || 1,
+    totalLogs,
+  });
 });
 
 //@desc     Refresh User Token
@@ -725,6 +916,15 @@ const validateTwoFactorAuth = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
+  if (user.isSuspended) {
+    res.status(403);
+    throw new Error(
+      user.suspensionReason
+        ? `Account suspended: ${user.suspensionReason}`
+        : "Your account has been suspended. Please contact support."
+    );
+  }
+
   let validToken = false;
 
   if (isBackupCode) {
@@ -876,4 +1076,5 @@ export {
   recoverWithBackupCode,
   completePomodoro,
   getAdminStats,
+  getAuditLogs,
 };

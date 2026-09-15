@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, minlength: 6, maxlength: 128 },
     isAdmin: { type: Boolean, required: true, default: false },
+    isSuspended: { type: Boolean, default: false },
+    suspensionReason: { type: String, default: null },
     isTwoFactorEnabled: { type: Boolean, default: true },
     twoFactorSecret: { type: String, default: null },
     twoFactorBackupCodes: [{ type: String }], // bcrypt hashes, ~60 chars each

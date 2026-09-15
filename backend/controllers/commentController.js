@@ -1,7 +1,8 @@
-// src/controllers/commentController.js
 import asyncHandler from "../middleware/asyncHandler.js";
 import Comment from "../models/commentModel.js";
+import User from "../models/userModel.js";
 import logger from "../utils/logger.js";
+import logAdminAction from "../utils/auditLogger.js";
 
 /**
  * * Description: Create a new comment
@@ -107,9 +108,41 @@ const updateComment = asyncHandler(async (req, res) => {
 });
 
 /**
- * * Description: Delete a comment
+ * * Description: Get all platform comments for admin moderation
+ * * route: /api/comments/admin/all
+ * * access: Private/Admin
+ */
+const adminGetComments = asyncHandler(async (req, res) => {
+  const pageSize = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const search = req.query.search ? req.query.search.trim() : "";
+
+  let filter = {};
+  if (search) {
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter = { text: { $regex: escapedSearch, $options: "i" } };
+  }
+
+  const totalComments = await Comment.countDocuments(filter);
+  const comments = await Comment.find(filter)
+    .populate("authorId", "name email")
+    .populate("goalId", "title")
+    .sort({ createdAt: -1 })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+
+  res.json({
+    comments,
+    page,
+    pages: Math.ceil(totalComments / pageSize) || 1,
+    totalComments,
+  });
+});
+
+/**
+ * * Description: Delete a comment (supports author or admin moderation)
  * * route: /api/comments/:commentId
- * * access: Public
+ * * access: Private
  */
 const deleteComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
@@ -118,7 +151,9 @@ const deleteComment = asyncHandler(async (req, res) => {
     endpoint: "/api/comments/:commentId",
   });
 
-  const comment = await Comment.findById(commentId);
+  const comment = await Comment.findById(commentId)
+    .populate("authorId", "name email")
+    .populate("goalId", "title");
 
   if (!comment) {
     logger.error("Comment not found for deletion", { commentId });
@@ -126,7 +161,22 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new Error("Comment not found");
   }
 
-  if (!comment.authorId || !comment.authorId.equals(req.userId)) {
+  // Determine if requester is an admin
+  let isAdmin = Boolean(req.user?.isAdmin);
+  if (!isAdmin && req.userId) {
+    const requestingUser = await User.findById(req.userId).select("isAdmin");
+    if (requestingUser?.isAdmin) {
+      isAdmin = true;
+    }
+  }
+
+  const isAuthor =
+    comment.authorId &&
+    (comment.authorId._id
+      ? comment.authorId._id.equals(req.userId)
+      : comment.authorId.equals(req.userId));
+
+  if (!isAuthor && !isAdmin) {
     logger.error("Not authorized to delete comment", {
       commentId,
       userId: req.userId,
@@ -140,7 +190,32 @@ const deleteComment = asyncHandler(async (req, res) => {
     commentId,
     goalId: comment.goalId,
   });
+
+  // If deleted by an admin on behalf of moderation, audit the action
+  if (isAdmin) {
+    await logAdminAction({
+      req,
+      action: "COMMENT_DELETE",
+      targetType: "Comment",
+      targetId: comment._id,
+      targetIdentifier: comment.text ? comment.text.substring(0, 50) : "Comment",
+      details: {
+        author: comment.authorId
+          ? `${comment.authorId.name} (${comment.authorId.email})`
+          : "Unknown",
+        goalTitle: comment.goalId ? comment.goalId.title : "Unknown",
+        isAuthorDelete: Boolean(isAuthor),
+      },
+    });
+  }
+
   res.json({ message: "Comment removed" });
 });
 
-export { createComment, getGoalComments, updateComment, deleteComment };
+export {
+  createComment,
+  getGoalComments,
+  updateComment,
+  deleteComment,
+  adminGetComments,
+};

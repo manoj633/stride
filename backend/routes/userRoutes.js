@@ -19,6 +19,7 @@ import {
   recoverWithBackupCode,
   completePomodoro,
   getAdminStats,
+  getAuditLogs,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import { passwordResetLimiter, loginLimiter, registerLimiter, twoFactorLimiter } from "../middleware/rateLimiter.js";
@@ -76,6 +77,7 @@ router
 
 // Admin stats route (must come before /:id)
 router.get("/admin/stats", protect, admin, getAdminStats);
+router.get("/admin/audit-logs", protect, admin, getAuditLogs);
 
 router
   .route("/:id")

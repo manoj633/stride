@@ -51,6 +51,8 @@ export const commentAPI = {
   update: (id, commentData) =>
     axiosInstance.put(`/comments/${id}`, commentData),
   delete: (id) => axiosInstance.delete(`/comments/${id}`),
+  adminGetAll: (params) =>
+    axiosInstance.get("/comments/admin/all", { params }),
 };
 
 export const userAPI = {
@@ -64,10 +66,13 @@ export const userAPI = {
   updateProfile: (userData) => axiosInstance.put("/users/profile", userData),
 
   // Admin routes
-  getAllUsers: () => axiosInstance.get("/users"),
+  getAllUsers: (params) => axiosInstance.get("/users", { params }),
   getUserById: (id) => axiosInstance.get(`/users/${id}`),
   updateUser: (id, userData) => axiosInstance.put(`/users/${id}`, userData),
   deleteUser: (id) => axiosInstance.delete(`/users/${id}`),
+  getAdminStats: () => axiosInstance.get("/users/admin/stats"),
+  getAuditLogs: (params) =>
+    axiosInstance.get("/users/admin/audit-logs", { params }),
 
   // 2FA methods
   generateTwoFactorSecret: () =>
