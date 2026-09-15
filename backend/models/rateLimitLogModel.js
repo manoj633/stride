@@ -42,6 +42,7 @@ const rateLimitLogSchema = new mongoose.Schema(
 );
 
 rateLimitLogSchema.index({ createdAt: -1 });
+rateLimitLogSchema.index({ createdAt: 1 }, { expires: 60 * 60 * 24 * 30 }); // 30 days
 rateLimitLogSchema.index({ limiter: 1 });
 rateLimitLogSchema.index({ ip: 1 });
 rateLimitLogSchema.index({ email: 1 });

@@ -341,7 +341,8 @@ export const getFeatureUsageAnalytics = asyncHandler(async (req, res) => {
   const [
     totalAiCalls,
     successfulAiCalls,
-    fallbackAiCalls,
+    simulatedFallbackCalls,
+    geminiFallbackCalls,
     errorAiCalls,
     uniqueAiUsers,
     avgLatencyStats,
@@ -349,7 +350,8 @@ export const getFeatureUsageAnalytics = asyncHandler(async (req, res) => {
   ] = await Promise.all([
     AiLog.countDocuments(),
     AiLog.countDocuments({ status: "success" }),
-    AiLog.countDocuments({ status: "fallback_simulated" }),
+    AiLog.countDocuments({ model: "simulated" }),
+    AiLog.countDocuments({ status: "fallback_simulated", model: "gemini-2.5-flash" }),
     AiLog.countDocuments({ status: "error" }),
     AiLog.distinct("userId", { userId: { $ne: null } }),
     AiLog.aggregate([
@@ -363,6 +365,7 @@ export const getFeatureUsageAnalytics = asyncHandler(async (req, res) => {
       .populate("goalId", "title"),
   ]);
 
+  const fallbackAiCalls = simulatedFallbackCalls + geminiFallbackCalls;
   const avgAiLatencyMs = Math.round(avgLatencyStats[0]?.avgLatency || 0);
 
   res.json({
@@ -386,6 +389,8 @@ export const getFeatureUsageAnalytics = asyncHandler(async (req, res) => {
       totalAiCalls,
       successfulAiCalls,
       fallbackAiCalls,
+      simulatedFallbackCalls,
+      geminiFallbackCalls,
       errorAiCalls,
       uniqueUsersCount: uniqueAiUsers.length,
       avgAiLatencyMs,

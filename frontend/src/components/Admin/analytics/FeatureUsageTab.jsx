@@ -304,7 +304,7 @@ const FeatureUsageTab = () => {
               <FiAlertTriangle />
             </div>
             <div className="analytics-kpi-body">
-              <span className="analytics-kpi-label">Fallback Simulated / Errors</span>
+              <span className="analytics-kpi-label">Fallbacks & Errors</span>
               <div className="analytics-kpi-value-row">
                 <span className="analytics-kpi-value">
                   {(aiCoach.fallbackAiCalls + aiCoach.errorAiCalls).toLocaleString()}
@@ -315,7 +315,10 @@ const FeatureUsageTab = () => {
                   </span>
                 )}
               </div>
-              <span className="analytics-kpi-hint">Heuristic fallback assessments</span>
+              <span className="analytics-kpi-hint">
+                No Key: {aiCoach.simulatedFallbackCalls || 0} • Gemini Fallback/Errors:{" "}
+                {(aiCoach.geminiFallbackCalls || 0) + (aiCoach.errorAiCalls || 0)}
+              </span>
             </div>
           </div>
 
