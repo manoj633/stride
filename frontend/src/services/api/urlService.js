@@ -102,3 +102,11 @@ export const goalTemplateAPI = {
 export const reportAPI = {
   getMyReports: () => axiosInstance.get("/reports/my-reports"),
 };
+
+export const adminAnalyticsAPI = {
+  getEngagement: () => axiosInstance.get("/admin/analytics/engagement"),
+  getFeatureUsage: () => axiosInstance.get("/admin/analytics/feature-usage"),
+  getSecurity: () => axiosInstance.get("/admin/analytics/security"),
+  getSystemHealth: () => axiosInstance.get("/admin/analytics/system-health"),
+};
+

@@ -660,7 +660,8 @@ const getGoalPrediction = asyncHandler(async (req, res) => {
     tasks.length,
     daysRemaining,
     daysNeeded,
-    status
+    status,
+    { userId: req.userId, goalId: goal._id }
   );
 
   res.json({

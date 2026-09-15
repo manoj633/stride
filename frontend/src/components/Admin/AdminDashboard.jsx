@@ -25,10 +25,13 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { userAPI, commentAPI } from "../../services/api/urlService";
+import EngagementTab from "./analytics/EngagementTab";
+import FeatureUsageTab from "./analytics/FeatureUsageTab";
+import SecurityHealthTab from "./analytics/SecurityHealthTab";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("users"); // "users" | "comments" | "audit"
+  const [activeTab, setActiveTab] = useState("users"); // "users" | "comments" | "audit" | "engagement" | "features" | "security"
 
   // System Stats
   const [stats, setStats] = useState({
@@ -494,6 +497,27 @@ const AdminDashboard = () => {
           <FiFileText />
           <span>Audit Log Trail</span>
         </button>
+        <button
+          className={`admin-tab ${activeTab === "engagement" ? "admin-tab--active" : ""}`}
+          onClick={() => setActiveTab("engagement")}
+        >
+          <FiTrendingUp />
+          <span>Engagement & Retention</span>
+        </button>
+        <button
+          className={`admin-tab ${activeTab === "features" ? "admin-tab--active" : ""}`}
+          onClick={() => setActiveTab("features")}
+        >
+          <FiActivity />
+          <span>Feature Adoption</span>
+        </button>
+        <button
+          className={`admin-tab ${activeTab === "security" ? "admin-tab--active" : ""}`}
+          onClick={() => setActiveTab("security")}
+        >
+          <FiShield />
+          <span>Security & Health</span>
+        </button>
       </div>
 
       {/* TAB 1: USERS DIRECTORY */}
@@ -920,6 +944,15 @@ const AdminDashboard = () => {
           )}
         </section>
       )}
+
+      {/* TAB 4: ENGAGEMENT & RETENTION */}
+      {activeTab === "engagement" && <EngagementTab />}
+
+      {/* TAB 5: FEATURE ADOPTION */}
+      {activeTab === "features" && <FeatureUsageTab />}
+
+      {/* TAB 6: SECURITY & SYSTEM HEALTH */}
+      {activeTab === "security" && <SecurityHealthTab />}
 
       {/* User Detail Modal */}
       {selectedUserId && (

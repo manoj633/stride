@@ -3,6 +3,7 @@ import User from "../models/userModel.js";
 import Goal from "../models/goalModel.js";
 import Task from "../models/taskModel.js";
 import WeeklyReport from "../models/weeklyReportModel.js";
+import SystemHealthLog from "../models/systemHealthLogModel.js";
 import sendEmail from "../utils/emailService.js";
 import logger from "../utils/logger.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
@@ -1086,6 +1087,18 @@ export const generateAndSendWeeklyReports = async () => {
           error: error.message,
           stack: error.stack,
         });
+        await SystemHealthLog.create({
+          component: "weekly_report",
+          status: "failed",
+          errorMessage: error.message,
+          errorStack: error.stack,
+          metadata: {
+            userId: user._id,
+            userEmail: user.email,
+          },
+        }).catch((e) =>
+          logger.error("Failed to log weekly report error to SystemHealthLog:", e.message)
+        );
         // Continue with next user even if one fails
       }
     }
@@ -1103,6 +1116,15 @@ export const generateAndSendWeeklyReports = async () => {
       error: error.message,
       stack: error.stack,
     });
+    await SystemHealthLog.create({
+      component: "weekly_report",
+      status: "failed",
+      errorMessage: `Job error: ${error.message}`,
+      errorStack: error.stack,
+      metadata: { scope: "global_job" },
+    }).catch((e) =>
+      logger.error("Failed to log weekly report job error to SystemHealthLog:", e.message)
+    );
 
     // Return error information
     return {

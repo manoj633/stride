@@ -1,5 +1,6 @@
 // utils/emailService.js
 import brevo from "@getbrevo/brevo";
+import SystemHealthLog from "../models/systemHealthLogModel.js";
 
 const sendEmail = async (options) => {
   console.log("📨 Sending via Brevo API:", options.subject);
@@ -27,8 +28,23 @@ const sendEmail = async (options) => {
   try {
     const response = await client.sendTransacEmail(email);
     console.log("✅ Brevo API email sent:", response.messageId);
+    return response;
   } catch (err) {
     console.error("❌ Brevo API send failed:", err.message);
+    await SystemHealthLog.create({
+      component: "email_delivery",
+      status: "failed",
+      errorMessage: err.message,
+      metadata: {
+        recipientEmail: options.email,
+        subject: options.subject,
+      },
+    }).catch((e) =>
+      console.error(
+        "Failed to log email failure to SystemHealthLog:",
+        e.message
+      )
+    );
     throw err;
   }
 };
