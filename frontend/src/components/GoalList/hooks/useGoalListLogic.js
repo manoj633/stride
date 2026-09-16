@@ -17,7 +17,7 @@ export const useGoalListLogic = (goals) => {
   // Add missing state declarations
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [sortBy, setSortBy] = useState("lastModified");
+  const [sortBy, setSortBy] = useState("thisYear");
   const [viewType, setViewType] = useState("list");
   const [selectedGoals, setSelectedGoals] = useState([]);
 
@@ -111,6 +111,9 @@ export const useGoalListLogic = (goals) => {
           case "created":
             return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
           case "lastModified":
+          case "thisYear":
+          case "thisMonth":
+          case "thisWeek":
             return (
               new Date(b.updatedAt || b.createdAt || 0) -
               new Date(a.updatedAt || a.createdAt || 0)

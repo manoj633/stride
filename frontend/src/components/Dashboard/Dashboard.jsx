@@ -133,7 +133,7 @@ const Dashboard = () => {
   const currentYear = now.getFullYear();
 
   // Start of year: Jan 1, 00:00:00.000
-  const startOfYear = new Date(currentYear, 0, 1).toISOString();
+  const startOfYear = new Date(currentYear, 0, 1);
 
   // End of year: Dec 31, 23:59:59.999
   const endOfYear = new Date(
@@ -144,27 +144,36 @@ const Dashboard = () => {
     59,
     59,
     999,
-  ).toISOString();
+  );
 
   // Summary Stats
-  const activeGoals = goals.filter(
-    (g) =>
-      !g.completed &&
-      g.duration.startDate >= startOfYear &&
-      g.duration.endDate <= endOfYear,
-  ).length;
+  const activeGoals = goals.filter((g) => {
+    if (g.completed || g.archived) return false;
+    if (!g.duration?.startDate || !g.duration?.endDate) return false;
+    const start = new Date(g.duration.startDate);
+    const end = new Date(g.duration.endDate);
+    return start <= endOfYear && end >= startOfYear;
+  }).length;
 
-  const pendingTasks = tasks.filter(
-    (t) => !t.completed && t.startDate >= startOfYear && t.endDate <= endOfYear,
-  ).length;
+  const pendingTasks = tasks.filter((t) => {
+    if (t.completed) return false;
+    if (!t.startDate && !t.endDate) return false;
+    const start = new Date(t.startDate || t.endDate);
+    const end = new Date(t.endDate || t.startDate);
+    return start <= endOfYear && end >= startOfYear;
+  }).length;
 
-  const completedSubtasks = subtasks.filter(
-    (s) => s.completed && s.dueDate >= startOfYear && s.dueDate <= endOfYear,
-  ).length;
+  const completedSubtasks = subtasks.filter((s) => {
+    if (!s.completed || !s.dueDate) return false;
+    const due = new Date(s.dueDate);
+    return due >= startOfYear && due <= endOfYear;
+  }).length;
 
-  const totalAnnualSubtasks = subtasks.filter(
-    (s) => s.dueDate >= startOfYear && s.dueDate <= endOfYear,
-  ).length;
+  const totalAnnualSubtasks = subtasks.filter((s) => {
+    if (!s.dueDate) return false;
+    const due = new Date(s.dueDate);
+    return due >= startOfYear && due <= endOfYear;
+  }).length;
 
   const totalSubtasks = subtasks.length;
   const completionRate =
@@ -185,14 +194,15 @@ const Dashboard = () => {
   // filter top 4 goals of the year
 
   const goalsThisYear = goals.filter((g) => {
+    if (!g.duration?.startDate || !g.duration?.endDate) return false;
     const startDate = new Date(g.duration.startDate);
     const endDate = new Date(g.duration.endDate);
 
     return (
       !g.completed &&
       !g.archived &&
-      startDate >= startOfYear &&
-      endDate <= endOfYear
+      startDate <= endOfYear &&
+      endDate >= startOfYear
     );
   });
 
@@ -405,7 +415,7 @@ const Dashboard = () => {
               <div className="panel-header">
                 <div className="panel-title-group">
                   <h2>Goal Progression</h2>
-                  <span className="panel-badge">{goals.length} total</span>
+                  <span className="panel-badge">{goalsThisYear.length} this year</span>
                 </div>
                 <button className="panel-link-btn" onClick={() => navigate("/goals")}>
                   Manage <FiArrowRight />
@@ -413,7 +423,7 @@ const Dashboard = () => {
               </div>
 
               <div className="panel-scroll-content">
-                {goals.slice(0, 4).length === 0 ? (
+                {goalsThisYear.slice(0, 4).length === 0 ? (
                   <div className="empty-state">
                     <FiTarget size={28} />
                     <p>No active goals for this year.</p>
@@ -423,7 +433,7 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="compact-goals-list">
-                    {goals.slice(0, 4).map((goal) => (
+                    {goalsThisYear.slice(0, 4).map((goal) => (
                       <div 
                         key={goal._id} 
                         className="compact-goal-card"

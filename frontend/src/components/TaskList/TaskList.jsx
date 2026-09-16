@@ -21,13 +21,18 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
   const userInfo = useSelector((state) => state.user.userInfo);
 
   // Helper for date formatting
-  const formatDateForInput = (date) => date.toISOString().split("T")[0];
+  const formatDateForInput = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
-  // Calculate default month range
+  // Calculate default year range (current year)
   const defaultDateRange = useMemo(() => {
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear(), 11, 31);
     return {
       start: formatDateForInput(start),
       end: formatDateForInput(end),

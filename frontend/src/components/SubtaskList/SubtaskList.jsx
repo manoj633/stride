@@ -18,13 +18,20 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   const error = useSelector((state) => state.subtasks.error);
   const tags = useSelector((state) => state.tags.items);
 
-  // Default month range
+  // Helper for date formatting
+  const formatDateForInput = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Default year range (current year)
   const defaultDateRange = useMemo(() => {
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const formatDate = (d) => d.toISOString().split("T")[0];
-    return { start: formatDate(start), end: formatDate(end) };
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear(), 11, 31);
+    return { start: formatDateForInput(start), end: formatDateForInput(end) };
   }, []);
 
   // Filter/search state
