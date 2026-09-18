@@ -8,7 +8,7 @@ export const tagAPI = {
 };
 
 export const goalAPI = {
-  fetchAll: () => axiosInstance.get("/goals"),
+  fetchAll: (params) => axiosInstance.get("/goals", { params }),
   fetchByTag: (tagId) => axiosInstance.get(`/goals/bytag/${tagId}`),
   //endpoint not defined in backend
   create: (goalData) => axiosInstance.post("/goals", goalData),
@@ -22,11 +22,12 @@ export const goalAPI = {
 
   updateStatus: (id, data) => axiosInstance.patch(`/goals/${id}/status`, data),
   archive: (id) => axiosInstance.post(`/goals/${id}/archive`),
+  unarchive: (id) => axiosInstance.post(`/goals/${id}/unarchive`),
   getGoalPrediction: (id) => axiosInstance.get(`/goals/${id}/prediction`),
 };
 
 export const taskAPI = {
-  fetchAll: () => axiosInstance.get("/tasks"),
+  fetchAll: (params) => axiosInstance.get("/tasks", { params }),
   fetchById: (id) => axiosInstance.get(`/tasks/${id}`),
   create: (taskData) => axiosInstance.post("/tasks", taskData),
   update: (id, taskData) => axiosInstance.put(`/tasks/${id}`, taskData),
@@ -36,7 +37,7 @@ export const taskAPI = {
 };
 
 export const subtaskAPI = {
-  fetchAll: () => axiosInstance.get("/subtasks"),
+  fetchAll: (params) => axiosInstance.get("/subtasks", { params }),
   fetchById: (id) => axiosInstance.get(`/subtasks/${id}`),
   create: (subtaskData) => axiosInstance.post("/subtasks", subtaskData),
   update: (id, subtaskData) =>

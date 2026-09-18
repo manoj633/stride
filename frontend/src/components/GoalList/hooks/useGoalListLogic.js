@@ -8,20 +8,49 @@ import {
   deleteGoal,
   updateGoalStatus,
   archiveGoal,
+  unarchiveGoal,
   fetchGoals,
 } from "../../../store/features/goals/goalSlice";
 
 export const useGoalListLogic = (goals) => {
   const dispatch = useAppDispatch();
 
-  // Add missing state declarations
+  const currentYear = new Date().getFullYear();
+
+  // Filter and sort state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [sortBy, setSortBy] = useState("thisYear");
+  const [archiveStatus, setArchiveStatus] = useState("active"); // "active" | "archived" | "all"
+  const [selectedYear, setSelectedYear] = useState(currentYear); // number or "all"
+  const [sortBy, setSortBy] = useState("lastModified");
   const [viewType, setViewType] = useState("list");
   const [selectedGoals, setSelectedGoals] = useState([]);
 
-  // src/components/GoalList/hooks/useGoalListLogic.js
+  // Dynamically compute available years based on a standard window + data history
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
+    const cy = new Date().getFullYear();
+    for (let i = cy + 1; i >= cy - 3; i--) {
+      yearsSet.add(i);
+    }
+    if (Array.isArray(goals)) {
+      goals.forEach((g) => {
+        if (g.duration?.startDate) {
+          yearsSet.add(new Date(g.duration.startDate).getFullYear());
+        }
+        if (g.duration?.endDate) {
+          yearsSet.add(new Date(g.duration.endDate).getFullYear());
+        }
+        if (g.createdAt) {
+          yearsSet.add(new Date(g.createdAt).getFullYear());
+        }
+      });
+    }
+    const sorted = Array.from(yearsSet).sort((a, b) => b - a);
+    return [...sorted, "all"];
+  }, [goals]);
+
+  // Unified shared filtering and sorting pipeline
   const filteredAndSortedGoals = useMemo(() => {
     if (!Array.isArray(goals)) return [];
     return goals
@@ -33,24 +62,51 @@ export const useGoalListLogic = (goals) => {
           : false;
 
         // Apply status filters
-        if (filterStatus === "all") return matchesSearch;
-        if (filterStatus === "completed")
-          return (goal.completionPercentage === 100 || goal.completed) && matchesSearch;
-        if (filterStatus === "in-progress")
-          return (
-            goal.completionPercentage > 0 &&
-            goal.completionPercentage < 100 &&
-            !goal.completed &&
-            matchesSearch
-          );
-        if (filterStatus === "overdue") {
+        if (filterStatus === "completed") {
+          if (!(goal.completionPercentage === 100 || goal.completed)) return false;
+        } else if (filterStatus === "in-progress") {
+          if (
+            !(
+              goal.completionPercentage > 0 &&
+              goal.completionPercentage < 100 &&
+              !goal.completed
+            )
+          )
+            return false;
+        } else if (filterStatus === "overdue") {
           const isOverdue =
             goal.duration?.endDate &&
             new Date() > new Date(goal.duration.endDate) &&
             goal.completionPercentage < 100 &&
             !goal.completed;
-          return isOverdue && matchesSearch;
+          if (!isOverdue) return false;
         }
+
+        // Apply independent Archive status filter
+        if (archiveStatus === "active") {
+          if (goal.archived) return false;
+        } else if (archiveStatus === "archived") {
+          if (!goal.archived) return false;
+        }
+        // If "all", include both active and archived
+
+        // Apply independent Year filter
+        if (selectedYear !== "all") {
+          const y = parseInt(selectedYear, 10);
+          if (!isNaN(y)) {
+            const startOfYear = new Date(y, 0, 1);
+            const endOfYear = new Date(y, 11, 31, 23, 59, 59, 999);
+            if (goal.duration?.startDate && goal.duration?.endDate) {
+              const s = new Date(goal.duration.startDate);
+              const e = new Date(goal.duration.endDate);
+              if (!(s <= endOfYear && e >= startOfYear)) return false;
+            } else if (goal.createdAt) {
+              const c = new Date(goal.createdAt);
+              if (!(c >= startOfYear && c <= endOfYear)) return false;
+            }
+          }
+        }
+
         return matchesSearch;
       })
       .filter((goal) => {
@@ -61,11 +117,11 @@ export const useGoalListLogic = (goals) => {
         if (!goal.duration?.startDate || !goal.duration?.endDate) {
           return true;
         }
-        // New filtering logic for this week, this month, and this year
+        // Filtering logic for relative periods if selected in sort dropdown
         const now = new Date();
         const goalStartDate = new Date(goal.duration.startDate);
         const goalEndDate = new Date(goal.duration.endDate);
-        
+
         switch (sortBy) {
           case "thisWeek": {
             const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
@@ -122,18 +178,18 @@ export const useGoalListLogic = (goals) => {
             return 0;
         }
       });
-  }, [goals, searchTerm, filterStatus, sortBy]);
+  }, [goals, searchTerm, filterStatus, archiveStatus, selectedYear, sortBy]);
 
-  // Chart data calculation
+  // Chart data calculation based on the active filtered scope
   const chartData = useMemo(() => {
-    const completed = goals.filter(
+    const completed = filteredAndSortedGoals.filter(
       (g) => g.completionPercentage === 100
     ).length;
-    const inProgress = goals.filter(
+    const inProgress = filteredAndSortedGoals.filter(
       (g) => g.completionPercentage > 0 && g.completionPercentage < 100
     ).length;
-    const notStarted = goals.filter((g) => g.completionPercentage === 0).length;
-    const total = goals.length;
+    const notStarted = filteredAndSortedGoals.filter((g) => g.completionPercentage === 0).length;
+    const total = filteredAndSortedGoals.length;
 
     return [
       {
@@ -152,7 +208,7 @@ export const useGoalListLogic = (goals) => {
         settings: { fill: am5.color("#8ab4f8") },
       },
     ];
-  }, [goals]);
+  }, [filteredAndSortedGoals]);
 
   const handleGoalSelect = (goalId) => {
     setSelectedGoals((prev) =>
@@ -253,6 +309,29 @@ export const useGoalListLogic = (goals) => {
     }
   };
 
+  const handleBulkUnarchive = () => {
+    if (selectedGoals.length === 0) return;
+
+    const confirmUnarchive = window.confirm(
+      `Are you sure you want to unarchive ${selectedGoals.length} selected goal(s)?`
+    );
+
+    if (confirmUnarchive) {
+      selectedGoals.forEach((goalId) => {
+        dispatch(unarchiveGoal(goalId))
+          .unwrap()
+          .then(() => {
+            toast.success("Goal(s) unarchived successfully!");
+          })
+          .catch((error) => {
+            console.error("Failed to unarchive goal:", error);
+            toast.error("Failed to unarchive goal(s).");
+          });
+      });
+      setSelectedGoals([]);
+    }
+  };
+
   const exportGoals = () => {
     const dataStr = JSON.stringify(goals);
     const dataUri =
@@ -267,11 +346,16 @@ export const useGoalListLogic = (goals) => {
   return {
     searchTerm,
     filterStatus,
+    archiveStatus,
+    selectedYear,
+    availableYears,
     sortBy,
     viewType,
     selectedGoals,
     setSearchTerm,
     setFilterStatus,
+    setArchiveStatus,
+    setSelectedYear,
     setSortBy,
     setViewType,
     filteredAndSortedGoals,
@@ -279,6 +363,7 @@ export const useGoalListLogic = (goals) => {
     handleBulkDelete,
     handleBulkStatusUpdate,
     handleBulkArchive,
+    handleBulkUnarchive,
     exportGoals,
     chartData,
   };

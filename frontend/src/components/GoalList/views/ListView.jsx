@@ -41,18 +41,31 @@ export const ListView = ({
     </div>
 
     {/* Rows */}
-    {goals.map(
-      (goal) =>
-        !goal.archived && (
-          <GoalRow
-            key={goal._id}
-            goal={goal}
-            tags={tags}
-            selected={selectedGoals.includes(goal._id)}
-            onSelect={handleGoalSelect}
-            onNavigate={navigate}
-          />
-        ),
+    {goals.length === 0 ? (
+      <div className="goal-list__empty-view">
+        <div className="goal-list__empty-view-icon">🎯</div>
+        <p className="goal-list__empty-view-title">No goals found</p>
+        <p className="goal-list__empty-view-desc">
+          No goals match the selected filters or year. You can switch to another year above or create a new goal.
+        </p>
+        <button
+          className="enhanced-goals__add-btn"
+          onClick={() => navigate("/goals/add")}
+        >
+          + Create Goal
+        </button>
+      </div>
+    ) : (
+      goals.map((goal) => (
+        <GoalRow
+          key={goal._id}
+          goal={goal}
+          tags={tags}
+          selected={selectedGoals.includes(goal._id)}
+          onSelect={handleGoalSelect}
+          onNavigate={navigate}
+        />
+      ))
     )}
   </div>
 );
@@ -89,6 +102,7 @@ const GoalRow = ({ goal, tags, selected, onSelect, onNavigate }) => {
 
   // Only render the chips row if there's actually something to show
   const hasChips =
+    goal.archived ||
     goal.duration?.startDate ||
     tagNames.length > 0 ||
     goal.createdAt ||
@@ -97,7 +111,7 @@ const GoalRow = ({ goal, tags, selected, onSelect, onNavigate }) => {
 
   return (
     <div
-      className={`gl-row${selected ? " gl-row--selected" : ""}`}
+      className={`gl-row${selected ? " gl-row--selected" : ""}${goal.archived ? " gl-row--archived" : ""}`}
       onClick={() => onNavigate(`/goals/${goal._id}`)}
     >
       {/* Checkbox */}
@@ -116,7 +130,26 @@ const GoalRow = ({ goal, tags, selected, onSelect, onNavigate }) => {
 
       {/* Goal — title + description + secondary chips */}
       <div className="gl-col gl-col--goal">
-        <span className="gl-title">{goal.title}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="gl-title">{goal.title}</span>
+          {goal.archived && (
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                padding: "1px 6px",
+                borderRadius: "4px",
+                background: "var(--bg-subtle, #f1f5f9)",
+                color: "var(--text-tertiary, #64748b)",
+                border: "1px solid var(--border, #e2e8f0)",
+              }}
+            >
+              Archived
+            </span>
+          )}
+        </div>
 
         {goal.description && (
           <span className="gl-desc">{goal.description}</span>

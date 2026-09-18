@@ -8,8 +8,8 @@ import { goalAPI } from "../../../services/api/urlService";
 
 /* ===================== THUNKS ===================== */
 
-export const fetchGoals = createAsyncThunk("goals/fetchGoals", async () => {
-  const response = await goalAPI.fetchAll();
+export const fetchGoals = createAsyncThunk("goals/fetchGoals", async (params) => {
+  const response = await goalAPI.fetchAll(params);
   return response.data;
 });
 
@@ -68,14 +68,30 @@ export const updateGoalStatus = createAsyncThunk(
 );
 
 export const archiveGoal = createAsyncThunk("goals/archiveGoal", async (id) => {
-  await goalAPI.archive(id);
-  return id;
+  const response = await goalAPI.archive(id);
+  return response.data || { _id: id, archived: true };
 });
+
+export const unarchiveGoal = createAsyncThunk(
+  "goals/unarchiveGoal",
+  async (id) => {
+    const response = await goalAPI.unarchive(id);
+    return response.data || { _id: id, archived: false };
+  }
+);
 
 export const archiveMultipleGoals = createAsyncThunk(
   "goals/archiveMultiple",
   async (goalIds) => {
     await goalAPI.archiveMultiple(goalIds);
+    return goalIds;
+  }
+);
+
+export const unarchiveMultipleGoals = createAsyncThunk(
+  "goals/unarchiveMultiple",
+  async (goalIds) => {
+    await Promise.all(goalIds.map((id) => goalAPI.unarchive(id)));
     return goalIds;
   }
 );
@@ -254,12 +270,35 @@ const goalSlice = createSlice({
         }
       })
       .addCase(archiveGoal.fulfilled, (state, action) => {
-        state.items = state.items.filter((goal) => goal._id !== action.payload);
+        const id = action.payload?._id || action.payload;
+        const index = state.items.findIndex((goal) => goal._id === id);
+        if (index !== -1) {
+          state.items[index].archived = true;
+        }
+      })
+      .addCase(unarchiveGoal.fulfilled, (state, action) => {
+        const id = action.payload?._id || action.payload;
+        const index = state.items.findIndex((goal) => goal._id === id);
+        if (index !== -1) {
+          state.items[index].archived = false;
+        }
       })
       .addCase(archiveMultipleGoals.fulfilled, (state, action) => {
-        state.items = state.items.filter(
-          (goal) => !action.payload.includes(goal._id)
-        );
+        const ids = Array.isArray(action.payload) ? action.payload : [];
+        state.items.forEach((goal) => {
+          if (ids.includes(goal._id)) {
+            goal.archived = true;
+          }
+        });
+        state.selectedGoals = [];
+      })
+      .addCase(unarchiveMultipleGoals.fulfilled, (state, action) => {
+        const ids = Array.isArray(action.payload) ? action.payload : [];
+        state.items.forEach((goal) => {
+          if (ids.includes(goal._id)) {
+            goal.archived = false;
+          }
+        });
         state.selectedGoals = [];
       })
       .addCase(updateGoalCompletion.fulfilled, (state, action) => {

@@ -32,23 +32,15 @@ const GoalList = () => {
   const stats = useAppSelector(selectGoalStats);
   const userInfo = useAppSelector((state) => state.user.userInfo);
 
-  // Fetch goals and tags when userInfo is available
-  useEffect(() => {
-    if (userInfo) {
-      dispatch(clearError());
-      dispatch(fetchGoals());
-      dispatch(fetchTags());
-    }
-  }, [userInfo, dispatch]);
-
-  useEffect(() => {
-    if (error === "Request failed with status code 401") navigate("/login");
-  }, [error, navigate]);
-
   const {
     sortBy,
     viewType,
     selectedGoals,
+    selectedYear,
+    setSelectedYear,
+    archiveStatus,
+    setArchiveStatus,
+    availableYears,
     setSearchTerm,
     setFilterStatus,
     setSortBy,
@@ -58,16 +50,37 @@ const GoalList = () => {
     handleBulkDelete,
     handleBulkStatusUpdate,
     handleBulkArchive,
+    handleBulkUnarchive,
     exportGoals,
     chartData,
   } = useGoalListLogic(goals);
+
+  // Fetch goals and tags when userInfo or selectedYear is updated
+  useEffect(() => {
+    if (userInfo) {
+      dispatch(clearError());
+      dispatch(
+        fetchGoals(selectedYear === "all" ? {} : { year: selectedYear })
+      );
+      dispatch(fetchTags());
+    }
+  }, [userInfo, dispatch, selectedYear]);
+
+  useEffect(() => {
+    if (error === "Request failed with status code 401") navigate("/login");
+  }, [error, navigate]);
 
   const renderContent = () => {
     switch (viewType) {
       case "kanban":
         return <KanbanBoard goals={filteredAndSortedGoals} />;
       case "calendar":
-        return <CalendarView goals={filteredAndSortedGoals} />;
+        return (
+          <CalendarView
+            goals={filteredAndSortedGoals}
+            selectedYear={selectedYear}
+          />
+        );
       case "timeline":
         return <TimelineView goals={filteredAndSortedGoals} />;
       default:
@@ -86,24 +99,6 @@ const GoalList = () => {
   if (loading) return <LoadingSpinner message="Loading goals…" />;
   if (error) return <ErrorMessage message={error} />;
 
-  if (goals.length === 0) {
-    return (
-      <div className="goal-list">
-        <div
-          className="goal-list__empty goal-list__empty--clickable"
-          onClick={() => navigate("/goals/add")}
-        >
-          <div className="goal-list__empty-content">
-            <div className="goal-list__empty-text">No goals yet</div>
-            <div className="goal-list__empty-action">
-              + Create your first goal
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Derive counts once — not inline per render
   const activeGoals = goals.filter(
     (g) => g.completionPercentage > 0 && g.completionPercentage < 100,
@@ -116,9 +111,9 @@ const GoalList = () => {
   return (
     <div className="enhanced-goals-container">
       <div className="enhanced-goals">
-        {/* ── Top bar ── */}
-        <div className="enhanced-goals__sidebar">
-          <div className="enhanced-goals__header">
+        {/* ── Level 1: Top Bar (Brand, Stats, Global Actions) ── */}
+        <header className="enhanced-goals__top-bar">
+          <div className="enhanced-goals__header-left">
             {/* Logo / Title */}
             <div className="enhanced-goals__header-title">
               <h2>
@@ -129,74 +124,83 @@ const GoalList = () => {
 
             {/* Inline stats */}
             <Stats stats={stats} />
-
-            {/* Search + filters (pushed right via margin-left: auto in CSS) */}
-            <SearchAndFilters
-              setSearchTerm={setSearchTerm}
-              setFilterStatus={setFilterStatus}
-              setSortBy={setSortBy}
-              setViewType={setViewType}
-              sortBy={sortBy}
-            />
-
-            {/* Actions */}
-            <div className="enhanced-goals__actions">
-              {selectedGoals?.length > 0 && (
-                <BulkActions
-                  selectedGoals={selectedGoals}
-                  onDelete={handleBulkDelete}
-                  onStatusUpdate={handleBulkStatusUpdate}
-                  onArchive={handleBulkArchive}
-                />
-              )}
-
-              {/* Add goal — always visible in header */}
-              <button
-                className="enhanced-goals__add-btn"
-                onClick={() => navigate("/goals/add")}
-                aria-label="Add new goal"
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Add Goal
-              </button>
-
-              <button
-                className="enhanced-goals__export-btn"
-                onClick={exportGoals}
-                aria-label="Export goals"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                Export
-              </button>
-            </div>
           </div>
+
+          {/* Actions */}
+          <div className="enhanced-goals__actions">
+            {selectedGoals?.length > 0 && (
+              <BulkActions
+                selectedGoals={selectedGoals}
+                onDelete={handleBulkDelete}
+                onStatusUpdate={handleBulkStatusUpdate}
+                onArchive={handleBulkArchive}
+                onUnarchive={handleBulkUnarchive}
+                archiveStatus={archiveStatus}
+              />
+            )}
+
+            <button
+              className="enhanced-goals__export-btn"
+              onClick={exportGoals}
+              aria-label="Export goals"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export
+            </button>
+
+            {/* Add goal — always visible in top bar */}
+            <button
+              className="enhanced-goals__add-btn"
+              onClick={() => navigate("/goals/add")}
+              aria-label="Add new goal"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Goal
+            </button>
+          </div>
+        </header>
+
+        {/* ── Level 2: Filter Toolbar (Search, Year, Archive, Status, Sort, View) ── */}
+        <div className="enhanced-goals__toolbar">
+          <SearchAndFilters
+            setSearchTerm={setSearchTerm}
+            setFilterStatus={setFilterStatus}
+            setSortBy={setSortBy}
+            setViewType={setViewType}
+            sortBy={sortBy}
+            selectedYear={selectedYear}
+            setSelectedYear={setSelectedYear}
+            availableYears={availableYears}
+            archiveStatus={archiveStatus}
+            setArchiveStatus={setArchiveStatus}
+          />
         </div>
 
         {/* ── Main two-column area ── */}

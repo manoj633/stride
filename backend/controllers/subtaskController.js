@@ -12,8 +12,29 @@ import { handleSubtaskCompletionXP, handleGoalCompletionXP } from "../utils/gami
  * * access: Public
  */
 const getSubtasks = asyncHandler(async (req, res) => {
-  logger.info("Fetching all subtasks", { endpoint: "/api/subtasks" });
-  const subtasks = await Subtask.find({ createdBy: req.userId });
+  const { year } = req.query;
+  logger.info("Fetching subtasks", { endpoint: "/api/subtasks", year });
+
+  const query = { createdBy: req.userId };
+
+  if (year && year !== "all") {
+    const y = parseInt(year, 10);
+    if (!isNaN(y)) {
+      const startOfYear = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
+      const endOfYear = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999));
+      query.$or = [
+        {
+          dueDate: { $gte: startOfYear, $lte: endOfYear },
+        },
+        {
+          dueDate: { $exists: false },
+          createdAt: { $gte: startOfYear, $lte: endOfYear },
+        },
+      ];
+    }
+  }
+
+  const subtasks = await Subtask.find(query);
   logger.debug("Subtasks fetched successfully", {
     count: subtasks.length,
   });

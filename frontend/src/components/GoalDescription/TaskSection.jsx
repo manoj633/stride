@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const TaskSection = ({ tasks }) => {
+const TaskSection = ({ tasks, isArchived }) => {
   const navigate = useNavigate();
 
   return (
@@ -38,6 +38,12 @@ const TaskSection = ({ tasks }) => {
               </div>
             </div>
           ))}
+        </div>
+      ) : isArchived ? (
+        <div className="goal-description__notice">
+          <span className="goal-description__notice-text">
+            This goal is archived. Unarchive it to add new tasks.
+          </span>
         </div>
       ) : (
         <div

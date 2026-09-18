@@ -5,8 +5,8 @@ import { subtaskAPI } from "../../../services/api/urlService";
 // Async Thunks
 export const fetchSubtasks = createAsyncThunk(
   "subtasks/fetchSubtasks",
-  async () => {
-    const response = await subtaskAPI.fetchAll();
+  async (params) => {
+    const response = await subtaskAPI.fetchAll(params);
     return response.data;
   }
 );

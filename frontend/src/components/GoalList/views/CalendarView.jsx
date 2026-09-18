@@ -1,10 +1,19 @@
 // src/components/GoalList/views/CalendarView.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 
-const CalendarView = ({ goals }) => {
+const CalendarView = ({ goals, selectedYear }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState("day");
+
+  useEffect(() => {
+    if (selectedYear && selectedYear !== "all") {
+      const y = parseInt(selectedYear, 10);
+      if (!isNaN(y) && selectedDate.getFullYear() !== y) {
+        setSelectedDate(new Date(y, 0, 1));
+      }
+    }
+  }, [selectedYear]);
 
   /* ── date filtering ───────────────────────────────────────── */
   const inRange = (goal, start, end) => {

@@ -12,8 +12,33 @@ import { handleTaskCompletionXP, handleGoalCompletionXP } from "../utils/gamific
  * * access: Private
  */
 const getTasks = asyncHandler(async (req, res) => {
-  logger.info("Fetching all tasks", { endpoint: "/api/tasks" });
-  const tasks = await Task.find({ createdBy: req.userId });
+  const { year } = req.query;
+  logger.info("Fetching tasks", { endpoint: "/api/tasks", year });
+
+  const query = { createdBy: req.userId };
+
+  if (year && year !== "all") {
+    const y = parseInt(year, 10);
+    if (!isNaN(y)) {
+      const startOfYear = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
+      const endOfYear = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999));
+      query.$or = [
+        {
+          startDate: { $lte: endOfYear },
+          endDate: { $gte: startOfYear },
+        },
+        {
+          $or: [
+            { startDate: { $exists: false } },
+            { endDate: { $exists: false } },
+          ],
+          createdAt: { $gte: startOfYear, $lte: endOfYear },
+        },
+      ];
+    }
+  }
+
+  const tasks = await Task.find(query);
   logger.debug("Tasks fetched successfully", { count: tasks.length });
   res.json(tasks);
 });

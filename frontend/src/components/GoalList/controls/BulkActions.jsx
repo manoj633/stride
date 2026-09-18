@@ -6,6 +6,8 @@ export const BulkActions = ({
   onDelete,
   onStatusUpdate,
   onArchive,
+  onUnarchive,
+  archiveStatus,
 }) => (
   <div className="enhanced-goals__bulk-actions">
     <button onClick={onDelete} className="enhanced-goals__bulk-action-btn">
@@ -17,9 +19,16 @@ export const BulkActions = ({
     >
       Update Status ({selectedGoals.length})
     </button>
-    <button onClick={onArchive} className="enhanced-goals__bulk-action-btn">
-      Archive Selected ({selectedGoals.length})
-    </button>
+    {archiveStatus !== "archived" && onArchive && (
+      <button onClick={onArchive} className="enhanced-goals__bulk-action-btn">
+        Archive Selected ({selectedGoals.length})
+      </button>
+    )}
+    {archiveStatus !== "active" && onUnarchive && (
+      <button onClick={onUnarchive} className="enhanced-goals__bulk-action-btn">
+        Unarchive Selected ({selectedGoals.length})
+      </button>
+    )}
   </div>
 );
 

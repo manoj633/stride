@@ -13,8 +13,41 @@ import { getAICoachPrediction } from "../utils/aiCoach.js";
  * * access: Public
  */
 const getGoals = asyncHandler(async (req, res) => {
-  logger.info("Fetching all goals", { endpoint: "/api/goals" });
-  const goals = await Goal.find({ createdBy: req.userId });
+  const { year, archived } = req.query;
+  logger.info("Fetching goals", { endpoint: "/api/goals", year, archived });
+
+  const query = { createdBy: req.userId };
+
+  // Year filter (overlap logic: startDate <= endOfYear && endDate >= startOfYear)
+  if (year && year !== "all") {
+    const y = parseInt(year, 10);
+    if (!isNaN(y)) {
+      const startOfYear = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
+      const endOfYear = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999));
+      query.$or = [
+        {
+          "duration.startDate": { $lte: endOfYear },
+          "duration.endDate": { $gte: startOfYear },
+        },
+        {
+          $or: [
+            { "duration.startDate": { $exists: false } },
+            { "duration.endDate": { $exists: false } },
+          ],
+          createdAt: { $gte: startOfYear, $lte: endOfYear },
+        },
+      ];
+    }
+  }
+
+  // Archived filter: only filter at DB level if explicitly requested
+  if (archived === "true") {
+    query.archived = true;
+  } else if (archived === "false") {
+    query.archived = { $ne: true };
+  }
+
+  const goals = await Goal.find(query);
   logger.debug("Goals fetched successfully", { count: goals.length });
   res.json(goals);
 });
@@ -583,6 +616,40 @@ const archiveGoal = asyncHandler(async (req, res) => {
   res.json(updatedGoal);
 });
 
+/**
+ * * Description: Unarchive a goal
+ * * route: /api/goals/:id/unarchive
+ * * access: Public
+ */
+const unarchiveGoal = asyncHandler(async (req, res) => {
+  logger.info("Unarchiving goal", {
+    goalId: req.params.id,
+    endpoint: "/api/goals/:id/unarchive",
+  });
+
+  const goal = await Goal.findById(req.params.id);
+
+  if (!goal) {
+    logger.error("Goal not found for unarchiving", { goalId: req.params.id });
+    res.status(404);
+    throw new Error("Goal not found");
+  }
+
+  if (!goal.createdBy || !goal.createdBy.equals(req.userId)) {
+    logger.error("Not authorized to unarchive goal", {
+      goalId: req.params.id,
+      userId: req.userId,
+    });
+    res.status(403);
+    throw new Error("Not authorized to unarchive this goal");
+  }
+
+  goal.archived = false;
+  const updatedGoal = await goal.save();
+  logger.debug("Goal unarchived successfully", { goalId: updatedGoal._id });
+  res.json(updatedGoal);
+});
+
 // @desc    Get goal completion prediction and AI coach assessment
 // @route   GET /api/goals/:id/prediction
 // @access  Private
@@ -692,5 +759,6 @@ export {
   removeComment,
   updateGoalStatus,
   archiveGoal,
+  unarchiveGoal,
   getGoalPrediction,
 };

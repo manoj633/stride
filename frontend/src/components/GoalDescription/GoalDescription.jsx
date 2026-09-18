@@ -14,6 +14,8 @@ import {
   fetchGoals,
   updateGoal,
   deleteGoal,
+  archiveGoal,
+  unarchiveGoal,
   selectGoalById,
 } from "../../store/features/goals/goalSlice";
 import {
@@ -203,6 +205,24 @@ const GoalDescription = () => {
     );
   }
 
+  const handleArchive = async () => {
+    try {
+      await dispatch(archiveGoal(goal._id)).unwrap();
+      toast.success("Goal archived successfully!");
+    } catch (err) {
+      toast.error("Failed to archive goal.");
+    }
+  };
+
+  const handleUnarchive = async () => {
+    try {
+      await dispatch(unarchiveGoal(goal._id)).unwrap();
+      toast.success("Goal unarchived successfully!");
+    } catch (err) {
+      toast.error("Failed to unarchive goal.");
+    }
+  };
+
   return (
     <div className="goal-description">
       {/* Top bar */}
@@ -211,10 +231,44 @@ const GoalDescription = () => {
         <span className="ef-topbar__title">Goal Details</span>
         <span className="ef-topbar__breadcrumb">
           / <span>{goal.title}</span>
+          {goal.archived && (
+            <span
+              style={{
+                marginLeft: "8px",
+                fontSize: "11px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                background: "var(--bg-subtle, #f1f5f9)",
+                color: "var(--text-tertiary, #64748b)",
+                border: "1px solid var(--border, #e2e8f0)",
+              }}
+            >
+              Archived
+            </span>
+          )}
         </span>
         <div className="ef-topbar__actions">
           {!isEditing && (
             <>
+              {goal.archived ? (
+                <button
+                  className="ef-btn-ghost"
+                  onClick={handleUnarchive}
+                  type="button"
+                >
+                  Unarchive Goal
+                </button>
+              ) : (
+                <button
+                  className="ef-btn-ghost"
+                  onClick={handleArchive}
+                  type="button"
+                >
+                  Archive Goal
+                </button>
+              )}
               <button
                 className="ef-btn-primary"
                 onClick={handleEdit}

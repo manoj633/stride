@@ -35,7 +35,7 @@ const Content = ({
     <AIPrediction goalId={goal._id} />
     {/* <Collaborators collaborators={collaborators} /> */}
     {/* <Dependencies dependencies={dependencies} /> */}
-    <TaskSection tasks={tasks} goalDateRange={goalDateRange} />
+    <TaskSection tasks={tasks} goalDateRange={goalDateRange} isArchived={goal.archived} />
     <RelatedGoals relatedGoals={relatedGoals} />
     <CommentsSection
       comments={comments}

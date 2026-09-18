@@ -14,6 +14,7 @@ import {
   removeComment,
   updateGoalStatus,
   archiveGoal,
+  unarchiveGoal,
   getGoalPrediction,
 } from "../controllers/goalController.js";
 import extractUser from "../utils/extractUser.js";
@@ -156,6 +157,7 @@ router
 router.route("/:id/status").patch(extractUser, updateGoalStatus);
 
 router.route("/:id/archive").post(extractUser, archiveGoal);
+router.route("/:id/unarchive").post(extractUser, unarchiveGoal);
 
 router.route("/:id/prediction").get(extractUser, getGoalPrediction);
 

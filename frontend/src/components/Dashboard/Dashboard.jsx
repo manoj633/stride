@@ -101,9 +101,10 @@ const Dashboard = () => {
   }, [isNewUser]);
 
   useEffect(() => {
-    dispatch(fetchGoals());
-    dispatch(fetchTasks());
-    dispatch(fetchSubtasks());
+    const currentYear = new Date().getFullYear();
+    dispatch(fetchGoals({ year: currentYear }));
+    dispatch(fetchTasks({ year: currentYear }));
+    dispatch(fetchSubtasks({ year: currentYear }));
   }, [dispatch]);
 
   // Calculations for Today's Focus

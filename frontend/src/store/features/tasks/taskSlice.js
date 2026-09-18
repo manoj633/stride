@@ -7,8 +7,8 @@ import {
 import { taskAPI } from "../../../services/api/urlService";
 
 // Async Thunks
-export const fetchTasks = createAsyncThunk("tasks/fetchTasks", async () => {
-  const response = await taskAPI.fetchAll();
+export const fetchTasks = createAsyncThunk("tasks/fetchTasks", async (params) => {
+  const response = await taskAPI.fetchAll(params);
   return response.data;
 });
 
