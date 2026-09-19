@@ -2,6 +2,7 @@
 import cron from "node-cron";
 import { generateAndSendWeeklyReports } from "./weeklyReportGenerator.js";
 import { sendGoalReminders } from "./goalReminder.js";
+import { triggerYearInReviewForActiveUsers } from "./yearInReviewNotification.js";
 import logger from "./logger.js";
 
 export const initScheduler = () => {
@@ -29,7 +30,19 @@ export const initScheduler = () => {
     }
   });
 
+  // Schedule annual Year in Review notifications - runs January 1st at midnight (00:00)
+  cron.schedule("0 0 1 1 *", async () => {
+    logger.info("Running scheduled annual Year in Review notifications");
+    try {
+      await triggerYearInReviewForActiveUsers();
+    } catch (error) {
+      logger.error("Error in scheduled Year in Review notifications", {
+        error: error.message,
+      });
+    }
+  });
+
   logger.info(
-    "Scheduler initialized with weekly report generation and daily goal reminders"
+    "Scheduler initialized with weekly reports, daily reminders, and annual Year in Review"
   );
 };

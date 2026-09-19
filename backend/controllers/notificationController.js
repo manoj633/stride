@@ -1,8 +1,12 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Notification from "../models/notificationModel.js";
+import { checkAndTriggerYearInReviewNotification } from "../utils/yearInReviewNotification.js";
 
 // GET /api/notifications - get all notifications for the logged-in user
 export const getNotifications = asyncHandler(async (req, res) => {
+  // Surface one-time annual Year in Review notification if due
+  await checkAndTriggerYearInReviewNotification(req.user._id);
+
   const notifications = await Notification.find({ user: req.user._id })
     .sort({ createdAt: -1 })
     .limit(100);

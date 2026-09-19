@@ -15,6 +15,7 @@ import Comment from "../models/commentModel.js";
 import Notification from "../models/notificationModel.js";
 import AuditLog from "../models/auditLogModel.js";
 import logAdminAction from "../utils/auditLogger.js";
+import { checkAndTriggerYearInReviewNotification } from "../utils/yearInReviewNotification.js";
 
 //@desc     Auth User & get token
 //@route    POST /api/users/login
@@ -38,6 +39,8 @@ const authUser = asyncHandler(async (req, res) => {
     user.lastActive = new Date();
     verifyUserStreakActive(user);
     await user.save();
+
+    await checkAndTriggerYearInReviewNotification(user._id);
 
     // Check if 2FA is enabled
     if (user.isTwoFactorEnabled) {
@@ -158,6 +161,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     verifyUserStreakActive(user);
     await user.save();
+
+    await checkAndTriggerYearInReviewNotification(user._id);
 
     res.status(200).json({
       _id: user._id,

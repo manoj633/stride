@@ -5,7 +5,7 @@ const NotificationSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     type: {
       type: String,
-      enum: ["goal-reminder", "other"],
+      enum: ["goal-reminder", "other", "year-in-review"],
       default: "goal-reminder",
     },
     title: { type: String, required: true, maxlength: 100 },

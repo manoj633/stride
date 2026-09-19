@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Notifications.css";
 import { motion, AnimatePresence } from "framer-motion"; // You'll need to install framer-motion
@@ -6,6 +7,7 @@ import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,7 +84,15 @@ const Notifications = () => {
                 transition={{ duration: 0.3 }}
               >
                 <div className="notif-emoji">{getRandomEmoji()}</div>
-                <div className="notif-content">
+                <div
+                  className="notif-content"
+                  onClick={() => {
+                    if (n.type === "year-in-review" || n.title?.includes("Year in Review")) {
+                      navigate("/year-in-review");
+                    }
+                  }}
+                  style={n.type === "year-in-review" || n.title?.includes("Year in Review") ? { cursor: "pointer" } : {}}
+                >
                   <div className="notif-title">{n.title}</div>
                   <div
                     className="notif-message"

@@ -70,7 +70,17 @@ const NotificationBell = ({ onClick }) => {
           )}
           <ul role="list" aria-label="Recent notifications">
             {notifications.map((n) => (
-              <li key={n._id} className={n.isRead ? "read" : "unread"}>
+              <li
+                key={n._id}
+                className={n.isRead ? "read" : "unread"}
+                onClick={() => {
+                  if (n.type === "year-in-review" || n.title?.includes("Year in Review")) {
+                    setOpen(false);
+                    navigate("/year-in-review");
+                  }
+                }}
+                style={n.type === "year-in-review" || n.title?.includes("Year in Review") ? { cursor: "pointer" } : {}}
+              >
                 <div className="notif-title">{n.title}</div>
                 <div
                   className="notif-message"
