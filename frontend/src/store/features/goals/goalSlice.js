@@ -13,6 +13,14 @@ export const fetchGoals = createAsyncThunk("goals/fetchGoals", async (params) =>
   return response.data;
 });
 
+export const fetchGoalById = createAsyncThunk(
+  "goals/fetchGoalById",
+  async (id) => {
+    const response = await goalAPI.fetchById(id);
+    return response.data;
+  }
+);
+
 export const createGoal = createAsyncThunk(
   "goals/createGoal",
   async (goalData) => {
@@ -217,6 +225,17 @@ const goalSlice = createSlice({
       .addCase(fetchGoals.rejected, (state, action) => {
         state.error = action.error.message;
         state.status = "failed";
+      })
+      .addCase(fetchGoalById.fulfilled, (state, action) => {
+        state.selectedGoal = action.payload;
+        const index = state.items.findIndex(
+          (goal) => goal._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        } else {
+          state.items.push(action.payload);
+        }
       })
       .addCase(createGoal.fulfilled, (state, action) => {
         state.items.push(action.payload);

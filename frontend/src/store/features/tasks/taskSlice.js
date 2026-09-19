@@ -100,6 +100,14 @@ const taskSlice = createSlice({
       // Fetch single task cases
       .addCase(fetchTaskById.fulfilled, (state, action) => {
         state.selectedTask = action.payload;
+        const index = state.items.findIndex(
+          (task) => task._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        } else {
+          state.items.push(action.payload);
+        }
       })
       // Create task cases
       .addCase(createTask.fulfilled, (state, action) => {

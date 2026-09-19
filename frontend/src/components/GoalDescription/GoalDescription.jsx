@@ -12,6 +12,7 @@ import ErrorMessage from "../Common/ErrorMessage";
 
 import {
   fetchGoals,
+  fetchGoalById,
   updateGoal,
   deleteGoal,
   archiveGoal,
@@ -39,23 +40,37 @@ const GoalDescription = () => {
   const tasksStatus = useSelector((s) => s.tasks.status);
   const goalsStatus = useSelector((s) => s.goals.status);
 
+  const goal = useSelector((state) => selectGoalById(state, goalId));
+  const tasks = useSelector((state) => selectTasksByGoalId(state, goalId));
+  const comments = useSelector((state) => state.comments.items);
+  const tags = useSelector((state) => state.tags.items);
+  const error = useSelector((state) => state.goals.error);
+
   useEffect(() => {
     if (tagsStatus === "idle") dispatch(fetchTags());
     if (tasksStatus === "idle") dispatch(fetchTasks());
     if (goalsStatus === "idle") dispatch(fetchGoals());
   }, [dispatch, tagsStatus, tasksStatus, goalsStatus]);
 
+  // Ensure this specific goal is fetched even if not in current year's cache
+  useEffect(() => {
+    if (goalId && !goal) {
+      dispatch(fetchGoalById(goalId));
+    }
+  }, [dispatch, goalId, goal]);
+
+  // If goal exists but tasks are empty and tasks were only loaded for a specific year, fetch all tasks
+  useEffect(() => {
+    if (goalId && goal && tasks.length === 0 && tasksStatus === "succeeded") {
+      dispatch(fetchTasks({ year: "all" }));
+    }
+  }, [dispatch, goalId, goal, tasks.length, tasksStatus]);
+
   useEffect(() => {
     if (goalId) {
       dispatch(fetchGoalComments(goalId));
     }
   }, [dispatch, goalId]);
-
-  const goal = useSelector((state) => selectGoalById(state, goalId));
-  const tasks = useSelector((state) => selectTasksByGoalId(state, goalId));
-  const comments = useSelector((state) => state.comments.items);
-  const tags = useSelector((state) => state.tags.items);
-  const error = useSelector((state) => state.goals.error);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedGoal, setEditedGoal] = useState(null);

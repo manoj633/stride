@@ -86,7 +86,12 @@ const GoalList = () => {
   const renderContent = () => {
     switch (viewType) {
       case "kanban":
-        return <KanbanBoard goals={filteredAndSortedGoals} />;
+        return (
+          <KanbanBoard
+            goals={filteredAndSortedGoals}
+            onUnarchive={handleUnarchiveGoal}
+          />
+        );
       case "calendar":
         return (
           <CalendarView
@@ -95,7 +100,12 @@ const GoalList = () => {
           />
         );
       case "timeline":
-        return <TimelineView goals={filteredAndSortedGoals} />;
+        return (
+          <TimelineView
+            goals={filteredAndSortedGoals}
+            onUnarchive={handleUnarchiveGoal}
+          />
+        );
       default:
         return (
           <ListView

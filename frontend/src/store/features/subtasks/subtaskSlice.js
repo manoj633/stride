@@ -81,9 +81,16 @@ const subtaskSlice = createSlice({
         state.error = action.error.message;
         state.loading = false;
       })
-      // Fetch single subtask cases
       .addCase(fetchSubtaskById.fulfilled, (state, action) => {
         state.selectedSubtask = action.payload;
+        const index = state.items.findIndex(
+          (subtask) => subtask._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        } else {
+          state.items.push(action.payload);
+        }
       })
       // Create subtask cases
       .addCase(createSubtask.fulfilled, (state, action) => {

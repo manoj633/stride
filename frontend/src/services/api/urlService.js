@@ -9,6 +9,7 @@ export const tagAPI = {
 
 export const goalAPI = {
   fetchAll: (params) => axiosInstance.get("/goals", { params }),
+  fetchById: (id) => axiosInstance.get(`/goals/${id}`),
   fetchByTag: (tagId) => axiosInstance.get(`/goals/bytag/${tagId}`),
   //endpoint not defined in backend
   create: (goalData) => axiosInstance.post("/goals", goalData),

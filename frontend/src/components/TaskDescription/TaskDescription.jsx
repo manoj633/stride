@@ -6,7 +6,7 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import { toast } from "react-toastify";
 
 import SubtaskList from "../SubtaskList/SubtaskList";
-import { fetchTasks, deleteTask } from "../../store/features/tasks/taskSlice";
+import { fetchTasks, fetchTaskById, deleteTask } from "../../store/features/tasks/taskSlice";
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
@@ -33,12 +33,12 @@ const TaskDescription = () => {
 
   useEffect(() => {
     if (!task) {
-      dispatch(fetchTasks());
+      dispatch(fetchTaskById(taskId));
     }
     if (subtasks.length === 0) {
-      dispatch(fetchSubtasks());
+      dispatch(fetchSubtasks({ year: "all" }));
     }
-  }, [dispatch, task, subtasks.length]);
+  }, [dispatch, taskId, task, subtasks.length]);
 
   useEffect(() => {
     if (!task) return;

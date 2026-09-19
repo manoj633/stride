@@ -37,16 +37,16 @@ const COLUMNS = [
   },
 ];
 
-const KanbanBoard = ({ goals }) => (
+const KanbanBoard = ({ goals, onUnarchive }) => (
   <div className="enhanced-goals__kanban">
     {COLUMNS.map((col) => {
       const colGoals = goals.filter(col.filter);
-      return <KanbanColumn key={col.id} col={col} goals={colGoals} />;
+      return <KanbanColumn key={col.id} col={col} goals={colGoals} onUnarchive={onUnarchive} />;
     })}
   </div>
 );
 
-const KanbanColumn = ({ col, goals }) => (
+const KanbanColumn = ({ col, goals, onUnarchive }) => (
   <div className="kanban-column">
     <div
       className="kanban-column__header"
@@ -65,18 +65,37 @@ const KanbanColumn = ({ col, goals }) => (
           <p>No items</p>
         </div>
       ) : (
-        goals.map((goal) => <KanbanCard key={goal._id} goal={goal} col={col} />)
+        goals.map((goal) => <KanbanCard key={goal._id} goal={goal} col={col} onUnarchive={onUnarchive} />)
       )}
     </div>
   </div>
 );
 
-const KanbanCard = ({ goal, col }) => (
-  <div className="kanban-card">
+const KanbanCard = ({ goal, col, onUnarchive }) => (
+  <div className={`kanban-card${goal.archived ? " kanban-card--archived" : ""}`} style={goal.archived ? { opacity: 0.85 } : {}}>
     <div className="kanban-card__top">
-      <h4 className="kanban-card__title">{goal.title}</h4>
-      <span className={`priority-badge ${goal.priority.toLowerCase()}`}>
-        {goal.priority}
+      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+        <h4 className="kanban-card__title">{goal.title}</h4>
+        {goal.archived && (
+          <span
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              padding: "1px 5px",
+              borderRadius: "3px",
+              background: "var(--bg-subtle, #f1f5f9)",
+              color: "var(--text-tertiary, #64748b)",
+              border: "1px solid var(--border, #e2e8f0)",
+            }}
+          >
+            Archived
+          </span>
+        )}
+      </div>
+      <span className={`priority-badge ${goal.priority ? goal.priority.toLowerCase() : "low"}`}>
+        {goal.priority || "Low"}
       </span>
     </div>
 
@@ -108,16 +127,32 @@ const KanbanCard = ({ goal, col }) => (
       </div>
     )}
 
-    {/* Due date — only for non-completed */}
-    {goal.duration?.endDate && col.id !== "completed" && (
-      <div className="kanban-card__due">
-        Due{" "}
-        {new Date(goal.duration.endDate).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })}
-      </div>
-    )}
+    {/* Due date & Unarchive button */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "8px" }}>
+      {goal.duration?.endDate && col.id !== "completed" ? (
+        <div className="kanban-card__due" style={{ margin: 0 }}>
+          Due{" "}
+          {new Date(goal.duration.endDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      ) : <span />}
+
+      {goal.archived && onUnarchive && (
+        <button
+          type="button"
+          className="gl-unarchive-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnarchive(goal._id);
+          }}
+          title="Unarchive goal"
+        >
+          Unarchive
+        </button>
+      )}
+    </div>
   </div>
 );
 
