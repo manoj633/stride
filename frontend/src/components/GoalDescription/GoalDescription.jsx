@@ -1,5 +1,5 @@
 // GoalDescription.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -52,6 +52,12 @@ const GoalDescription = () => {
     if (goalsStatus === "idle") dispatch(fetchGoals());
   }, [dispatch, tagsStatus, tasksStatus, goalsStatus]);
 
+  const hasFetchedAllTasksRef = useRef(false);
+
+  useEffect(() => {
+    hasFetchedAllTasksRef.current = false;
+  }, [goalId]);
+
   // Ensure this specific goal is fetched even if not in current year's cache
   useEffect(() => {
     if (goalId && !goal) {
@@ -59,9 +65,16 @@ const GoalDescription = () => {
     }
   }, [dispatch, goalId, goal]);
 
-  // If goal exists but tasks are empty and tasks were only loaded for a specific year, fetch all tasks
+  // If goal exists but tasks are empty and tasks were only loaded for a specific year, fetch all tasks once
   useEffect(() => {
-    if (goalId && goal && tasks.length === 0 && tasksStatus === "succeeded") {
+    if (
+      goalId &&
+      goal &&
+      tasks.length === 0 &&
+      tasksStatus === "succeeded" &&
+      !hasFetchedAllTasksRef.current
+    ) {
+      hasFetchedAllTasksRef.current = true;
       dispatch(fetchTasks({ year: "all" }));
     }
   }, [dispatch, goalId, goal, tasks.length, tasksStatus]);

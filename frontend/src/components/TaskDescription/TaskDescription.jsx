@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import * as am4core from "@amcharts/amcharts4/core";
@@ -14,9 +14,9 @@ import ErrorMessage from "../Common/ErrorMessage";
 import "./TaskDescription.css";
 
 const TaskDescription = () => {
-  const { taskId } = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { taskId } = useParams();
 
   const task = useSelector((state) =>
     state.tasks.items.find((t) => t._id === taskId)
@@ -31,11 +31,18 @@ const TaskDescription = () => {
     (state) => state.tasks.error || state.subtasks.error
   );
 
+  const hasFetchedAllSubtasksRef = useRef(false);
+
+  useEffect(() => {
+    hasFetchedAllSubtasksRef.current = false;
+  }, [taskId]);
+
   useEffect(() => {
     if (!task) {
       dispatch(fetchTaskById(taskId));
     }
-    if (subtasks.length === 0) {
+    if (subtasks.length === 0 && !hasFetchedAllSubtasksRef.current) {
+      hasFetchedAllSubtasksRef.current = true;
       dispatch(fetchSubtasks({ year: "all" }));
     }
   }, [dispatch, taskId, task, subtasks.length]);
