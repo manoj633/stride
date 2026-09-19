@@ -10,6 +10,7 @@ import {
   FiList,
   FiCalendar,
   FiClock,
+  FiAward,
   FiTag,
   FiUser,
   FiShield,
@@ -89,6 +90,7 @@ const NavigationDrawer = () => {
     { path: "/subtasks", label: "Subtasks", icon: <FiList /> },
     { path: "/calendar", label: "Calendar", icon: <FiCalendar /> },
     { path: "/pomodoro", label: "Pomodoro", icon: <FiClock /> },
+    { path: "/year-in-review", label: "Year in Review", icon: <FiAward /> },
     { path: "/tags/manage", label: "Tags", icon: <FiTag /> },
     { path: "/profile", label: "Profile", icon: <FiUser /> },
     ...(userInfo?.isAdmin

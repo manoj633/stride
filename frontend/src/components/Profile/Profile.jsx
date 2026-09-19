@@ -224,9 +224,32 @@ const Profile = () => {
 
           {activeTab === "stats" ? (
             <div className="profile-tab-content animate-fade">
-              <div className="gamification-header">
-                <h2>Activity & Progression</h2>
-                <p>Track your productivity milestones and badges</p>
+              <div className="gamification-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                <div>
+                  <h2>Activity & Progression</h2>
+                  <p>Track your productivity milestones and badges</p>
+                </div>
+                <button
+                  type="button"
+                  className="profile-yir-btn"
+                  onClick={() => navigate("/year-in-review")}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)",
+                    color: "#ffffff",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "8px 14px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(79, 70, 229, 0.2)",
+                  }}
+                >
+                  🏆 Year in Review →
+                </button>
               </div>
 
               {/* XP & Level Panel */}

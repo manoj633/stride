@@ -1,5 +1,6 @@
 import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
+import PomodoroSession from "../models/pomodoroSessionModel.js";
 import logger from "./logger.js";
 
 // Helper to update daily streak logic
@@ -229,10 +230,21 @@ export const handleGoalCompletionXP = async (userId) => {
 };
 
 // Award Pomodoro completion XP
-export const handlePomodoroCompletionXP = async (userId) => {
+export const handlePomodoroCompletionXP = async (userId, durationMinutes = 25) => {
   try {
     const user = await User.findById(userId);
     if (!user) return null;
+
+    // Log the timestamped Pomodoro session
+    try {
+      await PomodoroSession.create({
+        user: userId,
+        durationMinutes: Number(durationMinutes) || 25,
+        completedAt: new Date(),
+      });
+    } catch (sessionErr) {
+      logger.error(`Failed to record PomodoroSession doc: ${sessionErr.message}`);
+    }
 
     user.totalPomodorosCompleted = (user.totalPomodorosCompleted || 0) + 1;
     user.xp = (user.xp || 0) + 15; // 15 XP for focusing!

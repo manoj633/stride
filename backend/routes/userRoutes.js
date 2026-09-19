@@ -22,6 +22,7 @@ import {
   getAuditLogs,
 } from "../controllers/userController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
+import { getPersonalYearInReview } from "../controllers/personalAnalyticsController.js";
 import { passwordResetLimiter, loginLimiter, registerLimiter, twoFactorLimiter } from "../middleware/rateLimiter.js";
 import { check } from "express-validator";
 import { validate } from "../middleware/validationMiddleware.js";
@@ -74,6 +75,9 @@ router
   .route("/profile")
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
+
+// Personal Year in Review retrospective route (must come before /:id)
+router.get("/year-in-review", protect, getPersonalYearInReview);
 
 // Admin stats route (must come before /:id)
 router.get("/admin/stats", protect, admin, getAdminStats);

@@ -17,6 +17,7 @@ import TaskCalendar from "./components/TaskCalendar/TaskCalendar";
 import Dashboard from "./components/Dashboard/Dashboard";
 import { TagManager } from "./components/TagsManager/TagManager";
 import Notifications from "./components/Notifications/Notifications";
+import YearInReview from "./components/YearInReview/YearInReview";
 
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -256,6 +257,14 @@ const App = () => {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/year-in-review"
+            element={
+              <PrivateRoute>
+                <YearInReview />
               </PrivateRoute>
             }
           />

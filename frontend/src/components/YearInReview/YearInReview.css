@@ -1,0 +1,792 @@
+/* YearInReview.css - Stride Annual Retrospective Styles */
+
+.yir-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px 24px 64px;
+  background-color: var(--bg-main, #f8fafc);
+  color: var(--text-primary, #0f172a);
+}
+
+.yir-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.yir-loading-container {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Header */
+.yir-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 8px;
+}
+
+.yir-header__text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.yir-header__badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.yir-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.18);
+}
+
+.yir-year-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.yir-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
+  font-family: var(--font-heading, "Sora", sans-serif);
+}
+
+.yir-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.yir-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Year Select Dropdown */
+.yir-year-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.yir-select-icon {
+  position: absolute;
+  left: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.yir-select-chevron {
+  position: absolute;
+  right: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.yir-year-select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 9px 36px 9px 36px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.yir-year-select:hover,
+.yir-year-select:focus {
+  border-color: #4f46e5;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* Buttons */
+.yir-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.yir-btn--primary {
+  background: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.25);
+}
+
+.yir-btn--primary:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.yir-btn--copied {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Hero Archetype Card */
+.yir-hero-card {
+  position: relative;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
+  border-radius: 16px;
+  padding: 32px 36px;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(49, 46, 129, 0.25);
+}
+
+.yir-hero-card__glow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.35) 0%, rgba(79, 70, 229, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.yir-hero-card__content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.yir-hero-card__badge-icon {
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  flex-shrink: 0;
+}
+
+.yir-hero-card__meta {
+  flex: 1;
+  min-width: 260px;
+}
+
+.yir-hero-card__kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  color: #c7d2fe;
+}
+
+.yir-hero-card__archetype {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 4px 0 6px;
+  letter-spacing: -0.01em;
+  font-family: var(--font-heading, "Sora", sans-serif);
+}
+
+.yir-hero-card__tagline {
+  font-size: 14px;
+  color: #e0e7ff;
+  margin: 0;
+  max-width: 540px;
+  line-height: 1.45;
+}
+
+.yir-hero-card__stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.yir-hero-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.yir-hero-pill__lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #c7d2fe;
+}
+
+.yir-hero-pill__val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* KPI Cards Grid */
+.yir-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.yir-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.yir-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.yir-kpi-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.yir-kpi-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.yir-kpi-card--goals .yir-kpi-card__icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.yir-kpi-card--tasks .yir-kpi-card__icon {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.yir-kpi-card--focus .yir-kpi-card__icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.yir-kpi-card--xp .yir-kpi-card__icon {
+  background: #faf5ff;
+  color: #9333ea;
+}
+
+.yir-kpi-card__pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.yir-kpi-card__label-with-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.yir-kpi-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.yir-info-tooltip-btn {
+  color: #94a3b8;
+  cursor: help;
+  display: inline-flex;
+}
+
+.yir-info-tooltip-btn:hover {
+  color: #4f46e5;
+}
+
+.yir-kpi-card__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+
+.yir-kpi-card__value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.yir-kpi-card__subvalue {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.yir-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.yir-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.yir-progress-fill--blue {
+  background: #2563eb;
+}
+
+.yir-progress-fill--green {
+  background: #16a34a;
+}
+
+.yir-progress-fill--indigo {
+  background: #4f46e5;
+}
+
+.yir-kpi-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 8px;
+  line-height: 1.35;
+}
+
+.yir-kpi-hint--warning {
+  color: #b45309;
+}
+
+.yir-kpi-hint--success {
+  color: #15803d;
+}
+
+.yir-xp-disclaimer {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 8px;
+}
+
+/* Panels */
+.yir-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.yir-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.yir-panel__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.yir-panel__subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.yir-peak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #1e1b4b;
+  background: #ede9fe;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Monthly Trend Bar Chart */
+.yir-chart-container {
+  width: 100%;
+  padding-top: 24px;
+}
+
+.yir-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 160px;
+  gap: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 2px;
+}
+
+.yir-chart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.yir-chart-bar-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 38px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.yir-chart-bar {
+  width: 100%;
+  background: #cbd5e1;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.yir-chart-bar-wrapper:hover .yir-chart-bar {
+  background: #6366f1;
+}
+
+.yir-chart-bar--peak {
+  background: #4f46e5 !important;
+}
+
+.yir-peak-crown {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+
+.yir-chart-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #ffffff;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.yir-chart-bar-wrapper:hover .yir-chart-tooltip {
+  opacity: 1;
+}
+
+.yir-chart-label {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.yir-chart-label--peak {
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+/* 2-Column Grid */
+.yir-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Category List */
+.yir-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.yir-cat-item__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.yir-cat-item__name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.yir-cat-item__count {
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* Standout Goal Cards */
+.yir-standout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.yir-standout-card {
+  padding: 12px 14px;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  background: #f8fafc;
+  transition: border-color 0.2s ease;
+}
+
+.yir-standout-card:hover {
+  border-color: #cbd5e1;
+}
+
+.yir-standout-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.yir-standout-card__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.yir-standout-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.yir-standout-card__done {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+/* Badges Grid */
+.yir-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.yir-badge-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.yir-badge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.yir-badge-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.yir-badge-card__body {
+  flex: 1;
+}
+
+.yir-badge-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.yir-badge-card__title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.yir-tier-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.yir-tier-badge--bronze {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.yir-tier-badge--silver {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.yir-tier-badge--gold {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.yir-tier-badge--platinum {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.yir-badge-card__desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 6px 0;
+  line-height: 1.35;
+}
+
+.yir-badge-card__bonus {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+/* Empty State */
+.yir-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 24px;
+  gap: 8px;
+}
+
+.yir-empty-state p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .yir-page {
+    padding: 16px 12px 48px;
+  }
+
+  .yir-hero-card {
+    padding: 24px 20px;
+  }
+
+  .yir-hero-card__archetype {
+    font-size: 22px;
+  }
+
+  .yir-chart-bars {
+    gap: 4px;
+  }
+
+  .yir-chart-label {
+    font-size: 9px;
+  }
+}

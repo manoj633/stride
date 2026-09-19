@@ -1037,7 +1037,8 @@ const recoverWithBackupCode = asyncHandler(async (req, res) => {
 // @route   POST /api/users/pomodoro/complete
 // @access  Private
 const completePomodoro = asyncHandler(async (req, res) => {
-  const updatedUser = await handlePomodoroCompletionXP(req.user._id);
+  const durationMinutes = Number(req.body?.durationMinutes) || 25;
+  const updatedUser = await handlePomodoroCompletionXP(req.user._id, durationMinutes);
 
   if (updatedUser) {
     res.status(200).json({
