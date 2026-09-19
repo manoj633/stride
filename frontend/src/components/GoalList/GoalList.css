@@ -2088,3 +2088,121 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Inline Unarchive Button & Row Treatment ────────────────── */
+.gl-row--archived {
+    opacity: 0.82;
+    background: rgba(244, 244, 245, 0.4);
+}
+
+.gl-row--archived:hover {
+    opacity: 1;
+}
+
+.gl-unarchive-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg-surface, #ffffff);
+    color: var(--accent, #2563eb);
+    border: 1px solid var(--accent-border, #bfdbfe);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+}
+
+.gl-unarchive-btn:hover {
+    background: var(--accent-light, #eff6ff);
+    border-color: var(--accent, #2563eb);
+    color: var(--accent, #2563eb);
+}
+
+/* ── Archive Prompt Banner ──────────────────────────────────── */
+.enhanced-goals__archive-prompt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 16px;
+    margin: 0 16px 12px 16px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-md, 6px);
+    font-size: 13px;
+    color: #92400e;
+    box-shadow: var(--shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.04));
+    animation: fadeIn 0.25s ease;
+}
+
+.archive-prompt__info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.archive-prompt__icon {
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.archive-prompt__text {
+    line-height: 1.4;
+}
+
+.archive-prompt__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.archive-prompt__btn-confirm {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    background: #d97706;
+    border: none;
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.archive-prompt__btn-confirm:hover {
+    background: #b45309;
+}
+
+.archive-prompt__btn-dismiss {
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #78350f;
+    background: transparent;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.archive-prompt__btn-dismiss:hover {
+    background: #fef3c7;
+}
+
+@media (max-width: 640px) {
+    .enhanced-goals__archive-prompt {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .archive-prompt__actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

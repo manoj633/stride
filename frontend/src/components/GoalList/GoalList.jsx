@@ -1,5 +1,5 @@
 // src/components/GoalList/GoalList.jsx
-import React, { useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
@@ -51,9 +51,22 @@ const GoalList = () => {
     handleBulkStatusUpdate,
     handleBulkArchive,
     handleBulkUnarchive,
+    handleUnarchiveGoal,
+    handleArchivePastGoals,
     exportGoals,
     chartData,
   } = useGoalListLogic(goals);
+
+  const [promptDismissed, setPromptDismissed] = useState(false);
+  const pastIncompleteGoals = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const startOfCurrentYear = new Date(currentYear, 0, 1);
+    return goals.filter((g) => {
+      if (g.archived || g.completed || g.completionPercentage === 100) return false;
+      if (!g.duration?.endDate) return false;
+      return new Date(g.duration.endDate) < startOfCurrentYear;
+    });
+  }, [goals]);
 
   // Fetch goals and tags when userInfo or selectedYear is updated
   useEffect(() => {
@@ -91,6 +104,7 @@ const GoalList = () => {
             tags={tags}
             selectedGoals={selectedGoals}
             navigate={navigate}
+            onUnarchive={handleUnarchiveGoal}
           />
         );
     }
@@ -202,6 +216,37 @@ const GoalList = () => {
             setArchiveStatus={setArchiveStatus}
           />
         </div>
+
+        {/* ── Optional Prompt-to-Archive for past-year incomplete goals ── */}
+        {!promptDismissed && pastIncompleteGoals.length > 0 && (
+          <div className="enhanced-goals__archive-prompt">
+            <div className="archive-prompt__info">
+              <span className="archive-prompt__icon">💡</span>
+              <span className="archive-prompt__text">
+                You have <strong>{pastIncompleteGoals.length}</strong> incomplete goal{pastIncompleteGoals.length > 1 ? "s" : ""} from prior years. Archive them to keep your active workspace focused?
+              </span>
+            </div>
+            <div className="archive-prompt__actions">
+              <button
+                type="button"
+                className="archive-prompt__btn-confirm"
+                onClick={() => {
+                  handleArchivePastGoals(pastIncompleteGoals.map((g) => g._id));
+                  setPromptDismissed(true);
+                }}
+              >
+                Archive {pastIncompleteGoals.length} Goal{pastIncompleteGoals.length > 1 ? "s" : ""}
+              </button>
+              <button
+                type="button"
+                className="archive-prompt__btn-dismiss"
+                onClick={() => setPromptDismissed(true)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Main two-column area ── */}
         <div className="enhanced-goals__main">

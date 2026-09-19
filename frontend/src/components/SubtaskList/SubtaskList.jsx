@@ -26,6 +26,9 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
     return `${year}-${month}-${day}`;
   };
 
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
   // Default year range (current year)
   const defaultDateRange = useMemo(() => {
     const now = new Date();
@@ -39,25 +42,84 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   const [filterTag, setFilterTag] = useState("");
   const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
 
+  // Dynamically compute available years based on a standard window + data history
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
+    const cy = new Date().getFullYear();
+    for (let i = cy + 1; i >= cy - 3; i--) {
+      yearsSet.add(i);
+    }
+    const list = ownsData ? allSubtasks : propSubtasks ?? [];
+    if (Array.isArray(list)) {
+      list.forEach((st) => {
+        if (st.dueDate) yearsSet.add(new Date(st.dueDate).getFullYear());
+        if (st.createdAt) yearsSet.add(new Date(st.createdAt).getFullYear());
+      });
+    }
+    const sorted = Array.from(yearsSet).sort((a, b) => b - a);
+    return [...sorted, "all"];
+  }, [allSubtasks, propSubtasks, ownsData]);
+
+  const handleYearChange = (newYear) => {
+    setSelectedYear(newYear);
+    if (newYear === "all") {
+      setFilterDateRange({ start: "", end: "" });
+    } else {
+      setFilterDateRange({
+        start: `${newYear}-01-01`,
+        end: `${newYear}-12-31`,
+      });
+    }
+  };
+
   useEffect(() => {
-    if (!propSubtasks && allSubtasks.length === 0) {
+    if (ownsData) {
+      dispatch(
+        fetchSubtasks(selectedYear === "all" ? {} : { year: selectedYear })
+      );
+    } else if (!propSubtasks && allSubtasks.length === 0) {
       dispatch(fetchSubtasks());
     }
-  }, [dispatch, propSubtasks, allSubtasks.length]);
+  }, [dispatch, ownsData, selectedYear, propSubtasks, allSubtasks.length]);
 
   const subtasks = useMemo(() => {
     let filtered = ownsData ? allSubtasks : propSubtasks ?? [];
 
     // Date range filter
-    if (filterDateRange.start && filterDateRange.end) {
-      const fStart = new Date(filterDateRange.start);
-      const fEnd = new Date(filterDateRange.end);
-      fEnd.setHours(23, 59, 59, 999);
+    if (filterDateRange.start || filterDateRange.end) {
+      const fStart = filterDateRange.start ? new Date(filterDateRange.start) : null;
+      const fEnd = filterDateRange.end ? new Date(filterDateRange.end) : null;
+      if (fEnd) fEnd.setHours(23, 59, 59, 999);
 
-      filtered = filtered.filter(st => {
+      filtered = filtered.filter((st) => {
         if (!st.dueDate) return true;
         const dDate = new Date(st.dueDate);
-        return dDate >= fStart && dDate <= fEnd;
+        if (fStart && fEnd) {
+          return dDate >= fStart && dDate <= fEnd;
+        } else if (fStart) {
+          return dDate >= fStart;
+        } else if (fEnd) {
+          return dDate <= fEnd;
+        }
+        return true;
+      });
+    }
+
+    // Apply Year filter if active
+    if (selectedYear && selectedYear !== "all") {
+      const y = parseInt(selectedYear, 10);
+      const startOfYear = new Date(y, 0, 1);
+      const endOfYear = new Date(y, 11, 31, 23, 59, 59, 999);
+      filtered = filtered.filter((st) => {
+        if (st.dueDate) {
+          const d = new Date(st.dueDate);
+          return d >= startOfYear && d <= endOfYear;
+        }
+        if (st.createdAt) {
+          const c = new Date(st.createdAt);
+          return c >= startOfYear && c <= endOfYear;
+        }
+        return true;
       });
     }
 
@@ -73,7 +135,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
       );
     }
     return filtered;
-  }, [propSubtasks, allSubtasks, filterTag, filterDateRange, searchTerm, ownsData]);
+  }, [propSubtasks, allSubtasks, filterTag, filterDateRange, searchTerm, ownsData, selectedYear]);
 
   const stats = useMemo(() => {
     const total = subtasks.length;
@@ -93,9 +155,9 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   return (
     <div className="enhanced-subtasks-container">
       <div className="enhanced-subtasks">
-        {/* ── Top Bar ── */}
-        <div className="enhanced-subtasks__sidebar">
-          <div className="enhanced-subtasks__header">
+        {/* ── Level 1: Top Bar (Brand, Stats, Global Actions) ── */}
+        <header className="enhanced-subtasks__top-bar">
+          <div className="enhanced-subtasks__header-left">
             <div className="enhanced-subtasks__header-title">
               <h2>
                 <span className="header-icon--subtasks">S</span>
@@ -109,30 +171,37 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
               <StatItem label="High Priority" value={stats.highPriority} color="red" />
               <StatItem label="Pending" value={stats.pending} color="amber" />
             </div>
-
-            <SubtaskSearchAndFilters
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filterTag={filterTag}
-              setFilterTag={setFilterTag}
-              filterDateRange={filterDateRange}
-              setFilterDateRange={setFilterDateRange}
-              availableTags={tags}
-            />
-
-            <div className="enhanced-tasks__actions">
-              <button
-                className="stk-add-btn"
-                onClick={() => navigate("/subtasks/add")}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Add Subtask
-              </button>
-            </div>
           </div>
+
+          <div className="enhanced-subtasks__actions">
+            <button
+              className="stk-add-btn"
+              onClick={() => navigate("/subtasks/add")}
+              aria-label="Add new subtask"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Subtask
+            </button>
+          </div>
+        </header>
+
+        {/* ── Level 2: Filter Toolbar ── */}
+        <div className="enhanced-subtasks__toolbar">
+          <SubtaskSearchAndFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterTag={filterTag}
+            setFilterTag={setFilterTag}
+            filterDateRange={filterDateRange}
+            setFilterDateRange={setFilterDateRange}
+            availableTags={tags}
+            selectedYear={ownsData ? selectedYear : undefined}
+            setSelectedYear={ownsData ? handleYearChange : undefined}
+            availableYears={ownsData ? availableYears : []}
+          />
         </div>
 
         {/* ── Main Area ── */}

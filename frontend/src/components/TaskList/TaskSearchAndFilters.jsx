@@ -9,17 +9,41 @@ const TaskSearchAndFilters = ({
   filterDateRange,
   setFilterDateRange,
   availableTags = [],
+  selectedYear,
+  setSelectedYear,
+  availableYears = [],
 }) => (
   <div className="enhanced-tasks__controls">
-    <input
-      type="text"
-      placeholder="Search tasks..."
-      className="enhanced-goals__search-input"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-    />
+    <div className="enhanced-tasks__search-wrapper">
+      <input
+        type="text"
+        placeholder="Search tasks..."
+        className="enhanced-goals__search-input"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+    </div>
     
     <div className="enhanced-goals__filters">
+      {/* Year Picker */}
+      {setSelectedYear && availableYears.length > 0 && (
+        <select
+          className="enhanced-goals__filter-select enhanced-tasks__year-select"
+          value={selectedYear}
+          onChange={(e) => {
+            const val = e.target.value;
+            setSelectedYear(val === "all" ? "all" : parseInt(val, 10));
+          }}
+          aria-label="Filter tasks by year"
+        >
+          {availableYears.map((yr) => (
+            <option key={yr} value={yr}>
+              {yr === "all" ? "All Years" : yr}
+            </option>
+          ))}
+        </select>
+      )}
+
       {/* Date Range Group */}
       <div className="enhanced-tasks__date-group">
         <input

@@ -28,6 +28,7 @@ export const ListView = ({
   tags,
   selectedGoals = [],
   navigate,
+  onUnarchive,
 }) => (
   <div className="gl-table">
     {/* Column header */}
@@ -64,6 +65,7 @@ export const ListView = ({
           selected={selectedGoals.includes(goal._id)}
           onSelect={handleGoalSelect}
           onNavigate={navigate}
+          onUnarchive={onUnarchive}
         />
       ))
     )}
@@ -71,7 +73,7 @@ export const ListView = ({
 );
 
 /* ── Single row ──────────────────────────────────────────────── */
-const GoalRow = ({ goal, tags, selected, onSelect, onNavigate }) => {
+const GoalRow = ({ goal, tags, selected, onSelect, onNavigate, onUnarchive }) => {
   const tagNames = useMemo(
     () =>
       (goal.tags || [])
@@ -130,7 +132,7 @@ const GoalRow = ({ goal, tags, selected, onSelect, onNavigate }) => {
 
       {/* Goal — title + description + secondary chips */}
       <div className="gl-col gl-col--goal">
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
           <span className="gl-title">{goal.title}</span>
           {goal.archived && (
             <span
@@ -148,6 +150,19 @@ const GoalRow = ({ goal, tags, selected, onSelect, onNavigate }) => {
             >
               Archived
             </span>
+          )}
+          {goal.archived && onUnarchive && (
+            <button
+              type="button"
+              className="gl-unarchive-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnarchive(goal._id);
+              }}
+              title="Unarchive this goal"
+            >
+              Unarchive
+            </button>
           )}
         </div>
 

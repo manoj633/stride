@@ -28,18 +28,27 @@
     min-height: 0;
 }
 
-/* ── Top Header ────────────────────────────────────────────── */
+/* ── Level 1 Top Bar ───────────────────────────────────────── */
+.enhanced-subtasks__top-bar,
 .enhanced-subtasks__sidebar {
     flex: 0 0 auto;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     padding: 0 16px;
-    min-height: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     position: relative;
     z-index: 10;
     box-shadow: var(--shadow-xs);
+}
+
+.enhanced-subtasks__header-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    min-width: 0;
 }
 
 .enhanced-subtasks__header {
@@ -198,14 +207,48 @@
 .stk-status--completed { background: var(--green-light); color: var(--green); }
 .stk-status--pending { background: var(--amber-light); color: var(--amber); }
 
-/* ── Controls & Search ────────────────────────────────────── */
+/* ── Level 2 Filter Toolbar ─────────────────────────────────── */
+.enhanced-subtasks__toolbar {
+    flex: 0 0 auto;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 9;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.enhanced-subtasks__toolbar::-webkit-scrollbar {
+    display: none;
+}
+
 .enhanced-subtasks__controls {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-left: 12px;
-    flex-shrink: 1;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+    margin-left: 0;
     min-width: 0;
+}
+
+.enhanced-subtasks__search-wrapper {
+    flex: 0 0 auto;
+}
+
+.enhanced-subtasks__year-select {
+    font-weight: 600;
+    color: #8b5cf6;
+    border-color: #ddd6fe;
+    background-color: #f5f3ff;
+}
+
+.enhanced-subtasks__year-select:hover {
+    border-color: #8b5cf6;
 }
 
 .enhanced-subtasks__date-group {
@@ -218,6 +261,14 @@
     font-size: 11px;
     color: var(--text-tertiary);
     font-weight: 500;
+}
+
+.enhanced-subtasks__actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .stk-add-btn {

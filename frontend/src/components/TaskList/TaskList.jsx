@@ -28,6 +28,9 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
     return `${year}-${month}-${day}`;
   };
 
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
   // Calculate default year range (current year)
   const defaultDateRange = useMemo(() => {
     const now = new Date();
@@ -44,30 +47,89 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
   const [filterTag, setFilterTag] = useState("");
   const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
 
+  // Dynamically compute available years based on a standard window + data history
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
+    const cy = new Date().getFullYear();
+    for (let i = cy + 1; i >= cy - 3; i--) {
+      yearsSet.add(i);
+    }
+    const list = ownsData ? allTasks : propTasks ?? [];
+    if (Array.isArray(list)) {
+      list.forEach((t) => {
+        if (t.startDate) yearsSet.add(new Date(t.startDate).getFullYear());
+        if (t.endDate) yearsSet.add(new Date(t.endDate).getFullYear());
+        if (t.createdAt) yearsSet.add(new Date(t.createdAt).getFullYear());
+      });
+    }
+    const sorted = Array.from(yearsSet).sort((a, b) => b - a);
+    return [...sorted, "all"];
+  }, [allTasks, propTasks, ownsData]);
+
+  const handleYearChange = (newYear) => {
+    setSelectedYear(newYear);
+    if (newYear === "all") {
+      setFilterDateRange({ start: "", end: "" });
+    } else {
+      setFilterDateRange({
+        start: `${newYear}-01-01`,
+        end: `${newYear}-12-31`,
+      });
+    }
+  };
+
   useEffect(() => {
-    if (!propTasks && allTasks.length === 0) {
+    if (ownsData) {
+      dispatch(
+        fetchTasks(selectedYear === "all" ? {} : { year: selectedYear })
+      );
+    } else if (!propTasks && allTasks.length === 0) {
       dispatch(fetchTasks());
     }
-  }, [dispatch, propTasks, allTasks.length]);
+  }, [dispatch, ownsData, selectedYear, propTasks, allTasks.length]);
 
   const tasks = useMemo(() => {
     let filtered = ownsData ? allTasks : propTasks ?? [];
 
     // Date range filter
-    if (filterDateRange.start && filterDateRange.end) {
-      const fStart = new Date(filterDateRange.start);
-      const fEnd = new Date(filterDateRange.end);
-      fEnd.setHours(23, 59, 59, 999);
+    if (filterDateRange.start || filterDateRange.end) {
+      const fStart = filterDateRange.start ? new Date(filterDateRange.start) : null;
+      const fEnd = filterDateRange.end ? new Date(filterDateRange.end) : null;
+      if (fEnd) fEnd.setHours(23, 59, 59, 999);
 
-      filtered = filtered.filter(task => {
-        // Task must have at least an endDate or startDate
+      filtered = filtered.filter((task) => {
         if (!task.startDate && !task.endDate) return true;
         
         const tStart = new Date(task.startDate || task.endDate);
         const tEnd = new Date(task.endDate || task.startDate);
         
-        // Overlap logic: task starts before filter ends AND task ends after filter starts
-        return tStart <= fEnd && tEnd >= fStart;
+        if (fStart && fEnd) {
+          return tStart <= fEnd && tEnd >= fStart;
+        } else if (fStart) {
+          return tEnd >= fStart;
+        } else if (fEnd) {
+          return tStart <= fEnd;
+        }
+        return true;
+      });
+    }
+
+    // Apply Year filter if active and dates weren't manually overridden
+    if (selectedYear && selectedYear !== "all") {
+      const y = parseInt(selectedYear, 10);
+      const startOfYear = new Date(y, 0, 1);
+      const endOfYear = new Date(y, 11, 31, 23, 59, 59, 999);
+      filtered = filtered.filter((task) => {
+        if (task.startDate || task.endDate) {
+          const s = new Date(task.startDate || task.endDate);
+          const e = new Date(task.endDate || task.startDate);
+          return s <= endOfYear && e >= startOfYear;
+        }
+        if (task.createdAt) {
+          const c = new Date(task.createdAt);
+          return c >= startOfYear && c <= endOfYear;
+        }
+        return true;
       });
     }
 
@@ -88,7 +150,7 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
     }
 
     return filtered;
-  }, [ownsData, propTasks, allTasks, filterTag, searchTerm, filterDateRange]);
+  }, [ownsData, propTasks, allTasks, filterTag, searchTerm, filterDateRange, selectedYear]);
 
   // Statistics calculation
   const stats = useMemo(() => {
@@ -115,9 +177,9 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
   return (
     <div className="enhanced-tasks-container">
       <div className="enhanced-tasks">
-        {/* ── Top Bar ── */}
-        <div className="enhanced-tasks__sidebar">
-          <div className="enhanced-tasks__header">
+        {/* ── Level 1: Top Bar (Brand, Stats, Global Actions) ── */}
+        <header className="enhanced-tasks__top-bar">
+          <div className="enhanced-tasks__header-left">
             <div className="enhanced-tasks__header-title">
               <h2>
                 <span className="header-icon--tasks">T</span>
@@ -131,30 +193,37 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
               <StatItem label="High Priority" value={stats.highPriority} color="red" />
               <StatItem label="Completed" value={stats.completed} color="green" />
             </div>
-
-            <TaskSearchAndFilters
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filterTag={filterTag}
-              setFilterTag={setFilterTag}
-              filterDateRange={filterDateRange}
-              setFilterDateRange={setFilterDateRange}
-              availableTags={tags}
-            />
-
-            <div className="enhanced-tasks__actions">
-              <button
-                className="enhanced-tasks__add-btn"
-                onClick={() => navigate("/tasks/add")}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Add Task
-              </button>
-            </div>
           </div>
+
+          <div className="enhanced-tasks__actions">
+            <button
+              className="enhanced-tasks__add-btn"
+              onClick={() => navigate("/tasks/add")}
+              aria-label="Add new task"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Task
+            </button>
+          </div>
+        </header>
+
+        {/* ── Level 2: Filter Toolbar (Search, Year, Date Range, Tags) ── */}
+        <div className="enhanced-tasks__toolbar">
+          <TaskSearchAndFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterTag={filterTag}
+            setFilterTag={setFilterTag}
+            filterDateRange={filterDateRange}
+            setFilterDateRange={setFilterDateRange}
+            availableTags={tags}
+            selectedYear={ownsData ? selectedYear : undefined}
+            setSelectedYear={ownsData ? handleYearChange : undefined}
+            availableYears={ownsData ? availableYears : []}
+          />
         </div>
 
         {/* ── Main Area ── */}

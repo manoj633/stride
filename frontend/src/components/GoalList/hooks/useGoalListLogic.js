@@ -332,6 +332,30 @@ export const useGoalListLogic = (goals) => {
     }
   };
 
+  const handleUnarchiveGoal = (goalId) => {
+    dispatch(unarchiveGoal(goalId))
+      .unwrap()
+      .then(() => {
+        toast.success("Goal unarchived successfully!");
+      })
+      .catch((error) => {
+        console.error("Failed to unarchive goal:", error);
+        toast.error("Failed to unarchive goal.");
+      });
+  };
+
+  const handleArchivePastGoals = (goalIds) => {
+    if (!goalIds || goalIds.length === 0) return;
+    Promise.all(goalIds.map((id) => dispatch(archiveGoal(id)).unwrap()))
+      .then(() => {
+        toast.success(`Archived ${goalIds.length} past goal(s)!`);
+      })
+      .catch((error) => {
+        console.error("Failed to archive past goals:", error);
+        toast.error("Failed to archive some goals.");
+      });
+  };
+
   const exportGoals = () => {
     const dataStr = JSON.stringify(goals);
     const dataUri =
@@ -364,6 +388,8 @@ export const useGoalListLogic = (goals) => {
     handleBulkStatusUpdate,
     handleBulkArchive,
     handleBulkUnarchive,
+    handleUnarchiveGoal,
+    handleArchivePastGoals,
     exportGoals,
     chartData,
   };
