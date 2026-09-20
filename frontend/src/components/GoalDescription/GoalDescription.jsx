@@ -30,6 +30,7 @@ import {
   deleteComment,
 } from "../../store/features/comments/commentSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
+import { useConfirm } from "../Common/ConfirmContext";
 
 import "./GoalDescription.css";
 
@@ -37,6 +38,7 @@ const GoalDescription = () => {
   const { goalId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const confirm = useConfirm();
 
   const tagsStatus = useSelector((s) => s.tags.status);
   const tasksStatus = useSelector((s) => s.tasks.status);
@@ -135,17 +137,23 @@ const GoalDescription = () => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this goal?")) {
-      try {
-        await toast.promise(dispatch(deleteGoal(goalId)).unwrap(), {
-          pending: "Deleting goal...",
-          success: "Goal deleted successfully!",
-          error: "Failed to delete goal",
-        });
-        navigate("/goals");
-      } catch (error) {
-        console.error("Error deleting goal:", error);
-      }
+    const ok = await confirm({
+      title: "Delete Goal",
+      message: `Are you sure you want to delete "${goal.title}"? All associated tasks, subtasks, and notes will be permanently removed.`,
+      confirmText: "Delete Goal",
+      isDanger: true,
+    });
+    if (!ok) return;
+
+    try {
+      await toast.promise(dispatch(deleteGoal(goalId)).unwrap(), {
+        pending: "Deleting goal...",
+        success: "Goal deleted successfully!",
+        error: "Failed to delete goal",
+      });
+      navigate("/goals");
+    } catch (error) {
+      console.error("Error deleting goal:", error);
     }
   };
 
@@ -189,19 +197,25 @@ const GoalDescription = () => {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      try {
-        await toast.promise(
-          dispatch(deleteComment(commentId)).unwrap(),
-          {
-            pending: "Deleting comment...",
-            success: "Comment deleted!",
-            error: "Failed to delete comment",
-          }
-        );
-      } catch (error) {
-        console.error("Error deleting comment:", error);
-      }
+    const ok = await confirm({
+      title: "Delete Note",
+      message: "Are you sure you want to delete this note? This action cannot be undone.",
+      confirmText: "Delete Note",
+      isDanger: true,
+    });
+    if (!ok) return;
+
+    try {
+      await toast.promise(
+        dispatch(deleteComment(commentId)).unwrap(),
+        {
+          pending: "Deleting comment...",
+          success: "Comment deleted!",
+          error: "Failed to delete comment",
+        }
+      );
+    } catch (error) {
+      console.error("Error deleting comment:", error);
     }
   };
 
@@ -228,25 +242,31 @@ const GoalDescription = () => {
   };
 
   const handleRemoveTag = async (tagId) => {
-    if (window.confirm("Are you sure you want to remove this tag?")) {
-      const updatedTags = goal.tags.filter((id) => id !== tagId);
-      try {
-        await toast.promise(
-          dispatch(
-            updateGoal({
-              id: goal._id,
-              goalData: { ...goal, tags: updatedTags },
-            })
-          ).unwrap(),
-          {
-            pending: "Removing tag...",
-            success: "Tag removed!",
-            error: "Failed to remove tag",
-          }
-        );
-      } catch (error) {
-        console.error("Error removing tag:", error);
-      }
+    const ok = await confirm({
+      title: "Remove Tag",
+      message: "Are you sure you want to remove this tag from the goal?",
+      confirmText: "Remove Tag",
+      isDanger: false,
+    });
+    if (!ok) return;
+
+    const updatedTags = goal.tags.filter((id) => id !== tagId);
+    try {
+      await toast.promise(
+        dispatch(
+          updateGoal({
+            id: goal._id,
+            goalData: { ...goal, tags: updatedTags },
+          })
+        ).unwrap(),
+        {
+          pending: "Removing tag...",
+          success: "Tag removed!",
+          error: "Failed to remove tag",
+        }
+      );
+    } catch (error) {
+      console.error("Error removing tag:", error);
     }
   };
 

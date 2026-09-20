@@ -11,9 +11,11 @@ import {
   unarchiveGoal,
   fetchGoals,
 } from "../../../store/features/goals/goalSlice";
+import { useConfirm } from "../../Common/ConfirmContext";
 
 export const useGoalListLogic = (goals) => {
   const dispatch = useAppDispatch();
+  const confirm = useConfirm();
 
   const currentYear = new Date().getFullYear();
 
@@ -220,116 +222,124 @@ export const useGoalListLogic = (goals) => {
 
   // src/components/GoalList/hooks/useGoalListLogic.js
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (selectedGoals.length === 0) return;
 
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${selectedGoals.length} selected goal(s)?`
-    );
+    const ok = await confirm({
+      title: "Delete Selected Goals",
+      message: `Are you sure you want to delete ${selectedGoals.length} selected goal(s)? All their tasks, subtasks, and notes will be permanently removed.`,
+      confirmText: "Delete Goals",
+      isDanger: true,
+    });
+    if (!ok) return;
 
-    if (confirmDelete) {
-      // Dispatch delete actions for each selected goal
-      selectedGoals.forEach((goalId) => {
-        dispatch(deleteGoal(goalId))
-          .unwrap()
-          .then(() => {
-            toast.success("Goal(s) deleted successfully!");
-          })
-          .catch((error) => {
-            console.error("Failed to delete goal:", error);
-            toast.error("Failed to delete goal(s).");
-          });
-      });
-      setSelectedGoals([]);
-    }
+    // Dispatch delete actions for each selected goal
+    selectedGoals.forEach((goalId) => {
+      dispatch(deleteGoal(goalId))
+        .unwrap()
+        .then(() => {
+          toast.success("Goal(s) deleted successfully!");
+        })
+        .catch((error) => {
+          console.error("Failed to delete goal:", error);
+          toast.error("Failed to delete goal(s).");
+        });
+    });
+    setSelectedGoals([]);
   };
 
   const handleBulkStatusUpdate = async () => {
     if (selectedGoals.length === 0) return;
 
-    const confirmUpdate = window.confirm(
-      `Do you want to mark ${selectedGoals.length} selected goal(s) as completed?`
-    );
+    const ok = await confirm({
+      title: "Complete Goals",
+      message: `Do you want to mark ${selectedGoals.length} selected goal(s) as completed?`,
+      confirmText: "Mark Completed",
+      isDanger: false,
+    });
+    if (!ok) return;
 
-    if (confirmUpdate) {
-      try {
-        toast.promise(
-          Promise.all(
-            selectedGoals.map((goalId) =>
-              dispatch(
-                updateGoalStatus({
-                  id: goalId,
-                  status: {
-                    completed: true,
-                    completionPercentage: 100,
-                  },
-                })
-              ).unwrap()
-            )
-          ),
-          {
-            pending: "Updating goal statuses...",
-            success: "Goal statuses updated successfully!",
-            error: "Failed to update goal statuses 🤯",
-          }
-        );
+    try {
+      toast.promise(
+        Promise.all(
+          selectedGoals.map((goalId) =>
+            dispatch(
+              updateGoalStatus({
+                id: goalId,
+                status: {
+                  completed: true,
+                  completionPercentage: 100,
+                },
+              })
+            ).unwrap()
+          )
+        ),
+        {
+          pending: "Updating goal statuses...",
+          success: "Goal statuses updated successfully!",
+          error: "Failed to update goal statuses 🤯",
+        }
+      );
 
-        // Clear selection after successful updates
-        setSelectedGoals([]);
+      // Clear selection after successful updates
+      setSelectedGoals([]);
 
-        // Optionally refresh the goals list
-        dispatch(fetchGoals());
-      } catch (error) {
-        // Handle any errors that occurred during the updates
-        console.error("Failed to update goals:", error);
-      }
+      // Optionally refresh the goals list
+      dispatch(fetchGoals());
+    } catch (error) {
+      // Handle any errors that occurred during the updates
+      console.error("Failed to update goals:", error);
     }
   };
 
-  const handleBulkArchive = () => {
+  const handleBulkArchive = async () => {
     if (selectedGoals.length === 0) return;
 
-    const confirmArchive = window.confirm(
-      `Are you sure you want to archive ${selectedGoals.length} selected goal(s)?`
-    );
+    const ok = await confirm({
+      title: "Archive Goals",
+      message: `Are you sure you want to archive ${selectedGoals.length} selected goal(s)?`,
+      confirmText: "Archive Goals",
+      isDanger: false,
+    });
+    if (!ok) return;
 
-    if (confirmArchive) {
-      selectedGoals.forEach((goalId) => {
-        dispatch(archiveGoal(goalId))
-          .unwrap()
-          .then(() => {
-            toast.success("Goal(s) archived successfully!");
-          })
-          .catch((error) => {
-            console.error("Failed to archive goal:", error);
-            toast.error("Failed to archive goal(s).");
-          });
-      });
-      setSelectedGoals([]);
-    }
+    selectedGoals.forEach((goalId) => {
+      dispatch(archiveGoal(goalId))
+        .unwrap()
+        .then(() => {
+          toast.success("Goal(s) archived successfully!");
+        })
+        .catch((error) => {
+          console.error("Failed to archive goal:", error);
+          toast.error("Failed to archive goal(s).");
+        });
+    });
+    setSelectedGoals([]);
   };
 
-  const handleBulkUnarchive = () => {
+  const handleBulkUnarchive = async () => {
     if (selectedGoals.length === 0) return;
 
-    const confirmUnarchive = window.confirm(
-      `Are you sure you want to unarchive ${selectedGoals.length} selected goal(s)?`
-    );
+    const ok = await confirm({
+      title: "Unarchive Goals",
+      message: `Are you sure you want to unarchive ${selectedGoals.length} selected goal(s)?`,
+      confirmText: "Unarchive Goals",
+      isDanger: false,
+    });
+    if (!ok) return;
 
-    if (confirmUnarchive) {
-      selectedGoals.forEach((goalId) => {
-        dispatch(unarchiveGoal(goalId))
-          .unwrap()
-          .then(() => {
-            toast.success("Goal(s) unarchived successfully!");
-          })
-          .catch((error) => {
-            console.error("Failed to unarchive goal:", error);
-            toast.error("Failed to unarchive goal(s).");
-          });
-      });
-      setSelectedGoals([]);
-    }
+    selectedGoals.forEach((goalId) => {
+      dispatch(unarchiveGoal(goalId))
+        .unwrap()
+        .then(() => {
+          toast.success("Goal(s) unarchived successfully!");
+        })
+        .catch((error) => {
+          console.error("Failed to unarchive goal:", error);
+          toast.error("Failed to unarchive goal(s).");
+        });
+    });
+    setSelectedGoals([]);
   };
 
   const handleUnarchiveGoal = (goalId) => {

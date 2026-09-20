@@ -51,6 +51,7 @@ import AnalyticsTracker from "./utils/AnalyticsTracker";
 import PrivateRoute from "./components/Common/PrivateRoute";
 import AdminRoute from "./components/Common/AdminRoute";
 import AdminDashboard from "./components/Admin/AdminDashboard";
+import { ConfirmProvider } from "./components/Common/ConfirmContext";
 
 const App = () => {
   const { activeTimer } = useContext(TimerContext);
@@ -304,7 +305,9 @@ const RootApp = () => {
     <Provider store={store}>
       <TimerProvider>
         <BrowserRouter>
-          <App />
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
         </BrowserRouter>
       </TimerProvider>
     </Provider>

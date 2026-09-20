@@ -15,11 +15,13 @@ import { getProfile } from "../../store/features/users/userSlice";
 import { updateGoalCompletion } from "../../store/features/goals/goalSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { useConfirm } from "../Common/ConfirmContext";
 
 const SubtaskDescription = () => {
   const { subtaskId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const allSubtasks = useSelector((state) => state.subtasks.items);
 
@@ -74,37 +76,43 @@ const SubtaskDescription = () => {
     });
   };
 
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this subtask?")) {
-      toast.promise(
-        (async () => {
-          await dispatch(deleteSubtask(subtaskId));
-          if (subtask.taskId) {
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: "Delete Subtask",
+      message: `Are you sure you want to delete "${subtask?.title || "this subtask"}"? This action cannot be undone.`,
+      confirmText: "Delete Subtask",
+      isDanger: true,
+    });
+    if (!ok) return;
+
+    toast.promise(
+      (async () => {
+        await dispatch(deleteSubtask(subtaskId));
+        if (subtask?.taskId) {
+          await dispatch(
+            updateTaskCompletion({
+              taskId: subtask.taskId,
+              subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
+            })
+          );
+          if (subtask.goalId) {
             await dispatch(
-              updateTaskCompletion({
-                taskId: subtask.taskId,
+              updateGoalCompletion({
+                goalId: subtask.goalId,
                 subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
               })
             );
-            if (subtask.goalId) {
-              await dispatch(
-                updateGoalCompletion({
-                  goalId: subtask.goalId,
-                  subtasks: allSubtasks.filter((st) => st._id !== subtaskId),
-                })
-              );
-            }
           }
-        })(),
-        {
-          pending: "Deleting subtask...",
-          success: "Subtask deleted successfully!",
-          error: "Failed to delete subtask",
         }
-      ).finally(() => {
-        navigate("/subtasks");
-      });
-    }
+      })(),
+      {
+        pending: "Deleting subtask...",
+        success: "Subtask deleted successfully!",
+        error: "Failed to delete subtask",
+      }
+    ).finally(() => {
+      navigate("/subtasks");
+    });
   };
 
   if (loading) return <LoadingSpinner message="Loading subtask details..." />;

@@ -10,6 +10,7 @@ import {
 import "./TagManager.css";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { useConfirm } from "../Common/ConfirmContext";
 
 const generatePastelColor = () => {
   const r = Math.floor(Math.random() * 55 + 200).toString(16);
@@ -57,6 +58,7 @@ const getTextColor = (hex) => {
 
 export const TagManager = () => {
   const dispatch = useAppDispatch();
+  const confirm = useConfirm();
   const { items: tags, loading, error } = useAppSelector((state) => state.tags);
 
   const [newTag, setNewTag] = useState({ name: "", color: "#BFDBFE" });
@@ -95,11 +97,17 @@ export const TagManager = () => {
     }
   };
 
-  const handleDeleteTag = (tagId) => {
+  const handleDeleteTag = async (tagId) => {
     const tag = tags.find((t) => t._id === tagId);
-    if (window.confirm(`Delete tag "${tag.name}"?`)) {
-      dispatch(deleteTag(tagId));
-    }
+    const ok = await confirm({
+      title: "Delete Tag",
+      message: `Are you sure you want to delete "${tag?.name || "this tag"}"? This will remove it from all associated goals.`,
+      confirmText: "Delete Tag",
+      isDanger: true,
+    });
+    if (!ok) return;
+
+    dispatch(deleteTag(tagId));
   };
 
   const handleTagUsage = useCallback((tag) => {

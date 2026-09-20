@@ -10,6 +10,7 @@ import { fetchTasks, fetchTaskById, deleteTask } from "../../store/features/task
 import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { useConfirm } from "../Common/ConfirmContext";
 
 import "./TaskDescription.css";
 
@@ -17,6 +18,7 @@ const TaskDescription = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { taskId } = useParams();
+  const confirm = useConfirm();
 
   const task = useSelector((state) =>
     state.tasks.items.find((t) => t._id === taskId)
@@ -83,17 +85,23 @@ const TaskDescription = () => {
   }, [task]);
 
   const handleDeleteTask = async () => {
-    if (window.confirm("Are you sure you want to delete this task?")) {
-      try {
-        await toast.promise(dispatch(deleteTask(task._id)).unwrap(), {
-          pending: "Deleting task...",
-          success: "Task deleted successfully!",
-          error: "Failed to delete task",
-        });
-        navigate("/tasks");
-      } catch (error) {
-        console.error("Failed to delete task:", error);
-      }
+    const ok = await confirm({
+      title: "Delete Task",
+      message: `Are you sure you want to delete "${task.title}"? All its subtasks will also be deleted.`,
+      confirmText: "Delete Task",
+      isDanger: true,
+    });
+    if (!ok) return;
+
+    try {
+      await toast.promise(dispatch(deleteTask(task._id)).unwrap(), {
+        pending: "Deleting task...",
+        success: "Task deleted successfully!",
+        error: "Failed to delete task",
+      });
+      navigate("/tasks");
+    } catch (error) {
+      console.error("Failed to delete task:", error);
     }
   };
 
