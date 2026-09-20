@@ -20,6 +20,10 @@ const Content = ({
   comment,
   goalDateRange,
   onAddComment,
+  onUpdateComment,
+  onDeleteComment,
+  currentUserId,
+  isAdmin,
   setComment,
   onRemoveTag,
   onAddTag,
@@ -40,6 +44,10 @@ const Content = ({
       comments={comments}
       comment={comment}
       onAddComment={onAddComment}
+      onUpdateComment={onUpdateComment}
+      onDeleteComment={onDeleteComment}
+      currentUserId={currentUserId}
+      isAdmin={isAdmin}
       setComment={setComment}
     />
   </div>

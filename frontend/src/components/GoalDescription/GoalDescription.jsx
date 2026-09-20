@@ -26,6 +26,8 @@ import {
 import {
   fetchGoalComments,
   createComment,
+  updateComment,
+  deleteComment,
 } from "../../store/features/comments/commentSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
 
@@ -44,6 +46,7 @@ const GoalDescription = () => {
   const tasks = useSelector((state) => selectTasksByGoalId(state, goalId));
   const comments = useSelector((state) => state.comments.items);
   const tags = useSelector((state) => state.tags.items);
+  const currentUser = useSelector((state) => state.user.userInfo);
   const error = useSelector((state) => state.goals.error);
 
   useEffect(() => {
@@ -166,6 +169,38 @@ const GoalDescription = () => {
         setComment("");
       } catch (error) {
         console.error("Error adding comment:", error);
+      }
+    }
+  };
+
+  const handleUpdateComment = async (commentId, text) => {
+    try {
+      await toast.promise(
+        dispatch(updateComment({ commentId, text })).unwrap(),
+        {
+          pending: "Updating comment...",
+          success: "Comment updated!",
+          error: "Failed to update comment",
+        }
+      );
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      try {
+        await toast.promise(
+          dispatch(deleteComment(commentId)).unwrap(),
+          {
+            pending: "Deleting comment...",
+            success: "Comment deleted!",
+            error: "Failed to delete comment",
+          }
+        );
+      } catch (error) {
+        console.error("Error deleting comment:", error);
       }
     }
   };
@@ -346,6 +381,10 @@ const GoalDescription = () => {
                 comment={comment}
                 goalDateRange={goalDateRange}
                 onAddComment={handleAddComment}
+                onUpdateComment={handleUpdateComment}
+                onDeleteComment={handleDeleteComment}
+                currentUserId={currentUser?._id}
+                isAdmin={currentUser?.isAdmin || false}
                 setComment={setComment}
                 onRemoveTag={handleRemoveTag}
                 onAddTag={() => setIsTagModalOpen(true)}
