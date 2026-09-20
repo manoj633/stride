@@ -8,6 +8,7 @@ import { fetchGoals, fetchGoalById } from "../../store/features/goals/goalSlice"
 import { createTask } from "../../store/features/tasks/taskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { useUnsavedChanges } from "../Common/useUnsavedChanges";
 
 const AddTask = ({ goalId, onTaskAdded }) => {
   const [searchParams] = useSearchParams();
@@ -27,6 +28,21 @@ const AddTask = ({ goalId, onTaskAdded }) => {
   const goals = useAppSelector((state) => state.goals.items);
   const loading = useAppSelector((state) => state.goals.loading);
   const error = useAppSelector((state) => state.goals.error);
+
+  const isDirty =
+    !isSubmitting &&
+    (Boolean(taskData.name?.trim()) ||
+      Boolean(taskData.description?.trim()) ||
+      Boolean(taskData.startDate) ||
+      Boolean(taskData.endDate));
+
+  useUnsavedChanges(isDirty, {
+    title: "Discard New Task?",
+    message:
+      "You have entered details for a new task. If you leave this page, your progress will be lost.",
+    confirmText: "Leave Page",
+    cancelText: "Keep Editing",
+  });
 
   useEffect(() => {
     if (effectiveGoalId && taskData.goalId !== effectiveGoalId) {

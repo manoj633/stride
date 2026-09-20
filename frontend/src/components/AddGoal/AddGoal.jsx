@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import GoalTemplateSelector from "./GoalTemplateSelector";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { useUnsavedChanges } from "../Common/useUnsavedChanges";
 
 const AddGoal = () => {
   const navigate = useNavigate();
@@ -34,6 +35,22 @@ const AddGoal = () => {
     tags: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isDirty =
+    !isSubmitting &&
+    (Boolean(goal.title.trim()) ||
+      Boolean(goal.description.trim()) ||
+      Boolean(goal.duration.startDate) ||
+      Boolean(goal.duration.endDate) ||
+      goal.tags.length > 0);
+
+  useUnsavedChanges(isDirty, {
+    title: "Discard New Goal?",
+    message:
+      "You have entered details for a new goal. If you leave this page, your progress will be lost.",
+    confirmText: "Leave Page",
+    cancelText: "Keep Editing",
+  });
 
   const handleTemplateSelect = (template) => {
     setGoal({

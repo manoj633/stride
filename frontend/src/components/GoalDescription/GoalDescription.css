@@ -332,6 +332,26 @@
   border-color: var(--ef-accent);
 }
 
+.goal-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.goal-edit-unsaved-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #B45309;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .goal-edit-form button {
   height: 38px;
   padding: 0 16px;

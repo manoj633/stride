@@ -1,14 +1,32 @@
 // EditForm.jsx
 import React from "react";
 
-const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
+const formatDateForInput = (val) => {
+  if (!val) return "";
+  try {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
+
+const EditForm = ({
+  editedGoal,
+  tags,
+  onSave,
+  onCancel,
+  setEditedGoal,
+  isSaving = false,
+  isDirty = false,
+}) => (
   <div className="goal-edit-form">
     <div className="form-group">
       <label htmlFor="title">Title:</label>
       <input
         type="text"
         id="title"
-        value={editedGoal.title}
+        value={editedGoal.title || ""}
         onChange={(e) =>
           setEditedGoal({ ...editedGoal, title: e.target.value })
         }
@@ -19,7 +37,7 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
       <label htmlFor="description">Description:</label>
       <textarea
         id="description"
-        value={editedGoal.description}
+        value={editedGoal.description || ""}
         onChange={(e) =>
           setEditedGoal({ ...editedGoal, description: e.target.value })
         }
@@ -30,7 +48,7 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
       <label htmlFor="category">Category:</label>
       <select
         id="category"
-        value={editedGoal.category}
+        value={editedGoal.category || "Education"}
         onChange={(e) =>
           setEditedGoal({ ...editedGoal, category: e.target.value })
         }
@@ -46,7 +64,7 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
       <label htmlFor="priority">Priority:</label>
       <select
         id="priority"
-        value={editedGoal.priority}
+        value={editedGoal.priority || "Medium"}
         onChange={(e) =>
           setEditedGoal({ ...editedGoal, priority: e.target.value })
         }
@@ -62,11 +80,7 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
       <input
         type="date"
         id="startDate"
-        value={
-          new Date(editedGoal.duration?.startDate)
-            .toISOString()
-            .split("T")[0] || ""
-        }
+        value={formatDateForInput(editedGoal.duration?.startDate)}
         onChange={(e) =>
           setEditedGoal({
             ...editedGoal,
@@ -84,10 +98,7 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
       <input
         type="date"
         id="endDate"
-        value={
-          new Date(editedGoal.duration?.endDate).toISOString().split("T")[0] ||
-          ""
-        }
+        value={formatDateForInput(editedGoal.duration?.endDate)}
         onChange={(e) =>
           setEditedGoal({
             ...editedGoal,
@@ -105,7 +116,7 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
       <select
         multiple
         id="tags"
-        value={editedGoal.tags}
+        value={editedGoal.tags || []}
         onChange={(e) =>
           setEditedGoal({
             ...editedGoal,
@@ -123,8 +134,29 @@ const EditForm = ({ editedGoal, tags, onSave, onCancel, setEditedGoal }) => (
         ))}
       </select>
     </div>
-    <button onClick={onSave}>Save</button>
-    <button onClick={onCancel}>Cancel</button>
+    <div className="goal-edit-actions">
+      <button
+        type="button"
+        className="ef-btn-primary"
+        onClick={onSave}
+        disabled={isSaving}
+      >
+        {isSaving ? "Saving..." : "Save Changes"}
+      </button>
+      <button
+        type="button"
+        className="ef-btn-ghost"
+        onClick={onCancel}
+        disabled={isSaving}
+      >
+        Cancel
+      </button>
+      {isDirty && (
+        <span className="goal-edit-unsaved-badge">
+          • Unsaved changes
+        </span>
+      )}
+    </div>
   </div>
 );
 

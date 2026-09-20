@@ -11,6 +11,8 @@ const Header = ({
   onSave,
   onCancel,
   setEditedGoal,
+  isSaving = false,
+  isDirty = false,
 }) => (
   <div className="goal-description__header">
     {isEditing ? (
@@ -20,6 +22,8 @@ const Header = ({
         onSave={onSave}
         onCancel={onCancel}
         setEditedGoal={setEditedGoal}
+        isSaving={isSaving}
+        isDirty={isDirty}
       />
     ) : (
       <>

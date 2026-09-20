@@ -31,6 +31,7 @@ import {
 } from "../../store/features/comments/commentSlice";
 import { fetchTags } from "../../store/features/tags/tagSlice";
 import { useConfirm } from "../Common/ConfirmContext";
+import { useUnsavedChanges } from "../Common/useUnsavedChanges";
 
 import "./GoalDescription.css";
 
@@ -92,8 +93,54 @@ const GoalDescription = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedGoal, setEditedGoal] = useState(null);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [comment, setComment] = useState("");
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+
+  const toDateString = (val) => {
+    if (!val) return "";
+    try {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  };
+
+  const isGoalDirty = React.useMemo(() => {
+    if (!isEditing || !editedGoal || !goal) return false;
+    if ((editedGoal.title || "").trim() !== (goal.title || "").trim()) return true;
+    if ((editedGoal.description || "").trim() !== (goal.description || "").trim()) return true;
+    if ((editedGoal.category || "") !== (goal.category || "")) return true;
+    if ((editedGoal.priority || "") !== (goal.priority || "")) return true;
+
+    const initialStart = toDateString(goal.duration?.startDate);
+    const currentStart = toDateString(editedGoal.duration?.startDate);
+    if (initialStart !== currentStart) return true;
+
+    const initialEnd = toDateString(goal.duration?.endDate);
+    const currentEnd = toDateString(editedGoal.duration?.endDate);
+    if (initialEnd !== currentEnd) return true;
+
+    const goalTags = (goal.tags || []).slice().sort().join(",");
+    const editedTags = (editedGoal.tags || []).slice().sort().join(",");
+    if (goalTags !== editedTags) return true;
+
+    return false;
+  }, [isEditing, editedGoal, goal]);
+
+  const { confirmDiscard } = useUnsavedChanges(isGoalDirty, {
+    title: "Unsaved Changes",
+    message:
+      "You have unsaved changes to this goal. If you leave this page, your changes will be lost.",
+    discardTitle: "Discard Unsaved Changes?",
+    discardMessage:
+      "You have modified this goal. Are you sure you want to discard your changes?",
+    confirmText: "Leave Page",
+    cancelText: "Stay",
+    discardConfirmText: "Discard Changes",
+    discardCancelText: "Keep Editing",
+  });
 
   const tagsObjects = React.useMemo(() => {
     if (!goal?.tags || !tags.length) return [];
@@ -116,22 +163,27 @@ const GoalDescription = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (editedGoal) {
+    if (editedGoal && !isSavingGoal) {
+      setIsSavingGoal(true);
       try {
         await dispatch(
           updateGoal({ id: editedGoal._id, goalData: editedGoal })
         ).unwrap();
         toast.success("Goal updated successfully");
+        setIsEditing(false);
+        setEditedGoal(null);
       } catch (error) {
         console.error("Error updating goal:", error);
         toast.error("Failed to update goal");
+      } finally {
+        setIsSavingGoal(false);
       }
-      setIsEditing(false);
-      setEditedGoal(null);
     }
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = async () => {
+    const shouldDiscard = await confirmDiscard();
+    if (!shouldDiscard) return;
     setIsEditing(false);
     setEditedGoal(null);
   };
@@ -314,6 +366,23 @@ const GoalDescription = () => {
         <span className="ef-topbar__title">Goal Details</span>
         <span className="ef-topbar__breadcrumb">
           / <span>{goal.title}</span>
+          {isEditing && (
+            <span
+              style={{
+                marginLeft: "8px",
+                fontSize: "11px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                background: isGoalDirty ? "#FEF3C7" : "var(--ef-accent-light, #EFF6FF)",
+                color: isGoalDirty ? "#B45309" : "var(--ef-accent, #2563EB)",
+                border: isGoalDirty ? "1px solid #FCD34D" : "1px solid #BFDBFE",
+              }}
+            >
+              {isGoalDirty ? "Unsaved Changes" : "Editing"}
+            </span>
+          )}
           {goal.archived && (
             <span
               style={{
@@ -387,7 +456,8 @@ const GoalDescription = () => {
               onSave={handleSaveEdit}
               onCancel={handleCancelEdit}
               setEditedGoal={setEditedGoal}
-              // Removed onEdit and onDelete props as they are now in Topbar
+              isSaving={isSavingGoal}
+              isDirty={isGoalDirty}
             />
             {!isEditing && (
               <Content

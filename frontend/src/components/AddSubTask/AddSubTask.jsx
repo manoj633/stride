@@ -11,6 +11,7 @@ import {
 import { createSubtask } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
+import { useUnsavedChanges } from "../Common/useUnsavedChanges";
 import "./AddSubTask.css";
 
 const formatDate = (isoDate) => {
@@ -39,6 +40,20 @@ const AddSubTask = ({ onSubtaskAdded }) => {
     maxDate: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isDirty =
+    !isSubmitting &&
+    (Boolean(formData.name?.trim()) ||
+      Boolean(formData.description?.trim()) ||
+      Boolean(formData.dueDate));
+
+  useUnsavedChanges(isDirty, {
+    title: "Discard New Subtask?",
+    message:
+      "You have entered details for a new subtask. If you leave this page, your progress will be lost.",
+    confirmText: "Leave Page",
+    cancelText: "Keep Editing",
+  });
 
   const goals = useAppSelector((state) => state.goals.items);
   const allTasks = useAppSelector((state) => state.tasks.items);
