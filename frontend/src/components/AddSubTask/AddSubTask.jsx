@@ -38,6 +38,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
     minDate: "",
     maxDate: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const goals = useAppSelector((state) => state.goals.items);
   const allTasks = useAppSelector((state) => state.tasks.items);
@@ -108,6 +109,9 @@ const AddSubTask = ({ onSubtaskAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
       const newSubtaskData = await toast.promise(
         dispatch(createSubtask(formData)).unwrap(),
@@ -127,6 +131,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
       }
     } catch (error) {
       console.error("Failed to create subtask:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -268,8 +273,13 @@ const AddSubTask = ({ onSubtaskAdded }) => {
                 </div>
               </div>
 
-              <button type="submit" className="ef-submit-btn" aria-label="Add new subtask">
-                Create Subtask
+              <button
+                type="submit"
+                className="ef-submit-btn"
+                disabled={isSubmitting}
+                aria-label="Add new subtask"
+              >
+                {isSubmitting ? "Creating Subtask..." : "Create Subtask"}
               </button>
             </div>
           </form>

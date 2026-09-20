@@ -91,3 +91,11 @@ html, body {
     padding-top: 56px;
   }
 }
+
+/* Global Form Button Disabled States */
+.ef-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  pointer-events: none;
+}

@@ -62,6 +62,7 @@ export const TagManager = () => {
   const { items: tags, loading, error } = useAppSelector((state) => state.tags);
 
   const [newTag, setNewTag] = useState({ name: "", color: "#BFDBFE" });
+  const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [editingTag, setEditingTag] = useState(null);
   const [filterText, setFilterText] = useState("");
   const [sortBy, setSortBy] = useState("name");
@@ -71,11 +72,17 @@ export const TagManager = () => {
     dispatch(fetchTags());
   }, [dispatch]);
 
-  const handleCreateTag = (e) => {
+  const handleCreateTag = async (e) => {
     e.preventDefault();
-    if (newTag.name.trim()) {
-      dispatch(createTag({ name: newTag.name.trim(), color: newTag.color }));
+    if (!newTag.name.trim() || isCreatingTag) return;
+    setIsCreatingTag(true);
+    try {
+      await dispatch(createTag({ name: newTag.name.trim(), color: newTag.color })).unwrap();
       setNewTag({ name: "", color: "#BFDBFE" });
+    } catch (err) {
+      console.error("Failed to create tag:", err);
+    } finally {
+      setIsCreatingTag(false);
     }
   };
 
@@ -202,9 +209,9 @@ export const TagManager = () => {
               <button
                 type="submit"
                 className="tm-btn tm-btn--primary"
-                disabled={!newTag.name.trim()}
+                disabled={!newTag.name.trim() || isCreatingTag}
               >
-                + Create Tag
+                {isCreatingTag ? "Creating..." : "+ Create Tag"}
               </button>
             </form>
           </div>

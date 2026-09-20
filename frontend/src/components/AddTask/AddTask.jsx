@@ -21,6 +21,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     endDate: "",
     goalId: effectiveGoalId,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const goals = useAppSelector((state) => state.goals.items);
@@ -58,6 +59,9 @@ const AddTask = ({ goalId, onTaskAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
       await toast.promise(dispatch(createTask(taskData)).unwrap(), {
         pending: "Creating your task...",
@@ -74,6 +78,7 @@ const AddTask = ({ goalId, onTaskAdded }) => {
       }
     } catch (error) {
       console.error("Failed to create task:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -209,8 +214,13 @@ const AddTask = ({ goalId, onTaskAdded }) => {
                 </div>
               </div>
 
-              <button type="submit" className="ef-submit-btn" aria-label="Add new task">
-                Create Task
+              <button
+                type="submit"
+                className="ef-submit-btn"
+                disabled={isSubmitting}
+                aria-label="Add new task"
+              >
+                {isSubmitting ? "Creating Task..." : "Create Task"}
               </button>
             </div>
           </form>

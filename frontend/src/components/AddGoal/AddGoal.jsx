@@ -33,6 +33,7 @@ const AddGoal = () => {
     },
     tags: [],
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleTemplateSelect = (template) => {
     setGoal({
@@ -54,6 +55,8 @@ const AddGoal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     const newGoal = {
       ...goal,
@@ -65,7 +68,7 @@ const AddGoal = () => {
     };
 
     try {
-      toast.promise(dispatch(createGoal(goal)).unwrap(), {
+      await toast.promise(dispatch(createGoal(newGoal)).unwrap(), {
         pending: "Creating your goal...",
         success: "Goal created successfully!",
         error: "Failed to create goal",
@@ -83,6 +86,7 @@ const AddGoal = () => {
       navigate("/goals");
     } catch (error) {
       console.error("Failed to create goal:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -249,8 +253,13 @@ const AddGoal = () => {
                 </div>
               )}
 
-              <button type="submit" className="ef-submit-btn" aria-label="Add new goal">
-                Create Goal
+              <button
+                type="submit"
+                className="ef-submit-btn"
+                disabled={isSubmitting}
+                aria-label="Add new goal"
+              >
+                {isSubmitting ? "Creating Goal..." : "Create Goal"}
               </button>
             </div>
           </form>
