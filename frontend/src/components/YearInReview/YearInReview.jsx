@@ -105,6 +105,23 @@ ${data.archetype?.badge || "🏆"} Archetype: ${data.archetype?.title || "Produc
 
   const maxCompletions = Math.max(...monthlyTrend.map((m) => m.completions), 1);
 
+  // Priority Breakdown Donut Chart Calculations
+  const highCount = priorityBreakdown?.High || 0;
+  const mediumCount = priorityBreakdown?.Medium || 0;
+  const lowCount = priorityBreakdown?.Low || 0;
+  const totalPriorityGoals = highCount + mediumCount + lowCount;
+
+  const highPct = totalPriorityGoals > 0 ? Math.round((highCount / totalPriorityGoals) * 100) : 0;
+  const medPct = totalPriorityGoals > 0 ? Math.round((mediumCount / totalPriorityGoals) * 100) : 0;
+  const lowPct = totalPriorityGoals > 0 ? Math.max(0, 100 - highPct - medPct) : 0;
+
+  const degHigh = totalPriorityGoals > 0 ? (highCount / totalPriorityGoals) * 360 : 0;
+  const degMed = totalPriorityGoals > 0 ? degHigh + (mediumCount / totalPriorityGoals) * 360 : 0;
+
+  const donutGradient = totalPriorityGoals > 0
+    ? `conic-gradient(#ef4444 0deg ${degHigh}deg, #f59e0b ${degHigh}deg ${degMed}deg, #3b82f6 ${degMed}deg 360deg)`
+    : "conic-gradient(#e2e8f0 0deg 360deg)";
+
   return (
     <div className="yir-page">
       <div className="yir-container">
@@ -384,11 +401,108 @@ ${data.archetype?.badge || "🏆"} Archetype: ${data.archetype?.title || "Produc
             )}
           </section>
 
+          {/* Priority Distribution Donut Chart */}
+          <section className="yir-panel">
+            <div className="yir-panel__header">
+              <div>
+                <h3 className="yir-panel__title">Priority Distribution</h3>
+                <p className="yir-panel__subtitle">
+                  Proportion of high, medium, and low priority goals
+                </p>
+              </div>
+            </div>
+
+            {totalPriorityGoals === 0 ? (
+              <div className="yir-empty-state">
+                <FiTarget />
+                <p>No goals recorded in {year}.</p>
+              </div>
+            ) : (
+              <div className="yir-donut-card">
+                <div className="yir-donut-chart-wrap">
+                  <div
+                    className="yir-donut-ring"
+                    style={{ background: donutGradient }}
+                    role="img"
+                    aria-label={`Priority donut: ${highPct}% High, ${medPct}% Medium, ${lowPct}% Low`}
+                  >
+                    <div className="yir-donut-hole">
+                      <span className="yir-donut-total">{totalPriorityGoals}</span>
+                      <span className="yir-donut-sub">Goals</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="yir-donut-legend">
+                  <div className="yir-donut-legend-item">
+                    <div className="yir-donut-legend-header">
+                      <div className="yir-legend-indicator">
+                        <span className="yir-legend-dot yir-legend-dot--high" />
+                        <span className="yir-legend-name">High Priority</span>
+                      </div>
+                      <div className="yir-legend-metrics">
+                        <span className="yir-legend-count">{highCount}</span>
+                        <span className="yir-legend-pct">({highPct}%)</span>
+                      </div>
+                    </div>
+                    <div className="yir-legend-track">
+                      <div
+                        className="yir-legend-fill yir-legend-fill--high"
+                        style={{ width: `${highPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="yir-donut-legend-item">
+                    <div className="yir-donut-legend-header">
+                      <div className="yir-legend-indicator">
+                        <span className="yir-legend-dot yir-legend-dot--medium" />
+                        <span className="yir-legend-name">Medium Priority</span>
+                      </div>
+                      <div className="yir-legend-metrics">
+                        <span className="yir-legend-count">{mediumCount}</span>
+                        <span className="yir-legend-pct">({medPct}%)</span>
+                      </div>
+                    </div>
+                    <div className="yir-legend-track">
+                      <div
+                        className="yir-legend-fill yir-legend-fill--medium"
+                        style={{ width: `${medPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="yir-donut-legend-item">
+                    <div className="yir-donut-legend-header">
+                      <div className="yir-legend-indicator">
+                        <span className="yir-legend-dot yir-legend-dot--low" />
+                        <span className="yir-legend-name">Low Priority</span>
+                      </div>
+                      <div className="yir-legend-metrics">
+                        <span className="yir-legend-count">{lowCount}</span>
+                        <span className="yir-legend-pct">({lowPct}%)</span>
+                      </div>
+                    </div>
+                    <div className="yir-legend-track">
+                      <div
+                        className="yir-legend-fill yir-legend-fill--low"
+                        style={{ width: `${lowPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* 2-Column Section: Standout Goals & Milestone Badges */}
+        <div className="yir-grid-2col">
           {/* Standout Achievements & Goals */}
           <section className="yir-panel">
             <div className="yir-panel__header">
               <div>
-                <h3 className="yir-panel__title">Standout Goal Accomplishments</h3>
+                <h3 className="yir-panel__title">Standout Accomplishments</h3>
                 <p className="yir-panel__subtitle">Key goals brought across the finish line</p>
               </div>
             </div>
@@ -419,47 +533,47 @@ ${data.archetype?.badge || "🏆"} Archetype: ${data.archetype?.title || "Produc
               </div>
             )}
           </section>
-        </div>
 
-        {/* Milestone Badges & Medals */}
-        <section className="yir-panel">
-          <div className="yir-panel__header">
-            <div>
-              <h3 className="yir-panel__title">Milestone Badges & Honors</h3>
-              <p className="yir-panel__subtitle">
-                Productivity medals unlocked through discipline and persistence
-              </p>
+          {/* Milestone Badges & Medals */}
+          <section className="yir-panel">
+            <div className="yir-panel__header">
+              <div>
+                <h3 className="yir-panel__title">Milestone Badges & Honors</h3>
+                <p className="yir-panel__subtitle">
+                  Productivity medals unlocked through persistence
+                </p>
+              </div>
+              <span className="yir-tag">
+                {achievements.length} Unlocked
+              </span>
             </div>
-            <span className="yir-tag">
-              {achievements.length} Unlocked
-            </span>
-          </div>
 
-          {achievements.length === 0 ? (
-            <div className="yir-empty-state">
-              <FiAward />
-              <p>Keep completing tasks and focus sessions to unlock milestone medals!</p>
-            </div>
-          ) : (
-            <div className="yir-badges-grid">
-              {achievements.map((ach) => (
-                <div key={ach.id} className="yir-badge-card">
-                  <div className="yir-badge-card__icon">{ach.icon}</div>
-                  <div className="yir-badge-card__body">
-                    <div className="yir-badge-card__title-row">
-                      <h4 className="yir-badge-card__title">{ach.title}</h4>
-                      <span className={`yir-tier-badge yir-tier-badge--${ach.tier?.toLowerCase() || "bronze"}`}>
-                        {ach.tier}
-                      </span>
+            {achievements.length === 0 ? (
+              <div className="yir-empty-state">
+                <FiAward />
+                <p>Keep completing tasks and focus sessions to unlock milestone medals!</p>
+              </div>
+            ) : (
+              <div className="yir-badges-grid">
+                {achievements.map((ach) => (
+                  <div key={ach.id} className="yir-badge-card">
+                    <div className="yir-badge-card__icon">{ach.icon}</div>
+                    <div className="yir-badge-card__body">
+                      <div className="yir-badge-card__title-row">
+                        <h4 className="yir-badge-card__title">{ach.title}</h4>
+                        <span className={`yir-tier-badge yir-tier-badge--${ach.tier?.toLowerCase() || "bronze"}`}>
+                          {ach.tier}
+                        </span>
+                      </div>
+                      <p className="yir-badge-card__desc">{ach.description}</p>
+                      <span className="yir-badge-card__bonus">+{ach.xpBonus} XP Bonus</span>
                     </div>
-                    <p className="yir-badge-card__desc">{ach.description}</p>
-                    <span className="yir-badge-card__bonus">+{ach.xpBonus} XP Bonus</span>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

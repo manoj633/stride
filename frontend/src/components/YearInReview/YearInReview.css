@@ -603,6 +603,168 @@
   font-size: 12px;
 }
 
+/* Priority Breakdown Donut Chart */
+.yir-donut-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+@media (min-width: 480px) {
+  .yir-donut-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: 24px;
+  }
+}
+
+.yir-donut-chart-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.yir-donut-ring {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease;
+}
+
+.yir-donut-ring:hover {
+  transform: scale(1.02);
+}
+
+.yir-donut-hole {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.yir-donut-total {
+  font-family: 'Sora', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.yir-donut-sub {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+.yir-donut-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 160px;
+}
+
+.yir-donut-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.yir-donut-legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+}
+
+.yir-legend-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yir-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.yir-legend-dot--high {
+  background: #ef4444;
+}
+
+.yir-legend-dot--medium {
+  background: #f59e0b;
+}
+
+.yir-legend-dot--low {
+  background: #3b82f6;
+}
+
+.yir-legend-name {
+  font-weight: 500;
+  color: #334155;
+}
+
+.yir-legend-metrics {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.yir-legend-count {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.yir-legend-pct {
+  color: #64748b;
+}
+
+.yir-legend-track {
+  height: 5px;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.yir-legend-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease-out;
+}
+
+.yir-legend-fill--high {
+  background: #ef4444;
+}
+
+.yir-legend-fill--medium {
+  background: #f59e0b;
+}
+
+.yir-legend-fill--low {
+  background: #3b82f6;
+}
+
 /* Standout Goal Cards */
 .yir-standout-list {
   display: flex;
