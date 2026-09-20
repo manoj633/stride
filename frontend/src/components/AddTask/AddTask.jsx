@@ -3,20 +3,23 @@ import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { toast } from "react-toastify";
 import "./AddTask.css";
-import { useNavigate } from "react-router-dom";
-import { fetchGoals } from "../../store/features/goals/goalSlice";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { fetchGoals, fetchGoalById } from "../../store/features/goals/goalSlice";
 import { createTask } from "../../store/features/tasks/taskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 
 const AddTask = ({ goalId, onTaskAdded }) => {
+  const [searchParams] = useSearchParams();
+  const effectiveGoalId = goalId || searchParams.get("goalId") || "";
+
   const [taskData, setTaskData] = useState({
     name: "",
     description: "",
     priority: "Medium",
     startDate: "",
     endDate: "",
-    goalId: goalId || "",
+    goalId: effectiveGoalId,
   });
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -24,17 +27,30 @@ const AddTask = ({ goalId, onTaskAdded }) => {
   const loading = useAppSelector((state) => state.goals.loading);
   const error = useAppSelector((state) => state.goals.error);
 
+  useEffect(() => {
+    if (effectiveGoalId && taskData.goalId !== effectiveGoalId) {
+      setTaskData((prev) => ({ ...prev, goalId: effectiveGoalId }));
+    }
+  }, [effectiveGoalId]);
+
   const selectedGoal = goals.find((goal) => goal._id === taskData.goalId);
-  const minStartDate = selectedGoal
+  const minStartDate = selectedGoal?.duration?.startDate
     ? new Date(selectedGoal.duration.startDate).toISOString().split("T")[0]
     : "";
-  const maxEndDate = selectedGoal
+  const maxEndDate = selectedGoal?.duration?.endDate
     ? new Date(selectedGoal.duration.endDate).toISOString().split("T")[0]
     : "";
 
   useEffect(() => {
-    dispatch(fetchGoals());
+    dispatch(fetchGoals({ year: "all" }));
   }, [dispatch]);
+
+  // If a specific goal is targeted and not in cache, fetch it by ID
+  useEffect(() => {
+    if (effectiveGoalId && !goals.some((g) => g._id === effectiveGoalId)) {
+      dispatch(fetchGoalById(effectiveGoalId));
+    }
+  }, [dispatch, effectiveGoalId, goals]);
 
   const handleGoalChange = (e) => {
     setTaskData({ ...taskData, goalId: e.target.value, startDate: "", endDate: "" });
@@ -48,15 +64,21 @@ const AddTask = ({ goalId, onTaskAdded }) => {
         success: "Task created successfully!",
         error: "Failed to create task",
       });
-      navigate("/tasks");
+      if (onTaskAdded) {
+        onTaskAdded();
+      }
+      if (taskData.goalId) {
+        navigate(`/goals/${taskData.goalId}`);
+      } else {
+        navigate("/tasks");
+      }
     } catch (error) {
       console.error("Failed to create task:", error);
-      navigate("/tasks");
     }
   };
 
-  if (loading) return <LoadingSpinner message="Loading goals..." />;
-  if (error) return <ErrorMessage message={error} />;
+  if (loading && goals.length === 0) return <LoadingSpinner message="Loading goals..." />;
+  if (error && goals.length === 0) return <ErrorMessage message={error} />;
 
   return (
     <div className="add-task-container">
@@ -66,13 +88,20 @@ const AddTask = ({ goalId, onTaskAdded }) => {
         <span className="ef-topbar__title">Tasks</span>
         <span className="ef-topbar__breadcrumb">
           / <span>New Task</span>
+          {selectedGoal && ` (${selectedGoal.title})`}
         </span>
         <button
           className="ef-topbar__back"
-          onClick={() => navigate("/tasks")}
+          onClick={() => {
+            if (taskData.goalId) {
+              navigate(`/goals/${taskData.goalId}`);
+            } else {
+              navigate("/tasks");
+            }
+          }}
           type="button"
         >
-          ← Back to Tasks
+          {taskData.goalId ? "← Back to Goal" : "← Back to Tasks"}
         </button>
       </div>
 

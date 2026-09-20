@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchGoals } from "../../store/features/goals/goalSlice";
 import {
   selectTasksByGoalId,
   fetchTasks,
+  fetchTaskById,
 } from "../../store/features/tasks/taskSlice";
 import { createSubtask } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
@@ -17,16 +18,20 @@ const formatDate = (isoDate) => {
 };
 
 const AddSubTask = ({ onSubtaskAdded }) => {
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const queryGoalId = searchParams.get("goalId") || "";
+  const queryTaskId = searchParams.get("taskId") || "";
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     priority: "Medium",
     dueDate: "",
-    goalId: "",
-    taskId: "",
+    goalId: queryGoalId,
+    taskId: queryTaskId,
   });
 
   const [taskDateRange, setTaskDateRange] = useState({
@@ -35,15 +40,51 @@ const AddSubTask = ({ onSubtaskAdded }) => {
   });
 
   const goals = useAppSelector((state) => state.goals.items);
+  const allTasks = useAppSelector((state) => state.tasks.items);
   const availableTasks = useAppSelector((state) =>
     selectTasksByGoalId(state, formData.goalId)
   );
   const { loading, error } = useAppSelector((state) => state.subtasks);
 
   useEffect(() => {
-    dispatch(fetchGoals());
-    dispatch(fetchTasks());
+    dispatch(fetchGoals({ year: "all" }));
+    dispatch(fetchTasks({ year: "all" }));
   }, [dispatch]);
+
+  // If queryTaskId is not in state, fetch directly
+  useEffect(() => {
+    if (queryTaskId && !allTasks.some((t) => t._id === queryTaskId)) {
+      dispatch(fetchTaskById(queryTaskId));
+    }
+  }, [dispatch, queryTaskId, allTasks]);
+
+  // If queryTaskId was passed without goalId or before tasks loaded, resolve parent goalId
+  useEffect(() => {
+    if (queryTaskId && !formData.goalId && allTasks.length > 0) {
+      const matched = allTasks.find((t) => t._id === queryTaskId);
+      if (matched) {
+        const resolvedGoalId =
+          typeof matched.goalId === "object" ? matched.goalId?._id : matched.goalId;
+        if (resolvedGoalId) {
+          setFormData((prev) => ({ ...prev, goalId: resolvedGoalId }));
+        }
+      }
+    }
+  }, [queryTaskId, formData.goalId, allTasks]);
+
+  // When taskId is set and tasks become available, sync date constraints
+  useEffect(() => {
+    const targetTaskId = formData.taskId || queryTaskId;
+    if (targetTaskId) {
+      const matchedTask = allTasks.find((t) => t._id === targetTaskId);
+      if (matchedTask?.startDate && matchedTask?.endDate) {
+        setTaskDateRange({
+          minDate: formatDate(matchedTask.startDate),
+          maxDate: formatDate(matchedTask.endDate),
+        });
+      }
+    }
+  }, [formData.taskId, queryTaskId, allTasks]);
 
   const handleGoalChange = (e) => {
     setFormData((prev) => ({ ...prev, goalId: e.target.value, taskId: "" }));
@@ -79,10 +120,13 @@ const AddSubTask = ({ onSubtaskAdded }) => {
       onSubtaskAdded?.(newSubtaskData);
       setFormData({ name: "", description: "", priority: "Medium", dueDate: "", goalId: "", taskId: "" });
       setTaskDateRange({ minDate: "", maxDate: "" });
-      navigate("/subtasks");
+      if (formData.taskId) {
+        navigate(`/tasks/${formData.taskId}`);
+      } else {
+        navigate("/subtasks");
+      }
     } catch (error) {
       console.error("Failed to create subtask:", error);
-      navigate("/subtasks");
     }
   };
 
@@ -100,10 +144,16 @@ const AddSubTask = ({ onSubtaskAdded }) => {
         </span>
         <button
           className="ef-topbar__back"
-          onClick={() => navigate("/subtasks")}
+          onClick={() => {
+            if (formData.taskId) {
+              navigate(`/tasks/${formData.taskId}`);
+            } else {
+              navigate("/subtasks");
+            }
+          }}
           type="button"
         >
-          ← Back to Subtasks
+          {formData.taskId ? "← Back to Task" : "← Back to Subtasks"}
         </button>
       </div>
 

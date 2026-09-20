@@ -112,6 +112,15 @@ const TaskDescription = () => {
   }
 
   const { _id, name, description, endDate, completionPercentage, priority } = task;
+  const parentGoalId =
+    typeof task.goalId === "object" ? task.goalId?._id : task.goalId;
+
+  const handleAddSubtask = () => {
+    const params = new URLSearchParams();
+    if (_id) params.set("taskId", _id);
+    if (parentGoalId) params.set("goalId", parentGoalId);
+    navigate(`/subtasks/add?${params.toString()}`);
+  };
 
   return (
     <div className="task-container">
@@ -132,10 +141,10 @@ const TaskDescription = () => {
           </button>
           <button
             className="ef-btn-ghost"
-            onClick={() => navigate("/tasks")}
+            onClick={() => parentGoalId ? navigate(`/goals/${parentGoalId}`) : navigate("/tasks")}
             type="button"
           >
-            ← Back
+            {parentGoalId ? "← Back to Goal" : "← Back to Tasks"}
           </button>
         </div>
       </div>
@@ -184,7 +193,19 @@ const TaskDescription = () => {
 
           {/* Subtasks Section */}
           <div className="task-subtasks-section">
-            <h3>Subtasks</h3>
+            <div className="task-subtasks-section__header">
+              <h3>Subtasks ({subtasks.length})</h3>
+              <button
+                type="button"
+                className="ef-btn-primary add-subtask-btn"
+                onClick={handleAddSubtask}
+                title="Add subtask to this task"
+                aria-label="Add new subtask to this task"
+              >
+                + Add Subtask
+              </button>
+            </div>
+
             {subtasks.length > 0 ? (
               <div className="embedded-subtask-list">
                 {subtasks.map((subtask) => (
@@ -209,10 +230,10 @@ const TaskDescription = () => {
               </div>
             ) : (
               <div
-                className="task__notice"
-                onClick={() => navigate("/subtasks/add")}
+                className="task__notice task__notice--clickable"
+                onClick={handleAddSubtask}
               >
-                No subtasks available. Click here to add one.
+                No subtasks available. Click here or "+ Add Subtask" above to add one.
               </div>
             )}
           </div>

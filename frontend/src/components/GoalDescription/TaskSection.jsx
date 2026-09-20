@@ -2,12 +2,34 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const TaskSection = ({ tasks, isArchived }) => {
+const TaskSection = ({ tasks = [], isArchived, goalId }) => {
   const navigate = useNavigate();
+
+  const handleAddTask = () => {
+    if (goalId) {
+      navigate(`/tasks/add?goalId=${goalId}`);
+    } else {
+      navigate("/tasks/add");
+    }
+  };
 
   return (
     <div className="goal-description__tasks">
-      <h2 className="goal-description__subtitle">Tasks</h2>
+      <div className="goal-description__tasks-header">
+        <h2 className="goal-description__subtitle">Tasks ({tasks.length})</h2>
+        {!isArchived && (
+          <button
+            type="button"
+            className="ef-btn-primary add-task-btn"
+            onClick={handleAddTask}
+            title="Add task to this goal"
+            aria-label="Add new task to this goal"
+          >
+            + Add Task
+          </button>
+        )}
+      </div>
+
       {tasks.length > 0 ? (
         <div className="embedded-task-list">
           {tasks.map((task) => (
@@ -48,10 +70,10 @@ const TaskSection = ({ tasks, isArchived }) => {
       ) : (
         <div
           className="goal-description__notice goal-description__notice--clickable"
-          onClick={() => navigate("/tasks/add")}
+          onClick={handleAddTask}
         >
           <span className="goal-description__notice-text">
-            No tasks available. Click here to add a task.
+            No tasks available. Click here or "+ Add Task" above to add a task.
           </span>
         </div>
       )}
@@ -60,4 +82,5 @@ const TaskSection = ({ tasks, isArchived }) => {
 };
 
 export default TaskSection;
+
 

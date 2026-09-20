@@ -34,8 +34,7 @@ const Content = ({
     <ProgressChart goal={goal} />
     <AIPrediction goalId={goal._id} />
     {/* <Collaborators collaborators={collaborators} /> */}
-    {/* <Dependencies dependencies={dependencies} /> */}
-    <TaskSection tasks={tasks} goalDateRange={goalDateRange} isArchived={goal.archived} />
+    <TaskSection tasks={tasks} goalDateRange={goalDateRange} isArchived={goal?.archived} goalId={goal?._id} />
     <RelatedGoals relatedGoals={relatedGoals} />
     <CommentsSection
       comments={comments}

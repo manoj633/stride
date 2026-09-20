@@ -269,6 +269,27 @@
   letter-spacing: 0.5px;
 }
 
+.goal-description__tasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.goal-description__tasks-header .goal-description__subtitle {
+  margin: 0;
+}
+
+.add-task-btn {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .goal-description__chart-container {
   height: 220px;
   background: var(--ef-bg-subtle);
