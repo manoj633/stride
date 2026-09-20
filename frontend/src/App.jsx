@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { Provider } from "react-redux";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import { store } from "./store/store";
 import Navigation from "./components/Navigation/Navigation";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -77,16 +77,30 @@ const App = () => {
   useEffect(() => {
     // Keep the session alive while the app is open
     const refreshInterval = setInterval(
-      () => {
+      async () => {
         if (userInfo) {
-          fetch("/api/users/refresh-token", {
-            method: "POST",
-            credentials: "include",
-          }).catch((err) => {
-            console.error("Failed to refresh token:", err);
-            dispatch(logout());
-            navigate("/login");
-          });
+          try {
+            const res = await fetch("/api/users/refresh-token", {
+              method: "POST",
+              credentials: "include",
+            });
+
+            if (res.status === 401 || res.status === 403) {
+              // Token has legitimately expired or been revoked on the server
+              console.warn("Session expired on server (HTTP 401/403). Logging out.");
+              toast.warn("Your session has expired. Please log in again to continue.", {
+                toastId: "session-expired",
+              });
+              dispatch(logout());
+              navigate("/login");
+            } else if (!res.ok) {
+              // Server error (e.g. 500, 503) - do NOT force logout
+              console.warn(`Token refresh returned HTTP ${res.status}; preserving session.`);
+            }
+          } catch (err) {
+            // Network connection error (e.g. WiFi dropped, offline) - do NOT force logout!
+            console.warn("Session refresh network check failed (user may be temporarily offline):", err);
+          }
         }
       },
       15 * 60 * 1000,
@@ -97,16 +111,19 @@ const App = () => {
 
   useEffect(() => {
     // Check token validity on app load, then periodically
-    if (dispatch(checkTokenExpiration())) {
-      navigate("/login");
-    }
+    const handleExpiration = () => {
+      if (dispatch(checkTokenExpiration())) {
+        toast.warn("Your session has expired. Please log in again.", {
+          toastId: "token-expired-local",
+        });
+        navigate("/login");
+      }
+    };
+
+    handleExpiration();
 
     const expirationInterval = setInterval(
-      () => {
-        if (dispatch(checkTokenExpiration())) {
-          navigate("/login");
-        }
-      },
+      handleExpiration,
       5 * 60 * 1000,
     ); // Check every 5 minutes
 
@@ -114,6 +131,9 @@ const App = () => {
     const handleStorageChange = (e) => {
       if (e.key === "userInfo" && !e.newValue) {
         dispatch(clearUserInfo());
+        toast.info("You were logged out in another tab.", {
+          toastId: "logout-other-tab",
+        });
         navigate("/login");
       }
     };
