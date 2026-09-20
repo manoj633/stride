@@ -16,8 +16,8 @@
   --red-bg:     #FEF2F2;
   --green:      #16A34A;
   --green-bg:   #F0FDF4;
-  --font-d:     'Sora', sans-serif;
-  --font-b:     'DM Sans', sans-serif;
+  --font-d:     var(--ef-font-display, 'Sora', sans-serif);
+  --font-b:     var(--ef-font-body, 'DM Sans', sans-serif);
   --r-sm:  4px;
   --r-md:  8px;
   --r-lg:  12px;

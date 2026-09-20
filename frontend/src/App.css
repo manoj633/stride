@@ -15,6 +15,8 @@
   /* Typography */
   --ef-font-display: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
   --ef-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--ef-font-display);
+  --font-body: var(--ef-font-body);
 
   /* Global Color Tokens */
   --ef-bg-app:        #F7F7F8;

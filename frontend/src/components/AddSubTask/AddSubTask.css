@@ -9,9 +9,9 @@
   --ef-text-primary:  #18181B;
   --ef-text-secondary:#52525B;
   --ef-text-tertiary: #A1A1AA;
-  /* Purple accent for Subtasks */
-  --ef-accent:        #7C3AED;
-  --ef-accent-light:  #F5F3FF;
+  /* Unified brand accent */
+  --ef-accent:        #2563EB;
+  --ef-accent-light:  #EFF6FF;
   --ef-font-display:  'Sora', sans-serif;
   --ef-font-body:     'DM Sans', sans-serif;
   --ef-radius-md:     8px;
