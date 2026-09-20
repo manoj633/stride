@@ -1,6 +1,7 @@
 // src/components/Pomodoro/TimerContext.jsx
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { getProfile } from "../../store/features/users/userSlice";
 import { userAPI } from "../../services/api/urlService";
 
@@ -50,6 +51,52 @@ const TimerProvider = ({ children }) => {
     }
   }, [activeTimer]);
 
+  // Synchronize completed session with backend with rollback and retry on failure
+  const syncPomodoroCompletion = useCallback(async () => {
+    if (!userInfo) return;
+    try {
+      await userAPI.completePomodoro();
+      dispatch(getProfile());
+      toast.success("Focus session completed! +15 XP", {
+        toastId: "pomodoro-complete-success",
+      });
+    } catch (err) {
+      console.error("Failed to log completed Pomodoro:", err);
+      // Roll back optimistic increment so local counter doesn't silently drift
+      setCompletedPomodoros((prev) => Math.max(0, prev - 1));
+      toast.error(
+        <div>
+          <span>Failed to save focus session to server. </span>
+          <button
+            type="button"
+            style={{
+              background: "rgba(255, 255, 255, 0.2)",
+              border: "1px solid #ffffff",
+              color: "#ffffff",
+              borderRadius: "4px",
+              padding: "2px 8px",
+              fontSize: "11px",
+              fontWeight: 600,
+              cursor: "pointer",
+              marginLeft: "6px",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setCompletedPomodoros((prev) => prev + 1);
+              syncPomodoroCompletion();
+            }}
+          >
+            Retry
+          </button>
+        </div>,
+        {
+          toastId: "pomodoro-complete-error",
+          autoClose: 8000,
+        }
+      );
+    }
+  }, [userInfo, dispatch]);
+
   // Handle the timer countdown
   useEffect(() => {
     if (isActive) {
@@ -68,15 +115,9 @@ const TimerProvider = ({ children }) => {
               const newCompletedCount = completedPomodoros + 1;
               setCompletedPomodoros(newCompletedCount);
 
-              // Log completed Pomodoro to backend
+              // Log completed Pomodoro to backend with error handling & rollback
               if (userInfo) {
-                userAPI.completePomodoro()
-                  .then(() => {
-                    dispatch(getProfile());
-                  })
-                  .catch((err) => {
-                    console.error("Failed to log completed Pomodoro:", err);
-                  });
+                syncPomodoroCompletion();
               }
 
               // Check if it's time for a long break
@@ -100,7 +141,7 @@ const TimerProvider = ({ children }) => {
 
       return () => clearInterval(intervalRef.current);
     }
-  }, [isActive, minutes, seconds, activeTimer, completedPomodoros, userInfo, dispatch]);
+  }, [isActive, minutes, seconds, activeTimer, completedPomodoros, userInfo, syncPomodoroCompletion]);
 
   // Start the timer
   const startTimer = () => {
