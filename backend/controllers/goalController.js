@@ -6,6 +6,7 @@ import Subtask from "../models/subtaskModel.js";
 import Comment from "../models/commentModel.js";
 import User from "../models/userModel.js";
 import { getAICoachPrediction } from "../utils/aiCoach.js";
+import { handleGoalCompletionXP } from "../utils/gamification.js";
 
 /**
  * * Description: Fetch all goals
@@ -143,6 +144,8 @@ const updateGoal = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to update this goal");
   }
 
+  const wasCompleted = goal.completed;
+
   Object.assign(goal, {
     title: req.body.title || goal.title,
     description: req.body.description || goal.description,
@@ -161,8 +164,21 @@ const updateGoal = asyncHandler(async (req, res) => {
         : goal.completed,
   });
 
+  if (typeof req.body.completed !== "undefined") {
+    if (goal.completed && !wasCompleted) {
+      goal.completedAt = new Date();
+    } else if (!goal.completed && wasCompleted) {
+      goal.completedAt = null;
+    }
+  }
+
   const updatedGoal = await goal.save();
   logger.debug("Goal updated successfully", { goalId: updatedGoal._id });
+
+  if (updatedGoal.completed && !wasCompleted) {
+    await handleGoalCompletionXP(goal.createdBy);
+  }
+
   res.json(updatedGoal);
 });
 
@@ -268,7 +284,15 @@ const updateGoalCompletion = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to update this goal");
   }
 
-  if (req.body.completed !== undefined) goal.completed = req.body.completed;
+  const wasCompleted = goal.completed;
+  if (req.body.completed !== undefined) {
+    goal.completed = req.body.completed;
+    if (goal.completed && !wasCompleted) {
+      goal.completedAt = new Date();
+    } else if (!goal.completed && wasCompleted) {
+      goal.completedAt = null;
+    }
+  }
   if (req.body.completionPercentage !== undefined) {
     goal.completionPercentage = req.body.completionPercentage;
   }
@@ -279,6 +303,11 @@ const updateGoalCompletion = asyncHandler(async (req, res) => {
     completed: updatedGoal.completed,
     completionPercentage: updatedGoal.completionPercentage,
   });
+
+  if (updatedGoal.completed && !wasCompleted) {
+    await handleGoalCompletionXP(goal.createdBy);
+  }
+
   res.json(updatedGoal);
 });
 
@@ -557,8 +586,18 @@ const updateGoalStatus = asyncHandler(async (req, res) => {
         .json({ message: "Not authorized to update this goal status" });
     }
 
-    goal.completed = completed || false;
-    goal.completionPercentage = completionPercentage || 0;
+    const wasCompleted = goal.completed;
+    if (completed !== undefined) {
+      goal.completed = completed;
+      if (goal.completed && !wasCompleted) {
+        goal.completedAt = new Date();
+      } else if (!goal.completed && wasCompleted) {
+        goal.completedAt = null;
+      }
+    }
+    if (completionPercentage !== undefined) {
+      goal.completionPercentage = completionPercentage;
+    }
 
     const updatedGoal = await goal.save();
 
@@ -567,6 +606,11 @@ const updateGoalStatus = asyncHandler(async (req, res) => {
       completed: updatedGoal.completed,
       completionPercentage: updatedGoal.completionPercentage,
     });
+
+    if (updatedGoal.completed && !wasCompleted) {
+      await handleGoalCompletionXP(goal.createdBy);
+    }
+
     res.json(updatedGoal);
   } catch (error) {
     logger.error("Error updating goal status", {

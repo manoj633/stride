@@ -63,6 +63,10 @@ const GoalSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
     completionPercentage: {
       type: Number,
       min: 0,

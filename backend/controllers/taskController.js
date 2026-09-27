@@ -4,7 +4,8 @@ import Task from "../models/taskModel.js";
 import logger from "../utils/logger.js";
 import Subtask from "../models/subtaskModel.js";
 import Goal from "../models/goalModel.js";
-import { handleTaskCompletionXP, handleGoalCompletionXP } from "../utils/gamification.js";
+import { handleTaskCompletionXP } from "../utils/gamification.js";
+import { updateGoalCompletionPercentage } from "../utils/completionRollup.js";
 
 /**
  * * Description: Fetch all tasks
@@ -163,7 +164,14 @@ const updateTask = asyncHandler(async (req, res) => {
   task.goalId = goalId || task.goalId;
   task.completionPercentage =
     completionPercentage ?? task.completionPercentage;
-  task.completed = completed !== undefined ? completed : task.completed;
+  if (completed !== undefined) {
+    task.completed = completed;
+    if (task.completed && !wasCompleted) {
+      task.completedAt = new Date();
+    } else if (!task.completed && wasCompleted) {
+      task.completedAt = null;
+    }
+  }
 
   const updatedTask = await task.save();
   logger.debug("Task updated successfully", { taskId: updatedTask._id });
@@ -261,7 +269,14 @@ const updateTaskCompletion = asyncHandler(async (req, res) => {
     }
 
     const wasCompleted = task.completed;
-    if (completed !== undefined) task.completed = completed;
+    if (completed !== undefined) {
+      task.completed = completed;
+      if (task.completed && !wasCompleted) {
+        task.completedAt = new Date();
+      } else if (!task.completed && wasCompleted) {
+        task.completedAt = null;
+      }
+    }
     if (completionPercentage !== undefined) {
       if (completionPercentage < 0 || completionPercentage > 100) {
         logger.warn("Invalid completion percentage", {
@@ -299,56 +314,6 @@ const updateTaskCompletion = asyncHandler(async (req, res) => {
     throw error;
   }
 });
-
-// Helper function to update goal completion percentage
-const updateGoalCompletionPercentage = async (goalId) => {
-  try {
-    // Find all tasks for this goal
-    const tasks = await Task.find({ goalId });
-    const goal = await Goal.findById(goalId);
-
-    if (!goal) return;
-
-    if (tasks.length === 0) {
-      goal.completionPercentage = 0;
-      goal.completed = false;
-      await goal.save();
-      return;
-    }
-    // Calculate the average completion percentage
-    const totalPercentage = tasks.reduce(
-      (sum, task) => sum + task.completionPercentage,
-      0
-    );
-    const averagePercentage =
-      tasks.length > 0 ? totalPercentage / tasks.length : 0;
-
-    // Count completed tasks
-    const completedTasks = tasks.filter((task) => task.completed).length;
-    const isCompleted = tasks.length > 0 && completedTasks === tasks.length;
-
-    const wasCompleted = goal.completed;
-    goal.completionPercentage = Math.round(averagePercentage);
-    goal.completed = isCompleted;
-
-    await goal.save();
-
-    if (goal.completed && !wasCompleted) {
-      await handleGoalCompletionXP(goal.createdBy);
-    }
-
-    logger.debug("Updated goal completion percentage", {
-      goalId,
-      completionPercentage: Math.round(averagePercentage),
-      completed: isCompleted,
-    });
-  } catch (error) {
-    logger.error("Error updating goal completion percentage", {
-      goalId,
-      error: error.message,
-    });
-  }
-};
 
 export {
   getTasks,

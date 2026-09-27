@@ -2,9 +2,8 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Subtask from "../models/subtaskModel.js";
 import logger from "../utils/logger.js";
-import Task from "../models/taskModel.js";
-import Goal from "../models/goalModel.js";
-import { handleSubtaskCompletionXP, handleGoalCompletionXP } from "../utils/gamification.js";
+import { handleSubtaskCompletionXP } from "../utils/gamification.js";
+import { updateTaskCompletionPercentage } from "../utils/completionRollup.js";
 
 /**
  * * Description: Fetch all subtasks
@@ -134,7 +133,14 @@ const updateSubtask = asyncHandler(async (req, res) => {
   subtask.description = description || subtask.description;
   subtask.priority = priority || subtask.priority;
   subtask.dueDate = dueDate || subtask.dueDate;
-  subtask.completed = completed !== undefined ? completed : subtask.completed;
+  if (completed !== undefined) {
+    subtask.completed = completed;
+    if (subtask.completed && !wasCompleted) {
+      subtask.completedAt = new Date();
+    } else if (!subtask.completed && wasCompleted) {
+      subtask.completedAt = null;
+    }
+  }
 
   const updatedSubtask = await subtask.save();
   logger.debug("Subtask updated successfully", {
@@ -144,6 +150,10 @@ const updateSubtask = asyncHandler(async (req, res) => {
 
   if (updatedSubtask.completed && !wasCompleted) {
     await handleSubtaskCompletionXP(req.userId);
+  }
+
+  if (updatedSubtask.taskId) {
+    await updateTaskCompletionPercentage(updatedSubtask.taskId);
   }
 
   res.json(updatedSubtask);
@@ -231,6 +241,9 @@ const markSubtaskAsCompleted = asyncHandler(async (req, res) => {
 
   const wasCompleted = subtask.completed;
   subtask.completed = true;
+  if (!wasCompleted) {
+    subtask.completedAt = new Date();
+  }
   const updatedSubtask = await subtask.save();
   logger.debug("Subtask marked as completed", {
     subtaskId: updatedSubtask._id,
@@ -241,116 +254,12 @@ const markSubtaskAsCompleted = asyncHandler(async (req, res) => {
     await handleSubtaskCompletionXP(req.userId);
   }
 
+  if (updatedSubtask.taskId) {
+    await updateTaskCompletionPercentage(updatedSubtask.taskId);
+  }
+
   res.json(updatedSubtask);
 });
-
-// Helper function to update task completion percentage
-const updateTaskCompletionPercentage = async (taskId) => {
-  try {
-    // Find all subtasks for this task
-    const subtasks = await Subtask.find({ taskId });
-
-    if (subtasks.length === 0) {
-      // If no subtasks left, set completion to 0
-      const task = await Task.findByIdAndUpdate(
-        taskId,
-        {
-          completionPercentage: 0,
-          completed: false,
-        },
-        { new: true },
-      );
-
-      // Also update the parent goal
-      if (task && task.goalId) {
-        await updateGoalCompletionPercentage(task.goalId);
-      }
-      return;
-    }
-
-    // Calculate completion percentage based on completed subtasks
-    const completedSubtasks = subtasks.filter(
-      (subtask) => subtask.completed,
-    ).length;
-    const completionPercentage = (completedSubtasks / subtasks.length) * 100;
-    const isCompleted = completedSubtasks === subtasks.length;
-
-    // Update the task
-    const task = await Task.findByIdAndUpdate(
-      taskId,
-      {
-        completionPercentage: Math.round(completionPercentage),
-        completed: isCompleted,
-      },
-      { new: true },
-    );
-
-    logger.debug("Updated task completion percentage", {
-      taskId,
-      completionPercentage: Math.round(completionPercentage),
-      completed: isCompleted,
-    });
-
-    // Also update the parent goal
-    if (task && task.goalId) {
-      await updateGoalCompletionPercentage(task.goalId);
-    }
-  } catch (error) {
-    logger.error("Error updating task completion percentage", {
-      taskId,
-      error: error.message,
-    });
-  }
-};
-// Import the same goal update function from above
-const updateGoalCompletionPercentage = async (goalId) => {
-  try {
-    // Find all tasks for this goal
-    const tasks = await Task.find({ goalId });
-    const goal = await Goal.findById(goalId);
-
-    if (!goal) return;
-
-    if (tasks.length === 0) {
-      goal.completionPercentage = 0;
-      goal.completed = false;
-      await goal.save();
-      return;
-    }
-    // Calculate the average completion percentage
-    const totalPercentage = tasks.reduce(
-      (sum, task) => sum + task.completionPercentage,
-      0,
-    );
-    const averagePercentage =
-      tasks.length > 0 ? totalPercentage / tasks.length : 0;
-
-    // Count completed tasks
-    const completedTasks = tasks.filter((task) => task.completed).length;
-    const isCompleted = tasks.length > 0 && completedTasks === tasks.length;
-
-    const wasCompleted = goal.completed;
-    goal.completionPercentage = Math.round(averagePercentage);
-    goal.completed = isCompleted;
-
-    await goal.save();
-
-    if (goal.completed && !wasCompleted) {
-      await handleGoalCompletionXP(goal.createdBy);
-    }
-
-    logger.debug("Updated goal completion percentage", {
-      goalId,
-      completionPercentage: Math.round(averagePercentage),
-      completed: isCompleted,
-    });
-  } catch (error) {
-    logger.error("Error updating goal completion percentage", {
-      goalId,
-      error: error.message,
-    });
-  }
-};
 
 export {
   getSubtasks,

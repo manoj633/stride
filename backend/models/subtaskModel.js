@@ -27,6 +27,10 @@ const SubtaskSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
     taskId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task",
