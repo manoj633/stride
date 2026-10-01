@@ -7,7 +7,7 @@ import { handleTaskCompletionXP, handleGoalCompletionXP } from "./gamification.j
 /**
  * Recalculate completion percentage and completed status for a task based on its subtasks.
  * Cascades to update the parent goal if one exists.
- * @param {string|mongoose.Types.ObjectId} taskId 
+ * @param {string|mongoose.Types.ObjectId} taskId
  */
 export const updateTaskCompletionPercentage = async (taskId) => {
   try {
@@ -72,7 +72,7 @@ export const updateTaskCompletionPercentage = async (taskId) => {
 
 /**
  * Recalculate completion percentage and completed status for a goal based on its tasks.
- * @param {string|mongoose.Types.ObjectId} goalId 
+ * @param {string|mongoose.Types.ObjectId} goalId
  */
 export const updateGoalCompletionPercentage = async (goalId) => {
   try {
