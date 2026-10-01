@@ -18,31 +18,15 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   const error = useSelector((state) => state.subtasks.error);
   const tags = useSelector((state) => state.tags.items);
 
-  // Helper for date formatting
-  const formatDateForInput = (d) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0 to 11
 
-  const currentYear = new Date().getFullYear();
+  // Defaults: current year and current month
   const [selectedYear, setSelectedYear] = useState(ownsData ? currentYear : "all");
-
-  // Default year range (current year)
-  const defaultDateRange = useMemo(() => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 1);
-    const end = new Date(now.getFullYear(), 11, 31);
-    return { start: formatDateForInput(start), end: formatDateForInput(end) };
-  }, []);
-
-  // Filter/search state
+  const [selectedMonth, setSelectedMonth] = useState(ownsData ? currentMonth : "all");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTag, setFilterTag] = useState("");
-  const [filterDateRange, setFilterDateRange] = useState(() => {
-    return ownsData ? defaultDateRange : { start: "", end: "" };
-  });
 
   // Dynamically compute available years based on a standard window + data history
   const availableYears = useMemo(() => {
@@ -76,14 +60,10 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
 
   const handleYearChange = (newYear) => {
     setSelectedYear(newYear);
-    if (newYear === "all") {
-      setFilterDateRange({ start: "", end: "" });
-    } else {
-      setFilterDateRange({
-        start: `${newYear}-01-01`,
-        end: `${newYear}-12-31`,
-      });
-    }
+  };
+
+  const handleMonthChange = (newMonth) => {
+    setSelectedMonth(newMonth);
   };
 
   useEffect(() => {
@@ -103,26 +83,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   const subtasks = useMemo(() => {
     let filtered = ownsData ? allSubtasks : propSubtasks ?? [];
 
-    // Date range filter
-    if (filterDateRange.start || filterDateRange.end) {
-      const startStr = filterDateRange.start || "0000-01-01";
-      const endStr = filterDateRange.end || "9999-12-31";
-
-      filtered = filtered.filter((st) => {
-        if (!st.dueDate) return true;
-        const d = new Date(st.dueDate);
-        if (isNaN(d.getTime())) return true;
-
-        const utcDateStr = d.toISOString().slice(0, 10);
-        const localDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-        const utcInRange = utcDateStr >= startStr && utcDateStr <= endStr;
-        const localInRange = localDateStr >= startStr && localDateStr <= endStr;
-        return utcInRange || localInRange;
-      });
-    }
-
-    // Apply Year filter if active
+    // Filter by Year
     if (selectedYear && selectedYear !== "all") {
       const y = parseInt(selectedYear, 10);
       filtered = filtered.filter((st) => {
@@ -142,6 +103,18 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
       });
     }
 
+    // Filter by Month (0 to 11)
+    if (selectedMonth !== "all" && selectedMonth !== undefined && selectedMonth !== null) {
+      const m = parseInt(selectedMonth, 10);
+      filtered = filtered.filter((st) => {
+        if (!st.dueDate) return true;
+        const d = new Date(st.dueDate);
+        if (isNaN(d.getTime())) return true;
+        return d.getMonth() === m || d.getUTCMonth() === m;
+      });
+    }
+
+    // Filter by Tag
     if (filterTag) {
       filtered = filtered.filter((st) => {
         if (!st.tags) return false;
@@ -149,6 +122,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
       });
     }
 
+    // Search term
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -157,8 +131,18 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
           (st.description || "").toLowerCase().includes(q)
       );
     }
-    return filtered;
-  }, [propSubtasks, allSubtasks, filterTag, filterDateRange, searchTerm, ownsData, selectedYear]);
+
+    // Sort: pending first by due date, then completed
+    return [...filtered].sort((a, b) => {
+      const aDone = Boolean(a.completed);
+      const bDone = Boolean(b.completed);
+      if (aDone !== bDone) return aDone ? 1 : -1;
+
+      const aDue = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+      const bDue = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+      return aDue - bDue;
+    });
+  }, [propSubtasks, allSubtasks, filterTag, searchTerm, ownsData, selectedYear, selectedMonth]);
 
   const stats = useMemo(() => {
     const total = subtasks.length;
@@ -197,6 +181,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
               <StatItem label="Total" value={stats.total} />
               <StatItem label="High Priority" value={stats.highPriority} color="red" />
               <StatItem label="Pending" value={stats.pending} color="amber" />
+              <StatItem label="Completed" value={stats.completed} color="green" />
             </div>
           </div>
 
@@ -222,9 +207,9 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
             setSearchTerm={setSearchTerm}
             filterTag={filterTag}
             setFilterTag={setFilterTag}
-            filterDateRange={filterDateRange}
-            setFilterDateRange={setFilterDateRange}
             availableTags={tags}
+            selectedMonth={ownsData ? selectedMonth : undefined}
+            setSelectedMonth={ownsData ? handleMonthChange : undefined}
             selectedYear={ownsData ? selectedYear : undefined}
             setSelectedYear={ownsData ? handleYearChange : undefined}
             availableYears={ownsData ? availableYears : []}
@@ -247,7 +232,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
                   <p>No subtasks found for this period.</p>
                 </div>
               ) : (
-                subtasks.map(st => (
+                subtasks.map((st) => (
                   <div 
                     key={st._id} 
                     className="stk-row"
@@ -268,7 +253,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
                     </div>
                     <div className="stk-col">
                       <span className="gl-meta">
-                        {st.dueDate ? new Date(st.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "—"}
+                        {st.dueDate ? new Date(st.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "—"}
                       </span>
                     </div>
                   </div>
@@ -300,7 +285,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
 const StatItem = ({ label, value, color }) => (
   <div className="stat-item">
     <h3>{label}</h3>
-    <p style={{ color: color === "red" ? "var(--red)" : color === "amber" ? "var(--amber)" : "inherit" }}>
+    <p style={{ color: color === "red" ? "var(--red)" : color === "amber" ? "var(--amber)" : color === "green" ? "var(--green)" : "inherit" }}>
       {value}
     </p>
   </div>

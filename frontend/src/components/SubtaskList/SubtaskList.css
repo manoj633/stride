@@ -230,6 +230,17 @@
 .stk-status--completed { background: var(--green-light); color: var(--green); }
 .stk-status--pending { background: var(--amber-light); color: var(--amber); }
 
+.enhanced-subtasks__month-select {
+    font-weight: 600;
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background-color: #eff6ff;
+}
+
+.enhanced-subtasks__month-select:hover {
+    border-color: #2563eb;
+}
+
 /* ── Level 2 Filter Toolbar ─────────────────────────────────── */
 .enhanced-subtasks__toolbar {
     flex: 0 0 auto;
