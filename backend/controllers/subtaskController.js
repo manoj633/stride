@@ -11,10 +11,17 @@ import { updateTaskCompletionPercentage } from "../utils/completionRollup.js";
  * * access: Public
  */
 const getSubtasks = asyncHandler(async (req, res) => {
-  const { year } = req.query;
-  logger.info("Fetching subtasks", { endpoint: "/api/subtasks", year });
+  const { year, taskId, goalId } = req.query;
+  logger.info("Fetching subtasks", { endpoint: "/api/subtasks", year, taskId, goalId });
 
   const query = { createdBy: req.userId };
+
+  if (taskId) {
+    query.taskId = taskId;
+  }
+  if (goalId) {
+    query.goalId = goalId;
+  }
 
   if (year && year !== "all") {
     const y = parseInt(year, 10);
@@ -26,7 +33,10 @@ const getSubtasks = asyncHandler(async (req, res) => {
           dueDate: { $gte: startOfYear, $lte: endOfYear },
         },
         {
-          dueDate: { $exists: false },
+          $or: [
+            { dueDate: { $exists: false } },
+            { dueDate: null },
+          ],
           createdAt: { $gte: startOfYear, $lte: endOfYear },
         },
       ];

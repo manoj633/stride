@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchSubtasks } from "../../store/features/subtasks/subtaskSlice";
+import { fetchSubtasks, clearError } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import SubtaskSearchAndFilters from "./SubtaskSearchAndFilters";
@@ -27,7 +27,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   };
 
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedYear, setSelectedYear] = useState(ownsData ? currentYear : "all");
 
   // Default year range (current year)
   const defaultDateRange = useMemo(() => {
@@ -40,7 +40,9 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   // Filter/search state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTag, setFilterTag] = useState("");
-  const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
+  const [filterDateRange, setFilterDateRange] = useState(() => {
+    return ownsData ? defaultDateRange : { start: "", end: "" };
+  });
 
   // Dynamically compute available years based on a standard window + data history
   const availableYears = useMemo(() => {
@@ -52,8 +54,20 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
     const list = ownsData ? allSubtasks : propSubtasks ?? [];
     if (Array.isArray(list)) {
       list.forEach((st) => {
-        if (st.dueDate) yearsSet.add(new Date(st.dueDate).getFullYear());
-        if (st.createdAt) yearsSet.add(new Date(st.createdAt).getFullYear());
+        if (st.dueDate) {
+          const d = new Date(st.dueDate);
+          if (!isNaN(d.getTime())) {
+            yearsSet.add(d.getFullYear());
+            yearsSet.add(d.getUTCFullYear());
+          }
+        }
+        if (st.createdAt) {
+          const c = new Date(st.createdAt);
+          if (!isNaN(c.getTime())) {
+            yearsSet.add(c.getFullYear());
+            yearsSet.add(c.getUTCFullYear());
+          }
+        }
       });
     }
     const sorted = Array.from(yearsSet).sort((a, b) => b - a);
@@ -73,6 +87,10 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   };
 
   useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
     if (ownsData) {
       dispatch(
         fetchSubtasks(selectedYear === "all" ? {} : { year: selectedYear })
@@ -80,58 +98,63 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
     } else if (!propSubtasks && allSubtasks.length === 0) {
       dispatch(fetchSubtasks());
     }
-  }, [dispatch, ownsData, selectedYear, propSubtasks, allSubtasks.length]);
+  }, [dispatch, ownsData, selectedYear, propSubtasks]);
 
   const subtasks = useMemo(() => {
     let filtered = ownsData ? allSubtasks : propSubtasks ?? [];
 
     // Date range filter
     if (filterDateRange.start || filterDateRange.end) {
-      const fStart = filterDateRange.start ? new Date(filterDateRange.start) : null;
-      const fEnd = filterDateRange.end ? new Date(filterDateRange.end) : null;
-      if (fEnd) fEnd.setHours(23, 59, 59, 999);
+      const startStr = filterDateRange.start || "0000-01-01";
+      const endStr = filterDateRange.end || "9999-12-31";
 
       filtered = filtered.filter((st) => {
         if (!st.dueDate) return true;
-        const dDate = new Date(st.dueDate);
-        if (fStart && fEnd) {
-          return dDate >= fStart && dDate <= fEnd;
-        } else if (fStart) {
-          return dDate >= fStart;
-        } else if (fEnd) {
-          return dDate <= fEnd;
-        }
-        return true;
+        const d = new Date(st.dueDate);
+        if (isNaN(d.getTime())) return true;
+
+        const utcDateStr = d.toISOString().slice(0, 10);
+        const localDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+        const utcInRange = utcDateStr >= startStr && utcDateStr <= endStr;
+        const localInRange = localDateStr >= startStr && localDateStr <= endStr;
+        return utcInRange || localInRange;
       });
     }
 
     // Apply Year filter if active
     if (selectedYear && selectedYear !== "all") {
       const y = parseInt(selectedYear, 10);
-      const startOfYear = new Date(y, 0, 1);
-      const endOfYear = new Date(y, 11, 31, 23, 59, 59, 999);
       filtered = filtered.filter((st) => {
         if (st.dueDate) {
           const d = new Date(st.dueDate);
-          return d >= startOfYear && d <= endOfYear;
+          if (!isNaN(d.getTime())) {
+            return d.getFullYear() === y || d.getUTCFullYear() === y;
+          }
         }
         if (st.createdAt) {
           const c = new Date(st.createdAt);
-          return c >= startOfYear && c <= endOfYear;
+          if (!isNaN(c.getTime())) {
+            return c.getFullYear() === y || c.getUTCFullYear() === y;
+          }
         }
         return true;
       });
     }
 
     if (filterTag) {
-      filtered = filtered.filter((st) => (st.tags || []).includes(filterTag));
+      filtered = filtered.filter((st) => {
+        if (!st.tags) return false;
+        return Array.isArray(st.tags) && st.tags.some((t) => String(t._id || t) === String(filterTag));
+      });
     }
 
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (st) =>
-          (st.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (st.description || "").toLowerCase().includes(searchTerm.toLowerCase())
+          (st.name || "").toLowerCase().includes(q) ||
+          (st.description || "").toLowerCase().includes(q)
       );
     }
     return filtered;
@@ -139,8 +162,8 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
 
   const stats = useMemo(() => {
     const total = subtasks.length;
-    const completed = subtasks.filter(s => s.completed).length;
-    const highPriority = subtasks.filter(s => s.priority === "High").length;
+    const completed = subtasks.filter((s) => s.completed).length;
+    const highPriority = subtasks.filter((s) => s.priority === "High").length;
     return { total, completed, pending: total - completed, highPriority };
   }, [subtasks]);
 
@@ -149,11 +172,15 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
     { category: "Pending", value: stats.pending },
   ], [stats]);
 
-  if (loading === "loading") return <LoadingSpinner message="Loading subtasks..." />;
-  if (error) return <ErrorMessage message={error} />;
+  if (loading === "loading" && allSubtasks.length === 0 && (!propSubtasks || propSubtasks.length === 0)) {
+    return <LoadingSpinner message="Loading subtasks..." />;
+  }
+  if (error && allSubtasks.length === 0 && (!propSubtasks || propSubtasks.length === 0)) {
+    return <ErrorMessage message={error} />;
+  }
 
   return (
-    <div className="enhanced-subtasks-container">
+    <div className={`enhanced-subtasks-container ${ownsData ? "" : "enhanced-subtasks-container--embedded"}`}>
       <div className="enhanced-subtasks">
         {/* ── Level 1: Top Bar (Brand, Stats, Global Actions) ── */}
         <header className="enhanced-subtasks__top-bar">

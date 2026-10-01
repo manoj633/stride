@@ -24,7 +24,12 @@ const TaskDescription = () => {
     state.tasks.items.find((t) => t._id === taskId)
   );
   const subtasks = useSelector((state) =>
-    state.subtasks.items.filter((subtask) => subtask.taskId === taskId)
+    state.subtasks.items.filter((subtask) => {
+      const stTaskId = subtask.taskId?._id
+        ? String(subtask.taskId._id)
+        : String(subtask.taskId || "");
+      return stTaskId === String(taskId);
+    })
   );
   const loading = useSelector(
     (state) => state.tasks.loading || state.subtasks.loading

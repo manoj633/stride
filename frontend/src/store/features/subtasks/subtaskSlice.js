@@ -56,6 +56,7 @@ const subtaskSlice = createSlice({
   initialState: {
     items: [],
     loading: false,
+    status: "idle",
     error: null,
     selectedSubtask: null,
   },
@@ -72,14 +73,19 @@ const subtaskSlice = createSlice({
       // Fetch all subtasks cases
       .addCase(fetchSubtasks.pending, (state) => {
         state.loading = true;
+        state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchSubtasks.fulfilled, (state, action) => {
-        state.items = action.payload;
+        state.items = Array.isArray(action.payload) ? action.payload : [];
         state.loading = false;
+        state.status = "succeeded";
+        state.error = null;
       })
       .addCase(fetchSubtasks.rejected, (state, action) => {
         state.error = action.error.message;
         state.loading = false;
+        state.status = "failed";
       })
       .addCase(fetchSubtaskById.fulfilled, (state, action) => {
         state.selectedSubtask = action.payload;

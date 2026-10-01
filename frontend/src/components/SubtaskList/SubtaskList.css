@@ -10,6 +10,7 @@
 .enhanced-subtasks-container {
     width: 100%;
     max-width: 100%;
+    height: 100dvh;
     min-height: 100dvh;
     font-family: var(--font-body);
     font-size: 13.5px;
@@ -21,11 +22,24 @@
     overflow: hidden;
 }
 
+.enhanced-subtasks-container--embedded {
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+}
+
 .enhanced-subtasks {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     height: 100%;
     min-height: 0;
+    overflow: hidden;
+}
+
+.enhanced-subtasks-container--embedded .enhanced-subtasks {
+    height: auto;
+    overflow: visible;
 }
 
 /* ── Level 1 Top Bar ───────────────────────────────────────── */
@@ -110,13 +124,20 @@
 
 /* ── Main Two-Column Area ──────────────────────────────────── */
 .enhanced-subtasks__main {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
     gap: 0;
     overflow: hidden;
     background: var(--bg-app);
+}
+
+.enhanced-subtasks-container--embedded .enhanced-subtasks__main {
+    height: auto;
+    min-height: 350px;
+    overflow: visible;
 }
 
 .enhanced-subtasks__content {
@@ -125,6 +146,7 @@
     overflow-y: auto;
     overflow-x: auto;
     min-height: 0;
+    height: 100%;
 }
 
 .enhanced-subtasks__chart-container {
@@ -132,6 +154,7 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    height: 100%;
     overflow: hidden;
 }
 

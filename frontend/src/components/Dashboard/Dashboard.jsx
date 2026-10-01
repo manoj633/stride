@@ -121,13 +121,30 @@ const Dashboard = () => {
   }, [tasks, today]);
 
   const subtasksToday = useMemo(() => {
+    const now = new Date();
+    const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const todayUTC = now.toISOString().split("T")[0];
+
     return subtasks
       .filter((st) => {
-        const due = new Date(st.dueDate).toISOString().split("T")[0];
-        return due === today && !st.completed;
+        if (!st.dueDate) return false;
+        const d = new Date(st.dueDate);
+        if (isNaN(d.getTime())) return false;
+
+        const dueLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const dueUTC = d.toISOString().split("T")[0];
+
+        const isToday = dueLocal === todayLocal || dueUTC === todayUTC;
+        const isOverduePending = !st.completed && (dueLocal < todayLocal || dueUTC < todayUTC);
+
+        return isToday || isOverduePending;
       })
-      .slice(0, 5);
-  }, [subtasks, today]);
+      .sort((a, b) => {
+        if (Boolean(a.completed) !== Boolean(b.completed)) return a.completed ? 1 : -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      })
+      .slice(0, 10);
+  }, [subtasks]);
 
   //current year calculation
   const now = new Date();
@@ -386,25 +403,34 @@ const Dashboard = () => {
                     </div>
                   ) : (
                     <div className="compact-items-list">
-                      {subtasksToday.map((st) => (
-                        <div
-                          key={st._id}
-                          className="compact-item-row"
-                          onClick={() => navigate(`/subtasks/${st._id}`)}
-                        >
-                          <span className={`priority-indicator-dot ${st.priority?.toLowerCase() || "medium"}`} />
-                          <div className="compact-item-info">
-                            <div className="compact-item-title">{st.name}</div>
-                            <div className="compact-item-meta">
-                              <span className={`priority-tag ${st.priority?.toLowerCase() || "medium"}`}>
-                                {st.priority || "Medium"}
-                              </span>
-                              <span className="due-tag"><FiClock /> Due Today</span>
+                      {subtasksToday.map((st) => {
+                        const isDone = Boolean(st.completed);
+                        return (
+                          <div
+                            key={st._id}
+                            className={`compact-item-row ${isDone ? "compact-item-row--done" : ""}`}
+                            onClick={() => navigate(`/subtasks/${st._id}`)}
+                          >
+                            <span className={`priority-indicator-dot ${isDone ? "completed" : (st.priority?.toLowerCase() || "medium")}`} />
+                            <div className="compact-item-info">
+                              <div className={`compact-item-title ${isDone ? "completed-title" : ""}`} style={{ textDecoration: isDone ? "line-through" : "none", opacity: isDone ? 0.75 : 1 }}>
+                                {st.name}
+                              </div>
+                              <div className="compact-item-meta">
+                                <span className={`priority-tag ${st.priority?.toLowerCase() || "medium"}`}>
+                                  {st.priority || "Medium"}
+                                </span>
+                                {isDone ? (
+                                  <span className="due-tag" style={{ color: "var(--green, #10b981)" }}><FiCheckSquare /> Done</span>
+                                ) : (
+                                  <span className="due-tag"><FiClock /> Due Today</span>
+                                )}
+                              </div>
                             </div>
+                            <FiChevronRight className="row-chevron" />
                           </div>
-                          <FiChevronRight className="row-chevron" />
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )
                 )}
