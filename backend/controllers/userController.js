@@ -2,11 +2,13 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
 import PasswordReset from "../models/passwordResetModel.js";
+import EmailVerification from "../models/emailVerificationModel.js";
 import sendEmail from "../utils/emailService.js";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { verifyUserStreakActive, handlePomodoroCompletionXP } from "../utils/gamification.js";
 import Goal from "../models/goalModel.js";
 import Task from "../models/taskModel.js";
@@ -35,6 +37,13 @@ const authUser = asyncHandler(async (req, res) => {
       );
     }
 
+    if (!user.isEmailVerified) {
+      res.status(403);
+      throw new Error(
+        "Please verify your email address before logging in. Check your inbox for the verification link."
+      );
+    }
+
     // Update lastActive on login
     user.lastActive = new Date();
     verifyUserStreakActive(user);
@@ -42,9 +51,9 @@ const authUser = asyncHandler(async (req, res) => {
 
     await checkAndTriggerYearInReviewNotification(user._id);
 
-    // Check if 2FA is enabled
+    // Check if 2FA has been completed
     if (user.isTwoFactorEnabled) {
-      // Only return minimal information to indicate 2FA is needed
+      // 2FA is active, prompt for 6-digit TOTP code (no cookie yet)
       return res.status(200).json({
         _id: user._id,
         email: user.email,
@@ -52,23 +61,43 @@ const authUser = asyncHandler(async (req, res) => {
       });
     }
 
-    // Standard login flow (no 2FA)
-    const accessToken = generateToken(res, user._id);
+    // If 2FA has not been completed yet (e.g. user verified email but abandoned onboarding before scanning QR code),
+    // resume 2FA onboarding instead of locking them out demanding an unconfigured code!
+    let secretBase32 = user.twoFactorSecret;
+    let otpauthUrl;
+    if (!secretBase32) {
+      const secret = speakeasy.generateSecret({
+        name: `Stride:${user.email}`,
+      });
+      secretBase32 = secret.base32;
+      user.twoFactorSecret = secretBase32;
+      await user.save();
+      otpauthUrl = secret.otpauth_url;
+    } else {
+      otpauthUrl = speakeasy.otpauthURL({
+        secret: secretBase32,
+        label: `Stride:${user.email}`,
+        issuer: "Stride",
+        encoding: "base32",
+      });
+    }
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
+    const qrCodeUrl = await qrcode.toDataURL(otpauthUrl);
+    const setupToken = jwt.sign(
+      { userId: user._id, purpose: "2fa-setup" },
+      process.env.JWT_KEY,
+      { expiresIn: "30m" }
+    );
+
+    return res.status(200).json({
+      requiresTwoFactorSetup: true,
       email: user.email,
-      isAdmin: user.isAdmin,
-      isTwoFactorEnabled: user.isTwoFactorEnabled,
-      accessToken,
-      xp: user.xp || 0,
-      level: user.level || 1,
-      streak: user.streak || 0,
-      totalTasksCompleted: user.totalTasksCompleted || 0,
-      totalGoalsCompleted: user.totalGoalsCompleted || 0,
-      totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
-      achievements: user.achievements || [],
+      setupToken,
+      twoFactorAuthSetup: {
+        qrCodeUrl,
+        otpauthUrl,
+        secret: secretBase32,
+      },
     });
   } else {
     res.status(401);
@@ -77,67 +106,116 @@ const authUser = asyncHandler(async (req, res) => {
 });
 
 //@desc     Register user
+// Helper: send verification email
+const sendVerificationEmail = async (user, token) => {
+  const verifyUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+      <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
+        <h1 style="color: #2563eb; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">Welcome to Stride</h1>
+        <p style="color: #64748b; font-size: 14px; margin-top: 6px;">Please confirm your email address</p>
+      </div>
+      
+      <div style="padding: 28px 4px;">
+        <p style="color: #1e293b; font-size: 16px; margin-top: 0;">Hi ${user.name},</p>
+        
+        <p style="color: #475569; font-size: 15px; line-height: 1.6;">
+          Thank you for signing up for Stride. To activate your account and start using your workspace, please confirm that this is your email address by clicking the button below:
+        </p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${verifyUrl}" target="_blank" style="display: inline-block; background-color: #2563eb; color: #ffffff; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+            Verify Email Address
+          </a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-bottom: 8px;">
+          This verification link will expire in 24 hours.
+        </p>
+        <p style="color: #94a3b8; font-size: 12px; line-height: 1.5;">
+          If you did not sign up for Stride, please ignore this email.
+        </p>
+        
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9; color: #64748b; font-size: 13px;">
+          <p style="margin: 0;">Best regards,<br><strong>The Stride Team</strong></p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    email: user.email,
+    subject: "Verify your Stride account email",
+    html,
+  });
+};
+
+//@desc     Register user
 //@route    POST /api/users
 //@access   Public
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
+  const normalizedEmail = email ? email.toLowerCase().trim() : "";
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ email: normalizedEmail });
 
   if (userExists) {
+    if (!userExists.isEmailVerified) {
+      // Re-send verification email if user previously signed up but did not verify
+      await EmailVerification.deleteMany({ userId: userExists._id });
+      const token = EmailVerification.generateToken();
+      await EmailVerification.create({
+        userId: userExists._id,
+        token,
+      });
+
+      try {
+        await sendVerificationEmail(userExists, token);
+      } catch (err) {
+        console.error("Failed to resend verification email:", err);
+      }
+
+      return res.status(200).json({
+        message: "An unverified account already exists with this email. A new verification link has been sent to your inbox.",
+        email: userExists.email,
+        isEmailVerified: false,
+      });
+    }
+
     res.status(400);
-    throw new Error("User already Exists");
+    throw new Error("User already exists with this email address");
   }
 
+  // Create new user with isEmailVerified: false
   const user = await User.create({
     name,
-    email,
+    email: normalizedEmail,
     password,
-    isTwoFactorEnabled: true,
+    isEmailVerified: false,
+    isTwoFactorEnabled: false,
     lastActive: new Date(),
   });
 
-  // Generate a 2FA secret for the new user
-  const secret = speakeasy.generateSecret({
-    name: `Stride:${user.email}`,
+  // Generate verification token and store in database
+  const token = EmailVerification.generateToken();
+  await EmailVerification.create({
+    userId: user._id,
+    token,
   });
 
-  // Store the secret
-  user.twoFactorSecret = secret.base32;
-  await user.save();
-
-  // Return the QR code URL along with user data
-  const qrCodeUrl = speakeasy.otpauthURL({
-    secret: secret.ascii,
-    label: `Stride:${user.email}`,
-    issuer: "Stride",
-  });
-
-  const accessToken = generateToken(res, user._id);
-
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      accessToken,
-      twoFactorAuthSetup: {
-        qrCodeUrl,
-        secret: secret.base32,
-      },
-      xp: user.xp || 0,
-      level: user.level || 1,
-      streak: user.streak || 0,
-      totalTasksCompleted: user.totalTasksCompleted || 0,
-      totalGoalsCompleted: user.totalGoalsCompleted || 0,
-      totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
-      achievements: user.achievements || [],
-    });
-  } else {
-    res.status(400);
-    throw new Error("Inavlid user data");
+  // Send verification email
+  try {
+    await sendVerificationEmail(user, token);
+  } catch (err) {
+    console.error("Failed to send verification email on signup:", err);
   }
+
+  res.status(201).json({
+    message: "Registration successful! A verification link has been sent to your email. Please check your inbox and verify your email before logging in.",
+    email: user.email,
+    isEmailVerified: false,
+  });
 });
 
 //@desc     Logout  / clear cookie
@@ -608,6 +686,11 @@ const forgotPassword = asyncHandler(async (req, res) => {
     return res.status(200).json({ message: genericMessage });
   }
 
+  // Never send password reset to an unconfirmed / unverified email
+  if (!user.isEmailVerified) {
+    return res.status(200).json({ message: genericMessage });
+  }
+
   // Delete any existing reset tokens for this user
   await PasswordReset.deleteMany({ userId: user._id });
 
@@ -841,11 +924,32 @@ const generateTwoFactorSecret = asyncHandler(async (req, res) => {
 });
 
 // Verify and enable 2FA for a user
-// In backend/controllers/userController.js
-// In backend/controllers/userController.js
 const verifyAndEnableTwoFactor = asyncHandler(async (req, res) => {
   const { token } = req.body;
-  const userId = req.user._id;
+
+  let userId = req.user?._id;
+  if (!userId) {
+    const setupToken =
+      req.body.setupToken || req.headers.authorization?.split(" ")[1];
+    if (setupToken) {
+      try {
+        const decoded = jwt.verify(setupToken, process.env.JWT_KEY);
+        if (decoded.purpose === "2fa-setup") {
+          userId = decoded.userId;
+        }
+      } catch (err) {
+        res.status(401);
+        throw new Error(
+          "Invalid or expired 2FA setup session. Please log in again."
+        );
+      }
+    }
+  }
+
+  if (!userId) {
+    res.status(401);
+    throw new Error("Not authorized");
+  }
 
   const user = await User.findById(userId);
   if (!user) {
@@ -853,11 +957,17 @@ const verifyAndEnableTwoFactor = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
+  if (!user.twoFactorSecret) {
+    res.status(400);
+    throw new Error("2FA secret has not been generated for this account. Please restart setup.");
+  }
+
   // Verify the token against the stored secret
   const verified = speakeasy.totp.verify({
     secret: user.twoFactorSecret,
     encoding: "base32",
     token: token, // The token from the authenticator app
+    window: 1, // Allow 1 step (±30s) clock drift
   });
 
   if (!verified) {
@@ -865,12 +975,10 @@ const verifyAndEnableTwoFactor = asyncHandler(async (req, res) => {
     throw new Error("Invalid verification code");
   }
 
-  // Enable 2FA for the user
+  // Enable 2FA for the user - ONLY NOW!
   user.isTwoFactorEnabled = true;
 
   // Generate backup codes once, then hash those exact codes for storage.
-  // The plaintext codes returned below must match what gets hashed here,
-  // otherwise the codes shown to the user will never validate later.
   const plainBackupCodes = [];
   const hashedBackupCodes = [];
   for (let i = 0; i < 10; i++) {
@@ -880,11 +988,29 @@ const verifyAndEnableTwoFactor = asyncHandler(async (req, res) => {
   }
 
   user.twoFactorBackupCodes = hashedBackupCodes;
+  user.lastActive = new Date();
+  verifyUserStreakActive(user);
   await user.save();
+
+  // NOW issue the session cookie and access token
+  const accessToken = generateToken(res, user._id);
 
   res.status(200).json({
     message: "2FA enabled successfully",
     backupCodes: plainBackupCodes,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    isTwoFactorEnabled: true,
+    accessToken,
+    xp: user.xp || 0,
+    level: user.level || 1,
+    streak: user.streak || 0,
+    totalTasksCompleted: user.totalTasksCompleted || 0,
+    totalGoalsCompleted: user.totalGoalsCompleted || 0,
+    totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+    achievements: user.achievements || [],
   });
 });
 
@@ -1066,6 +1192,126 @@ const completePomodoro = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Verify user email with token
+// @route   POST /api/users/verify-email/:token (and GET)
+// @access  Public
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  if (!token) {
+    res.status(400);
+    throw new Error("Verification token is required");
+  }
+
+  const verificationRecord = await EmailVerification.findOne({ token });
+
+  if (!verificationRecord) {
+    res.status(400);
+    throw new Error("Invalid or expired verification link. Please request a new one.");
+  }
+
+  const user = await User.findById(verificationRecord.userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User account not found");
+  }
+
+  user.isEmailVerified = true;
+  await user.save();
+
+  // Clean up verification tokens for this user
+  await EmailVerification.deleteMany({ userId: user._id });
+
+  // Generate 2FA secret for direct onboarding flow
+  let secretBase32 = user.twoFactorSecret;
+  let otpauthUrl;
+  if (!secretBase32) {
+    const secret = speakeasy.generateSecret({
+      name: `Stride:${user.email}`,
+    });
+    secretBase32 = secret.base32;
+    user.twoFactorSecret = secretBase32;
+    await user.save();
+    otpauthUrl = secret.otpauth_url;
+  } else {
+    otpauthUrl = speakeasy.otpauthURL({
+      secret: secretBase32,
+      label: `Stride:${user.email}`,
+      issuer: "Stride",
+      encoding: "base32",
+    });
+  }
+
+  const qrCodeUrl = await qrcode.toDataURL(otpauthUrl);
+  const setupToken = jwt.sign(
+    { userId: user._id, purpose: "2fa-setup" },
+    process.env.JWT_KEY,
+    { expiresIn: "30m" }
+  );
+
+  res.status(200).json({
+    message: "Email verified successfully! Complete two-factor authentication setup to activate your account.",
+    email: user.email,
+    isEmailVerified: true,
+    requiresTwoFactorSetup: true,
+    setupToken,
+    twoFactorAuthSetup: {
+      qrCodeUrl,
+      otpauthUrl,
+      secret: secretBase32,
+    },
+  });
+});
+
+// @desc    Resend email verification link
+// @route   POST /api/users/resend-verification
+// @access  Public
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400);
+    throw new Error("Please provide your email address");
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (!user) {
+    return res.status(200).json({
+      message: "If an unverified account exists for that email, a new verification link was sent.",
+    });
+  }
+
+  if (user.isEmailVerified) {
+    return res.status(400).json({
+      message: "This email address is already verified. Please log in directly.",
+    });
+  }
+
+  // Delete previous tokens
+  await EmailVerification.deleteMany({ userId: user._id });
+
+  // Generate new token
+  const token = EmailVerification.generateToken();
+  await EmailVerification.create({
+    userId: user._id,
+    token,
+  });
+
+  try {
+    await sendVerificationEmail(user, token);
+  } catch (err) {
+    console.error("Failed to resend verification email:", err);
+    res.status(500);
+    throw new Error("Failed to send verification email. Please try again later.");
+  }
+
+  res.status(200).json({
+    message: "A new verification link has been sent to your email address.",
+  });
+});
+
 export {
   authUser,
   registerUser,
@@ -1087,4 +1333,7 @@ export {
   completePomodoro,
   getAdminStats,
   getAuditLogs,
+  verifyEmail,
+  resendVerificationEmail,
 };
+

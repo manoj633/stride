@@ -61,6 +61,8 @@ export const userAPI = {
   // Public routes
   register: (userData) => axiosInstance.post("/users", userData),
   login: (credentials) => axiosInstance.post("/users/login", credentials),
+  verifyEmail: (token) => axiosInstance.post(`/users/verify-email/${token}`),
+  resendVerification: (email) => axiosInstance.post("/users/resend-verification", { email }),
 
   // Protected routes
   logout: () => axiosInstance.post("/users/logout"),

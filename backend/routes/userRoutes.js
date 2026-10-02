@@ -20,10 +20,12 @@ import {
   completePomodoro,
   getAdminStats,
   getAuditLogs,
+  verifyEmail,
+  resendVerificationEmail,
 } from "../controllers/userController.js";
-import { protect, admin } from "../middleware/authMiddleware.js";
+import { protect, admin, protectOptional } from "../middleware/authMiddleware.js";
 import { getPersonalYearInReview } from "../controllers/personalAnalyticsController.js";
-import { passwordResetLimiter, loginLimiter, registerLimiter, twoFactorLimiter } from "../middleware/rateLimiter.js";
+import { passwordResetLimiter, loginLimiter, registerLimiter, twoFactorLimiter, emailVerificationLimiter } from "../middleware/rateLimiter.js";
 import { check } from "express-validator";
 import { validate } from "../middleware/validationMiddleware.js";
 
@@ -104,10 +106,13 @@ router
 router.post("/refresh-token", refreshToken);
 router.post("/forgot-password", passwordResetLimiter, forgotPassword);
 router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
+router.post("/verify-email/:token", emailVerificationLimiter, verifyEmail);
+router.get("/verify-email/:token", emailVerificationLimiter, verifyEmail);
+router.post("/resend-verification", emailVerificationLimiter, resendVerificationEmail);
 
 // New 2FA routes
 router.post("/two-factor/generate", protect, generateTwoFactorSecret);
-router.post("/two-factor/verify", protect, twoFactorLimiter, verifyAndEnableTwoFactor);
+router.post("/two-factor/verify", protectOptional, twoFactorLimiter, verifyAndEnableTwoFactor);
 router.post("/two-factor/disable", protect, disableTwoFactor);
 router.post("/two-factor/validate", twoFactorLimiter, validateTwoFactorAuth);
 router.post("/recover-with-backup-code", passwordResetLimiter, recoverWithBackupCode);

@@ -55,4 +55,18 @@ const admin = (req, res, next) => {
   }
 };
 
-export { protect, admin };
+// Optional protect middleware (sets req.user if cookie is valid, but does not reject if absent)
+const protectOptional = asyncHandler(async (req, res, next) => {
+  const token = req.cookies.jwt;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_KEY);
+      req.user = await User.findById(decoded.userId).select("-password");
+    } catch (error) {
+      // Ignore invalid token so setupToken fallback can be checked
+    }
+  }
+  next();
+});
+
+export { protect, admin, protectOptional };

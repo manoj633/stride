@@ -102,6 +102,18 @@ const commentLimiter = rateLimit({
   ),
 });
 
+const emailVerificationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 15, // limit each IP to 15 verification attempts per hour
+  message: "Too many email verification attempts. Please try again after an hour.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler(
+    "emailVerificationLimiter",
+    "Too many email verification attempts. Please try again after an hour."
+  ),
+});
+
 export {
   limiter,
   passwordResetLimiter,
@@ -109,4 +121,5 @@ export {
   twoFactorLimiter,
   registerLimiter,
   commentLimiter,
+  emailVerificationLimiter,
 };

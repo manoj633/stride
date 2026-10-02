@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
     },
     password: { type: String, required: true, minlength: 6, maxlength: 128 },
+    isEmailVerified: { type: Boolean, default: false },
     isAdmin: { type: Boolean, required: true, default: false },
     isSuspended: { type: Boolean, default: false },
     suspensionReason: { type: String, default: null },

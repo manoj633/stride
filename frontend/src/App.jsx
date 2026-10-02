@@ -42,6 +42,7 @@ import ResetPassword from "./components/ResetPassword/ResetPassword";
 import TwoFactorVerify from "./components/TwoFactorSetup/TwoFactorVerify";
 import TwoFactorSetup from "./components/TwoFactorSetup/TwoFactorSetup";
 import TwoFactorSuccess from "./components/TwoFactorSetup/TwoFactorSuccess";
+import VerifyEmail from "./components/VerifyEmail/VerifyEmail";
 
 import ReactGA from "react-ga4";
 
@@ -313,6 +314,7 @@ const App = () => {
           <Route path="/two-factor-verify" element={<TwoFactorVerify />} />
           <Route path="/two-factor-setup" element={<TwoFactorSetup />} />
           <Route path="/two-factor-success" element={<TwoFactorSuccess />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
         </Routes>
       </main>
       <ToastContainer />

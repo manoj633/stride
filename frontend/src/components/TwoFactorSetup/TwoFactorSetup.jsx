@@ -1,27 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { verifyAndEnableTwoFactor } from "../../store/features/users/userSlice";
 import { toast } from "react-toastify";
 import { QRCodeCanvas } from "qrcode.react";
 
 import "./TwoFactorSetup.css";
+
 const TwoFactorSetup = () => {
   const [token, setToken] = useState("");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { qrCodeUrl, secret, loading, error } = useAppSelector(
     (state) => state.user.twoFactorSetup
   );
+  const { userInfo } = useAppSelector((state) => state.user);
+
+  const effectiveQrCodeUrl = location.state?.qrCodeUrl || qrCodeUrl;
+  const effectiveSecret = location.state?.secret || secret;
+  const setupToken = location.state?.setupToken;
 
   // Redirect if no QR code data is available
   useEffect(() => {
-    if (!qrCodeUrl && !secret) {
-      toast.error("No 2FA setup data available. Please try again.");
-      navigate("/profile");
+    if (!effectiveQrCodeUrl && !effectiveSecret) {
+      toast.error("No 2FA setup data available. Please sign in or verify email.");
+      if (userInfo) {
+        navigate("/profile");
+      } else {
+        navigate("/login");
+      }
     }
-  }, [qrCodeUrl, secret, navigate]);
+  }, [effectiveQrCodeUrl, effectiveSecret, userInfo, navigate]);
 
   // Add effect to handle errors
   useEffect(() => {
@@ -40,7 +51,7 @@ const TwoFactorSetup = () => {
 
     try {
       const result = await dispatch(
-        verifyAndEnableTwoFactor({ token })
+        verifyAndEnableTwoFactor({ token, setupToken })
       ).unwrap();
 
       if (result.backupCodes && result.backupCodes.length > 0) {
@@ -53,7 +64,11 @@ const TwoFactorSetup = () => {
       }
     } catch (err) {
       console.error("Verification error:", err);
-      toast.error(err?.message || "Verification failed. Please try again.");
+      toast.error(
+        typeof err === "string"
+          ? err
+          : err?.message || "Verification failed. Please try again."
+      );
     }
   };
 
@@ -67,17 +82,27 @@ const TwoFactorSetup = () => {
         <div className="two-factor-setup__content">
           <div className="two-factor-setup__instructions">
             <h2>Scan QR Code</h2>
-            <p>Scan this QR code with your authenticator app:</p>
+            <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.):</p>
 
-            {qrCodeUrl && (
+            {effectiveQrCodeUrl && (
               <div className="two-factor-setup__qrcode">
-                <QRCodeCanvas value={qrCodeUrl} size={200} />
+                {typeof effectiveQrCodeUrl === "string" &&
+                effectiveQrCodeUrl.startsWith("data:image") ? (
+                  <img
+                    src={effectiveQrCodeUrl}
+                    alt="Two-Factor Authentication QR Code"
+                    width={200}
+                    height={200}
+                  />
+                ) : (
+                  <QRCodeCanvas value={effectiveQrCodeUrl} size={200} />
+                )}
               </div>
             )}
 
             <div className="two-factor-setup__manual-entry">
               <h3>Or enter this code manually:</h3>
-              <div className="two-factor-setup__secret-code">{secret}</div>
+              <div className="two-factor-setup__secret-code">{effectiveSecret}</div>
             </div>
           </div>
 
@@ -122,9 +147,9 @@ const TwoFactorSetup = () => {
         <div className="two-factor-setup__info">
           <h3>Why use Two-Factor Authentication?</h3>
           <p>
-            Two-factor authentication adds an extra layer of security to your
-            account by requiring both your password and a code from your mobile
-            device.
+            Two-factor authentication adds an essential layer of protection to your
+            account by requiring both your password and a temporary verification code from
+            your authenticator device.
           </p>
         </div>
       </div>

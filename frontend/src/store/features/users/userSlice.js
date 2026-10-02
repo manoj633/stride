@@ -12,12 +12,12 @@ export const login = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const { data } = await userAPI.login(credentials);
-      if (!data.requiresTwoFactor) {
+      if (!data.requiresTwoFactor && !data.requiresTwoFactorSetup && data.accessToken) {
         setUserToStorage(data);
       }
       return data;
     } catch (err) {
-      return rejectWithValue(err.response.data.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
     }
   },
 );
@@ -27,10 +27,12 @@ export const register = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const { data } = await userAPI.register(userData);
-      setUserToStorage(data);
+      if (data && data.isEmailVerified !== false && data.accessToken) {
+        setUserToStorage(data);
+      }
       return data;
     } catch (err) {
-      return rejectWithValue(err.response.data.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
     }
   },
 );
@@ -112,18 +114,19 @@ export const verifyAndEnableTwoFactor = createAsyncThunk(
   "user/verifyAndEnableTwoFactor",
   async (tokenData, { rejectWithValue }) => {
     try {
-      // Make sure you're sending the token as an object with the expected property name
       const { data } = await userAPI.verifyAndEnableTwoFactor({
         token: tokenData.token,
+        setupToken: tokenData.setupToken,
       });
 
       // Update localStorage with new user info
-      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      if (userInfo) {
-        userInfo.isTwoFactorEnabled = true;
-        delete userInfo.twoFactorAuthSetup;
-        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      let userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+      if (data._id) {
+        userInfo = { ...userInfo, ...data };
       }
+      userInfo.isTwoFactorEnabled = true;
+      delete userInfo.twoFactorAuthSetup;
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
 
       return data;
     } catch (err) {
@@ -205,6 +208,10 @@ const userSlice = createSlice({
     resetSuccess: (state) => {
       state.success = false;
     },
+    setTwoFactorSetupData: (state, action) => {
+      state.twoFactorSetup.qrCodeUrl = action.payload.qrCodeUrl;
+      state.twoFactorSetup.secret = action.payload.secret;
+    },
     // Synchronous logout for cases that can't wait on a network
     // round trip: an expired token, or a "logged out in another tab"
     // storage event.
@@ -238,7 +245,9 @@ const userSlice = createSlice({
       .addCase(verifyAndEnableTwoFactor.fulfilled, (state, action) => {
         state.twoFactorSetup.loading = false;
         state.twoFactorSetup.backupCodes = action.payload.backupCodes;
-        if (state.userInfo) {
+        if (action.payload._id) {
+          state.userInfo = action.payload;
+        } else if (state.userInfo) {
           state.userInfo.isTwoFactorEnabled = true;
           delete state.userInfo.twoFactorAuthSetup;
         }
@@ -275,7 +284,7 @@ const userSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
-        if (!action.payload.requiresTwoFactor) {
+        if (!action.payload.requiresTwoFactor && !action.payload.requiresTwoFactorSetup && action.payload.accessToken) {
           state.userInfo = action.payload;
         }
         state.error = null;
@@ -290,13 +299,14 @@ const userSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
-        state.userInfo = action.payload;
-        // Store 2FA setup data if available
-        if (action.payload.twoFactorAuthSetup) {
-          state.twoFactorSetup.qrCodeUrl =
-            action.payload.twoFactorAuthSetup.qrCodeUrl;
-          state.twoFactorSetup.secret =
-            action.payload.twoFactorAuthSetup.secret;
+        if (action.payload && action.payload.isEmailVerified !== false && action.payload.accessToken) {
+          state.userInfo = action.payload;
+          if (action.payload.twoFactorAuthSetup) {
+            state.twoFactorSetup.qrCodeUrl =
+              action.payload.twoFactorAuthSetup.qrCodeUrl;
+            state.twoFactorSetup.secret =
+              action.payload.twoFactorAuthSetup.secret;
+          }
         }
         state.error = null;
       })
@@ -355,8 +365,13 @@ const userSlice = createSlice({
   },
 });
 
-export const { clearError, resetSuccess, clearTwoFactorSetup, clearUserInfo } =
-  userSlice.actions;
+export const {
+  clearError,
+  resetSuccess,
+  clearTwoFactorSetup,
+  setTwoFactorSetupData,
+  clearUserInfo,
+} = userSlice.actions;
 
 // Checks the userInfo actually driving the app (state.user), not the
 // unused, separately tracked copy that used to live in authSlice.
