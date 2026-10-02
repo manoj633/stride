@@ -232,11 +232,26 @@
 
 .goal-description__content {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 32px;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 28px;
   padding: 28px 32px;
   box-sizing: border-box;
   width: 100%;
+  align-items: start;
+}
+
+.goal-description__col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+}
+
+.goal-description__full-width {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .goal-description__content > * {
@@ -381,25 +396,32 @@
 
 .tag {
   background: var(--ef-accent-light);
-  color: var(--ef-accent);
+  color: #18181B;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 11.5px;
   font-weight: 600;
-  border: 1px solid #BFDBFE;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .remove-tag {
   background: none;
   border: none;
-  color: var(--ef-accent);
+  color: inherit;
+  opacity: 0.75;
   cursor: pointer;
-  padding: 0;
-  font-size: 14px;
+  padding: 0 0 0 2px;
+  font-size: 15px;
   line-height: 1;
+  transition: opacity 0.15s ease;
+}
+
+.remove-tag:hover {
+  opacity: 1;
 }
 
 .add-tag, .add-collaborator {
@@ -483,6 +505,27 @@
   flex-direction: column;
   gap: 12px;
   margin-top: 12px;
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.embedded-task-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.embedded-task-list::-webkit-scrollbar-track {
+  background: var(--ef-bg-subtle, #f8fafc);
+  border-radius: 4px;
+}
+
+.embedded-task-list::-webkit-scrollbar-thumb {
+  background: var(--ef-border, #cbd5e1);
+  border-radius: 4px;
+}
+
+.embedded-task-list::-webkit-scrollbar-thumb:hover {
+  background: var(--ef-text-secondary, #94a3b8);
 }
 
 .embedded-task-item {
