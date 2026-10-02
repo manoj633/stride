@@ -12,7 +12,31 @@ const getMyReports = asyncHandler(async (req, res) => {
     throw new Error("Not authorized");
   }
   const reports = await WeeklyReport.find({ user: userId }).sort({ createdAt: -1 });
-  res.json(reports);
+
+  // Deduplicate by normalized date range so duplicate records for the same week are never shown
+  const seenDateRanges = new Set();
+  const uniqueReports = [];
+
+  for (const report of reports) {
+    const startStr = new Date(report.startDate).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const endStr = new Date(report.endDate).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const rangeKey = `${startStr}_${endStr}`;
+
+    if (!seenDateRanges.has(rangeKey)) {
+      seenDateRanges.add(rangeKey);
+      uniqueReports.push(report);
+    }
+  }
+
+  res.json(uniqueReports);
 });
 
 export { getMyReports };

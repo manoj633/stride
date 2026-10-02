@@ -1,4 +1,3 @@
-// Updated Profile.jsx without password fields but with proper styling
 import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks.js";
 import { toast } from "react-toastify";
@@ -7,7 +6,21 @@ import { reportAPI } from "../../services/api/urlService.js";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Common/LoadingSpinner";
-import ErrorMessage from "../Common/ErrorMessage";
+import {
+  FiUser,
+  FiMail,
+  FiLock,
+  FiShield,
+  FiCheckCircle,
+  FiAward,
+  FiClock,
+  FiZap,
+  FiCalendar,
+  FiFolder,
+  FiExternalLink,
+  FiChevronRight,
+  FiX,
+} from "react-icons/fi";
 
 const Profile = () => {
   const [name, setName] = useState("");
@@ -19,13 +32,23 @@ const Profile = () => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { loading, error, userInfo } = useAppSelector((state) => state.user);
+  const { loading, userInfo } = useAppSelector((state) => state.user);
 
   const fetchWeeklyReports = async () => {
     try {
       setReportsLoading(true);
       const { data } = await reportAPI.getMyReports();
-      setReports(data);
+      const list = data || [];
+      const seen = new Set();
+      const deduplicated = list.filter((r) => {
+        const startStr = new Date(r.startDate).toLocaleDateString();
+        const endStr = new Date(r.endDate).toLocaleDateString();
+        const key = `${startStr}_${endStr}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setReports(deduplicated);
     } catch (err) {
       console.error("Error loading archived weekly reports:", err);
       toast.error("Failed to load archived weekly reports.");
@@ -36,31 +59,33 @@ const Profile = () => {
 
   useEffect(() => {
     if (userInfo) {
-      setName(userInfo.name);
-      setEmail(userInfo.email);
+      setName(userInfo.name || "");
+      setEmail(userInfo.email || "");
     }
   }, [userInfo]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    if (!name.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
     try {
-      const res = await dispatch(
+      await dispatch(
         updateProfile({
           _id: userInfo._id,
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
         })
       ).unwrap();
-      toast.success("Profile updated successfully");
-      navigate(-1);
+      toast.success("Profile updated successfully!");
     } catch (err) {
-      toast.error(err?.data?.message || err?.error);
+      toast.error(err?.data?.message || err?.message || "Failed to update profile");
     }
   };
 
-  // Get first letter of name for avatar
   const getInitial = () => {
-    return name ? name.charAt(0).toUpperCase() : "U";
+    return name ? name.charAt(0).toUpperCase() : userInfo?.name?.charAt(0)?.toUpperCase() || "U";
   };
 
   const getAchievementsList = (unlockedAchievements = []) => {
@@ -103,280 +128,465 @@ const Profile = () => {
       },
     ];
 
-    return achievements.map(ach => ({
+    return achievements.map((ach) => ({
       ...ach,
       unlocked: unlockedAchievements.includes(ach.id),
     }));
   };
 
-  if (loading) return <LoadingSpinner message="Loading profile..." />;
-  if (error) return <ErrorMessage message={error} />;
+  if (loading && !userInfo) return <LoadingSpinner message="Loading profile..." />;
+
+  const level = userInfo?.level || 1;
+  const xp = userInfo?.xp || 0;
+  const xpInCurrentLevel = xp % 100;
+  const unlockedCount = (userInfo?.achievements || []).length;
 
   return (
-    <div className="profile">
-      <div className="profile__container">
-        {/* Left Column: Profile Settings */}
-        <div className="profile__sidebar">
-          <div className="profile__header">
-            <div
-              className="profile__avatar"
-              aria-label={`User avatar, initial ${getInitial()}`}
-            >
-              {getInitial()}
-            </div>
-            <div className="profile__header-info">
-              <h2 className="profile__title">Profile Settings</h2>
-              <p className="profile__subtitle">
-                Manage your account information
-              </p>
-            </div>
+    <div className="profile-page">
+      {/* Top Header Shell */}
+      <header className="profile-topbar">
+        <div className="profile-topbar__left">
+          <div className="profile-topbar__icon">
+            <FiUser size={20} />
           </div>
-
-          {userInfo?.isAdmin && (
-            <div className="profile__admin-badge">Administrator</div>
-          )}
-
-          <form className="profile__form" onSubmit={submitHandler}>
-            <div className="profile__form-group">
-              <label className="profile__label">Name</label>
-              <div className="profile__input-wrapper">
-                <input
-                  className="profile__input"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  aria-label="Profile name"
-                />
-              </div>
-            </div>
-
-            <div className="profile__form-group">
-              <label className="profile__label">Email Address</label>
-              <div className="profile__input-wrapper">
-                <input
-                  className="profile__input"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  aria-label="Profile email address"
-                />
-              </div>
-            </div>
-
-            <div className="profile__form-group">
-              <p className="profile__label">Password Management</p>
-              <a
-                href="/forgot-password"
-                className="profile__button"
-                style={{ textDecoration: "none", textAlign: "center" }}
-              >
-                Reset Password
-              </a>
-            </div>
-
-            <button
-              type="submit"
-              className={`profile__button ${
-                loading ? "profile__button--loading" : ""
-              }`}
-              disabled={loading}
-              aria-label="Update profile"
-            >
-              <div className="profile__button-content">
-                {loading ? (
-                  <>
-                    <span className="profile__spinner"></span>
-                    <span>Updating...</span>
-                  </>
-                ) : (
-                  "Update Profile"
-                )}
-              </div>
-            </button>
-          </form>
+          <div className="profile-topbar__headings">
+            <h1 className="profile-topbar__title">Account & Profile</h1>
+            <p className="profile-topbar__subtitle">
+              Manage personal credentials, security protection, and productivity achievements
+            </p>
+          </div>
         </div>
 
-        {/* Right Column: Gamification Stats & Weekly Report Archives */}
-        <div className="profile__gamification">
-          
-          {/* Tab Navigation header */}
-          <div className="profile-tabs-nav">
-            <button
-              className={`profile-tab-btn ${activeTab === "stats" ? "active" : ""}`}
-              onClick={() => setActiveTab("stats")}
-            >
-              🏅 Progression & Medals
-            </button>
-            <button
-              className={`profile-tab-btn ${activeTab === "archive" ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab("archive");
-                fetchWeeklyReports();
-              }}
-            >
-              📂 Weekly Reports Vault
-            </button>
+        <div className="profile-topbar__right">
+          {userInfo?.isAdmin && (
+            <span className="profile-pill profile-pill--admin">
+              👑 Administrator
+            </span>
+          )}
+          <span className="profile-pill profile-pill--verified">
+            <FiCheckCircle size={13} /> Email Verified
+          </span>
+          {userInfo?.isTwoFactorEnabled ? (
+            <span className="profile-pill profile-pill--2fa">
+              <FiShield size={13} /> 2FA Active
+            </span>
+          ) : (
+            <span className="profile-pill profile-pill--2fa-off">
+              <FiShield size={13} /> 2FA Inactive
+            </span>
+          )}
+        </div>
+      </header>
+
+      {/* Main Two-Column Content Grid */}
+      <div className="profile-layout">
+        {/* Left Column: Personal Identity & Security */}
+        <div className="profile-col profile-col--left">
+          {/* Card 1: Identity & Edit Form */}
+          <div className="profile-card">
+            <div className="profile-user-summary">
+              <div
+                className="profile-user-avatar"
+                aria-label={`User avatar initial ${getInitial()}`}
+              >
+                {getInitial()}
+              </div>
+              <div className="profile-user-meta">
+                <h2 className="profile-user-name">{userInfo?.name || "User"}</h2>
+                <span className="profile-user-email">{userInfo?.email}</span>
+                <div className="profile-user-chips">
+                  <span className="profile-stat-chip">Level {level}</span>
+                  <span className="profile-stat-chip">{xp} Total XP</span>
+                  <span className="profile-stat-chip">{userInfo?.streak || 0}d Streak</span>
+                </div>
+              </div>
+            </div>
+
+            <form className="profile-form" onSubmit={submitHandler}>
+              <div className="profile-form-group">
+                <label className="profile-form-label" htmlFor="profile-name">
+                  Full Name
+                </label>
+                <div className="profile-input-box">
+                  <FiUser className="profile-input-icon" />
+                  <input
+                    id="profile-name"
+                    type="text"
+                    className="profile-input"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="profile-form-group">
+                <div className="profile-form-label-row">
+                  <label className="profile-form-label" htmlFor="profile-email">
+                    Email Address
+                  </label>
+                  <span className="profile-email-badge">
+                    <FiCheckCircle size={12} /> Confirmed
+                  </span>
+                </div>
+                <div className="profile-input-box">
+                  <FiMail className="profile-input-icon" />
+                  <input
+                    id="profile-email"
+                    type="email"
+                    className="profile-input"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="profile-submit-btn"
+                disabled={loading}
+              >
+                {loading ? "Saving Changes..." : "Save Profile Changes"}
+              </button>
+            </form>
           </div>
 
-          {activeTab === "stats" ? (
-            <div className="profile-tab-content animate-fade">
-              <div className="gamification-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
-                <div>
-                  <h2>Activity & Progression</h2>
-                  <p>Track your productivity milestones and badges</p>
+          {/* Card 2: Security & Authentication */}
+          <div className="profile-card profile-card--security">
+            <div className="profile-card-header">
+              <div className="profile-card-header__icon">
+                <FiShield size={18} />
+              </div>
+              <div>
+                <h3 className="profile-card-title">Security & Credentials</h3>
+                <p className="profile-card-subtitle">
+                  Password management and multi-factor defense
+                </p>
+              </div>
+            </div>
+
+            <div className="security-rows">
+              {/* Password Row */}
+              <div className="security-row">
+                <div className="security-row__left">
+                  <div className="security-icon-circle">
+                    <FiLock size={16} />
+                  </div>
+                  <div className="security-row__meta">
+                    <span className="security-row__title">Account Password</span>
+                    <span className="security-row__desc">
+                      Protected with encrypted hash credentials
+                    </span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  className="profile-yir-btn"
-                  onClick={() => navigate("/year-in-review")}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    background: "linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "8px 14px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 4px rgba(79, 70, 229, 0.2)",
-                  }}
+                <a
+                  href="/forgot-password"
+                  className="security-btn security-btn--outline"
                 >
-                  🏆 Year in Review →
-                </button>
+                  Reset Password
+                </a>
               </div>
 
-              {/* XP & Level Panel */}
-              <div className="gamification-card level-card">
-                <div className="level-card__header">
-                  <span className="level-card__badge">Level {userInfo?.level || 1}</span>
-                  <span className="level-card__xp">{userInfo?.xp || 0} Total XP</span>
-                </div>
-                <div className="level-card__bar">
-                  <div 
-                    className="level-card__fill" 
-                    style={{ width: `${(userInfo?.xp || 0) % 100}%` }}
-                  ></div>
-                </div>
-                <span className="level-card__sub">{(userInfo?.xp || 0) % 100}/100 XP to Level {(userInfo?.level || 1) + 1}</span>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="gamification-stats-grid">
-                <div className="stat-box streak">
-                  <span className="stat-box__icon">🔥</span>
-                  <span className="stat-box__value">{userInfo?.streak || 0} Days</span>
-                  <span className="stat-box__label">Current Streak</span>
-                </div>
-                <div className="stat-box tasks">
-                  <span className="stat-box__icon">✅</span>
-                  <span className="stat-box__value">{userInfo?.totalTasksCompleted || 0}</span>
-                  <span className="stat-box__label">Tasks Done</span>
-                </div>
-                <div className="stat-box goals">
-                  <span className="stat-box__icon">🏆</span>
-                  <span className="stat-box__value">{userInfo?.totalGoalsCompleted || 0}</span>
-                  <span className="stat-box__label">Goals Achieved</span>
-                </div>
-                <div className="stat-box pomodoro">
-                  <span className="stat-box__icon">⏱️</span>
-                  <span className="stat-box__value">{userInfo?.totalPomodorosCompleted || 0}</span>
-                  <span className="stat-box__label">Focus Sessions</span>
-                </div>
-              </div>
-
-              {/* Achievements Grid */}
-              <div className="achievements-section">
-                <h3>Achievements Badges</h3>
-                <div className="achievements-grid">
-                  {getAchievementsList(userInfo?.achievements || []).map(ach => (
-                    <div key={ach.id} className={`achievement-medal ${ach.unlocked ? 'unlocked' : 'locked'}`} title={ach.description}>
-                      <div className="medal-icon">{ach.icon}</div>
-                      <div className="medal-info">
-                        <span className="medal-title">{ach.title}</span>
-                        <span className="medal-desc">{ach.description}</span>
-                      </div>
+              {/* 2FA Row */}
+              <div className="security-row">
+                <div className="security-row__left">
+                  <div className="security-icon-circle security-icon-circle--accent">
+                    <FiShield size={16} />
+                  </div>
+                  <div className="security-row__meta">
+                    <div className="security-row__title-wrap">
+                      <span className="security-row__title">
+                        Two-Factor Authentication (2FA)
+                      </span>
+                      {userInfo?.isTwoFactorEnabled && (
+                        <span className="security-badge-active">Enabled</span>
+                      )}
                     </div>
-                  ))}
+                    <span className="security-row__desc">
+                      {userInfo?.isTwoFactorEnabled
+                        ? "Account secured with TOTP Authenticator & backup codes"
+                        : "Required for enterprise account access"}
+                    </span>
+                  </div>
                 </div>
+                {userInfo?.isTwoFactorEnabled ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/two-factor-setup")}
+                    className="security-btn security-btn--subtle"
+                  >
+                    View Setup
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/two-factor-setup")}
+                    className="security-btn security-btn--primary"
+                  >
+                    Configure 2FA
+                  </button>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="profile-tab-content animate-fade">
-              <div className="gamification-header">
-                <h2>Weekly Report Vault</h2>
-                <p>Access your past weekly performance reports and digests</p>
-              </div>
+          </div>
+        </div>
 
-              {reportsLoading ? (
-                <div className="vault-loading">
-                  <LoadingSpinner message="Retrieving archived reports..." />
-                </div>
-              ) : reports.length === 0 ? (
-                <div className="vault-empty">
-                  <span className="vault-empty__icon">📁</span>
-                  <p>No reports archived in the vault yet.</p>
-                  <span className="vault-empty__sub">Reports are archived automatically once generated.</span>
-                </div>
-              ) : (
-                <div className="vault-list">
-                  {reports.map((report) => (
-                    <div
-                      key={report._id}
-                      className="vault-row"
-                      onClick={() => setSelectedReport(report)}
+        {/* Right Column: Gamification, Progression & Weekly Vault */}
+        <div className="profile-col profile-col--right">
+          <div className="profile-card profile-card--tabs">
+            {/* Tab Navigation header */}
+            <div className="profile-tabs-header">
+              <button
+                type="button"
+                className={`profile-tab-button ${
+                  activeTab === "stats" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("stats")}
+              >
+                <FiAward size={16} />
+                <span>Progression & Badges</span>
+              </button>
+              <button
+                type="button"
+                className={`profile-tab-button ${
+                  activeTab === "archive" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("archive");
+                  fetchWeeklyReports();
+                }}
+              >
+                <FiFolder size={16} />
+                <span>Weekly Report Vault</span>
+              </button>
+            </div>
+
+            {activeTab === "stats" ? (
+              <div className="profile-tab-body">
+                {/* Level & XP Hero Bar */}
+                <div className="level-hero">
+                  <div className="level-hero__info">
+                    <div className="level-hero__badge">
+                      <span className="level-hero__lvl">Level {level}</span>
+                      <span className="level-hero__xp">{xp} Total XP</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="level-hero__yir-btn"
+                      onClick={() => navigate("/year-in-review")}
                     >
-                      <div className="vault-row__info">
-                        <span className="vault-row__date">
-                          {new Date(report.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(report.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                        <span className="vault-row__sub">
-                          {report.tasksCompleted} Tasks Completed | {report.completedGoals} Goals Completed
-                        </span>
-                      </div>
-                      <div className="vault-row__chevron">→</div>
-                    </div>
-                  ))}
+                      <FiAward size={14} /> Year in Review →
+                    </button>
+                  </div>
+
+                  <div className="level-progress-bar">
+                    <div
+                      className="level-progress-fill"
+                      style={{ width: `${Math.max(xpInCurrentLevel, 4)}%` }}
+                    />
+                  </div>
+
+                  <div className="level-hero__footer">
+                    <span>{xpInCurrentLevel} / 100 XP to Level {level + 1}</span>
+                    <span>{100 - xpInCurrentLevel} XP remaining</span>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+
+                {/* 2x2 Metric Grid */}
+                <div className="stats-metric-grid">
+                  <div className="metric-tile metric-tile--streak">
+                    <div className="metric-tile__icon-wrap">🔥</div>
+                    <div className="metric-tile__content">
+                      <span className="metric-tile__val">
+                        {userInfo?.streak || 0} <span className="metric-tile__unit">Days</span>
+                      </span>
+                      <span className="metric-tile__label">Current Streak</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-tile metric-tile--tasks">
+                    <div className="metric-tile__icon-wrap">✅</div>
+                    <div className="metric-tile__content">
+                      <span className="metric-tile__val">
+                        {userInfo?.totalTasksCompleted || 0}
+                      </span>
+                      <span className="metric-tile__label">Tasks Done</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-tile metric-tile--goals">
+                    <div className="metric-tile__icon-wrap">🏆</div>
+                    <div className="metric-tile__content">
+                      <span className="metric-tile__val">
+                        {userInfo?.totalGoalsCompleted || 0}
+                      </span>
+                      <span className="metric-tile__label">Goals Achieved</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-tile metric-tile--focus">
+                    <div className="metric-tile__icon-wrap">⏱️</div>
+                    <div className="metric-tile__content">
+                      <span className="metric-tile__val">
+                        {userInfo?.totalPomodorosCompleted || 0}
+                      </span>
+                      <span className="metric-tile__label">Focus Sessions</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Achievements Badges */}
+                <div className="badges-section">
+                  <div className="badges-header">
+                    <h4 className="badges-title">Achievements & Milestones</h4>
+                    <span className="badges-count">
+                      {unlockedCount} / {getAchievementsList().length} Unlocked
+                    </span>
+                  </div>
+
+                  <div className="badges-grid">
+                    {getAchievementsList(userInfo?.achievements || []).map((ach) => (
+                      <div
+                        key={ach.id}
+                        className={`badge-card ${
+                          ach.unlocked ? "badge-card--unlocked" : "badge-card--locked"
+                        }`}
+                        title={ach.description}
+                      >
+                        <div className="badge-card__icon">{ach.icon}</div>
+                        <div className="badge-card__meta">
+                          <span className="badge-card__title">{ach.title}</span>
+                          <span className="badge-card__desc">{ach.description}</span>
+                        </div>
+                        {ach.unlocked && (
+                          <span className="badge-card__status">Unlocked</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="profile-tab-body">
+                <div className="vault-header">
+                  <div>
+                    <h3 className="vault-title">Weekly Report Vault</h3>
+                    <p className="vault-subtitle">
+                      Review archived performance digests and productivity rollups
+                    </p>
+                  </div>
+                </div>
+
+                {reportsLoading ? (
+                  <div className="vault-loading">
+                    <LoadingSpinner message="Retrieving archived reports..." />
+                  </div>
+                ) : reports.length === 0 ? (
+                  <div className="vault-empty">
+                    <div className="vault-empty__icon">📁</div>
+                    <h4 className="vault-empty__title">No Reports in Vault</h4>
+                    <p className="vault-empty__text">
+                      Weekly executive digests are generated every Monday morning.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="vault-list">
+                    {reports.map((report) => (
+                      <div
+                        key={report._id}
+                        className="vault-row"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        <div className="vault-row__icon-box">
+                          <FiFolder size={18} />
+                        </div>
+                        <div className="vault-row__info">
+                          <span className="vault-row__date">
+                            {new Date(report.startDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })}{" "}
+                            –{" "}
+                            {new Date(report.endDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                          <span className="vault-row__sub">
+                            {report.tasksCompleted} Tasks Completed • {report.completedGoals} Goals Reached
+                          </span>
+                        </div>
+                        <div className="vault-row__arrow">
+                          <FiChevronRight size={18} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Detailed Modal Popup */}
+      {/* Report Modal */}
       {selectedReport && (
-        <div className="report-modal-backdrop" onClick={() => setSelectedReport(null)}>
+        <div
+          className="report-modal-backdrop"
+          onClick={() => setSelectedReport(null)}
+        >
           <div className="report-modal" onClick={(e) => e.stopPropagation()}>
             <div className="report-modal__header">
               <h3>Weekly Digest Details</h3>
-              <button className="report-modal__close" onClick={() => setSelectedReport(null)}>×</button>
+              <button
+                className="report-modal__close"
+                onClick={() => setSelectedReport(null)}
+                aria-label="Close modal"
+              >
+                <FiX size={20} />
+              </button>
             </div>
             <div className="report-modal__subheader">
-              {new Date(selectedReport.startDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} to {new Date(selectedReport.endDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {new Date(selectedReport.startDate).toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}{" "}
+              to{" "}
+              {new Date(selectedReport.endDate).toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
             </div>
-            
+
             <div className="report-modal__stats">
               <div className="report-stat-card bg-tasks">
-                <span className="report-stat-card__val">{selectedReport.tasksCompleted}</span>
+                <span className="report-stat-card__val">
+                  {selectedReport.tasksCompleted}
+                </span>
                 <span className="report-stat-card__lbl">Completed Tasks</span>
               </div>
               <div className="report-stat-card bg-progress">
-                <span className="report-stat-card__val">{selectedReport.avgProgress}%</span>
+                <span className="report-stat-card__val">
+                  {selectedReport.avgProgress}%
+                </span>
                 <span className="report-stat-card__lbl">Average Progress</span>
               </div>
               <div className="report-stat-card bg-focus">
-                <span className="report-stat-card__val">{selectedReport.focusHours}h</span>
+                <span className="report-stat-card__val">
+                  {selectedReport.focusHours}h
+                </span>
                 <span className="report-stat-card__lbl">Focus/Day Avg</span>
               </div>
               <div className="report-stat-card bg-consistency">
-                <span className="report-stat-card__val">{selectedReport.consistencyRate}%</span>
+                <span className="report-stat-card__val">
+                  {selectedReport.consistencyRate}%
+                </span>
                 <span className="report-stat-card__lbl">Consistency Rate</span>
               </div>
             </div>
@@ -384,12 +594,13 @@ const Profile = () => {
             <div className="report-modal__insights">
               <h4>AI Coach Insights</h4>
               <ul>
-                {selectedReport.insights && selectedReport.insights.map((insight, idx) => (
-                  <li key={idx}>
-                    <span className="insight-bullet">⚡</span>
-                    <span className="insight-text">{insight}</span>
-                  </li>
-                ))}
+                {selectedReport.insights &&
+                  selectedReport.insights.map((insight, idx) => (
+                    <li key={idx}>
+                      <span className="insight-bullet">⚡</span>
+                      <span className="insight-text">{insight}</span>
+                    </li>
+                  ))}
               </ul>
             </div>
           </div>

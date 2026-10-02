@@ -1050,8 +1050,16 @@ export const generateAndSendWeeklyReports = async () => {
 
         logger.info(`Enhanced weekly report sent to user ${user._id}`);
 
-        // Save weekly report to MongoDB
-        await WeeklyReport.create({
+        // Save or update weekly report in MongoDB (prevent duplicate entries for the same week)
+        const existingReport = await WeeklyReport.findOne({
+          user: user._id,
+          startDate: {
+            $gte: subDays(startDate, 2),
+            $lte: addDays(startDate, 2),
+          },
+        });
+
+        const reportPayload = {
           user: user._id,
           startDate,
           endDate,
@@ -1066,7 +1074,13 @@ export const generateAndSendWeeklyReports = async () => {
             `Goals: Progressed on ${userGoals.length} active goals and completed ${completedGoals} goal${completedGoals === 1 ? '' : 's'}.`,
             `Task Velocity: Completed ${tasksCompletedThisPeriod} tasks in total.`
           ],
-        });
+        };
+
+        if (existingReport) {
+          await WeeklyReport.findByIdAndUpdate(existingReport._id, reportPayload);
+        } else {
+          await WeeklyReport.create(reportPayload);
+        }
 
         // Track that we sent a report to this user
         await User.findByIdAndUpdate(user._id, {

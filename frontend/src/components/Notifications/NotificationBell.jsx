@@ -42,8 +42,7 @@ const NotificationBell = ({ onClick }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (loading) return <LoadingSpinner message="Loading notifications..." />;
-  if (error) return <ErrorMessage message={error} />;
+
 
   return (
     <div className="notif-bell-wrapper" ref={bellRef}>
