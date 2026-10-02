@@ -351,7 +351,7 @@ export const getFeatureUsageAnalytics = asyncHandler(async (req, res) => {
     AiLog.countDocuments(),
     AiLog.countDocuments({ status: "success" }),
     AiLog.countDocuments({ model: "simulated" }),
-    AiLog.countDocuments({ status: "fallback_simulated", model: "gemini-2.5-flash" }),
+    AiLog.countDocuments({ status: "fallback_simulated", model: { $ne: "simulated" } }),
     AiLog.countDocuments({ status: "error" }),
     AiLog.distinct("userId", { userId: { $ne: null } }),
     AiLog.aggregate([

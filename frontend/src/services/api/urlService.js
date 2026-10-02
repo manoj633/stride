@@ -24,7 +24,8 @@ export const goalAPI = {
   updateStatus: (id, data) => axiosInstance.patch(`/goals/${id}/status`, data),
   archive: (id) => axiosInstance.post(`/goals/${id}/archive`),
   unarchive: (id) => axiosInstance.post(`/goals/${id}/unarchive`),
-  getGoalPrediction: (id) => axiosInstance.get(`/goals/${id}/prediction`),
+  getGoalPrediction: (id, params = {}) =>
+    axiosInstance.get(`/goals/${id}/prediction`, { params }),
 };
 
 export const taskAPI = {

@@ -1,42 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { goalAPI } from "../../services/api/urlService";
+import { FiRefreshCw } from "react-icons/fi";
+import { toast } from "react-toastify";
 import "./AIPrediction.css";
 
 const AIPrediction = ({ goalId }) => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let active = true;
-
-    const fetchPrediction = async () => {
-      try {
+  const fetchPrediction = async (forceRefresh = false) => {
+    try {
+      if (forceRefresh) {
+        setRefreshing(true);
+      } else {
         setLoading(true);
-        const { data } = await goalAPI.getGoalPrediction(goalId);
-        if (active) {
-          setPrediction(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (active) {
-          console.error("Error fetching goal prediction:", err);
-          setError("Could not load AI prediction metrics.");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
       }
-    };
 
-    if (goalId) {
-      fetchPrediction();
+      const { data } = await goalAPI.getGoalPrediction(goalId, {
+        refresh: forceRefresh,
+      });
+
+      setPrediction(data);
+      setError(null);
+
+      if (forceRefresh) {
+        toast.success("AI Coach prediction updated!");
+      }
+    } catch (err) {
+      console.error("Error fetching goal prediction:", err);
+      if (forceRefresh) {
+        toast.error("Failed to refresh prediction. Showing cached assessment.");
+      } else {
+        setError("Could not load AI prediction metrics.");
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
 
-    return () => {
-      active = false;
-    };
+  useEffect(() => {
+    if (goalId) {
+      fetchPrediction(false);
+    }
   }, [goalId]);
 
   if (loading) {
@@ -67,14 +75,41 @@ const AIPrediction = ({ goalId }) => {
     }
   };
 
+  const formatCachedTime = (cachedAt) => {
+    if (!cachedAt) return null;
+    const date = new Date(cachedAt);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <div className="ai-prediction">
       <div className="ai-prediction__header">
         <div className="ai-prediction__title-group">
           <span className="ai-prediction__icon">🧠</span>
-          <h3>AI Coach Forecast</h3>
+          <div>
+            <h3>AI Coach Forecast</h3>
+            {prediction.cachedAt && (
+              <span className="ai-prediction__timestamp">
+                {prediction.isCached ? "Cached assessment" : "Freshly generated"} • {formatCachedTime(prediction.cachedAt)}
+              </span>
+            )}
+          </div>
         </div>
-        {getStatusBadge(prediction.status)}
+
+        <div className="ai-prediction__actions">
+          <button
+            type="button"
+            className={`ai-prediction__refresh-btn ${refreshing ? "refreshing" : ""}`}
+            onClick={() => fetchPrediction(true)}
+            disabled={refreshing || loading}
+            title="Generate fresh AI prediction with latest task metrics"
+            aria-label="Refresh AI prediction"
+          >
+            <FiRefreshCw className={`refresh-icon ${refreshing ? "spinning" : ""}`} size={12} />
+            <span>{refreshing ? "Analyzing..." : "Refresh"}</span>
+          </button>
+          {getStatusBadge(prediction.status)}
+        </div>
       </div>
 
       <div className="ai-prediction__assessment">

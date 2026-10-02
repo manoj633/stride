@@ -763,7 +763,26 @@ const getGoalPrediction = asyncHandler(async (req, res) => {
     onTrack = false;
   }
 
-  // Get AI Coach assessment text
+  const forceRefresh = req.query.refresh === "true" || req.query.force === "true";
+
+  // Check if we have a valid cached AI assessment
+  if (!forceRefresh && goal.aiPredictionCache && goal.aiPredictionCache.assessment) {
+    return res.json({
+      onTrack,
+      completionVelocity: blendedVelocity,
+      daysRemaining,
+      daysNeeded,
+      status,
+      aiCoachAssessment: goal.aiPredictionCache.assessment,
+      totalTasks: tasks.length,
+      completedTasks: completedTasksCount,
+      remainingTasks: remainingTasksCount,
+      isCached: true,
+      cachedAt: goal.aiPredictionCache.lastGeneratedAt,
+    });
+  }
+
+  // Get fresh AI Coach assessment text
   const aiCoachAssessment = await getAICoachPrediction(
     goal.title,
     goal.description,
@@ -775,6 +794,20 @@ const getGoalPrediction = asyncHandler(async (req, res) => {
     { userId: req.userId, goalId: goal._id }
   );
 
+  // Update AI prediction cache on the goal
+  goal.aiPredictionCache = {
+    assessment: aiCoachAssessment,
+    lastGeneratedAt: new Date(),
+    status,
+    completedTasksCount,
+    totalTasksCount: tasks.length,
+    daysRemaining,
+    daysNeeded,
+    completionVelocity: blendedVelocity,
+    onTrack,
+  };
+  await goal.save();
+
   res.json({
     onTrack,
     completionVelocity: blendedVelocity,
@@ -785,6 +818,8 @@ const getGoalPrediction = asyncHandler(async (req, res) => {
     totalTasks: tasks.length,
     completedTasks: completedTasksCount,
     remainingTasks: remainingTasksCount,
+    isCached: false,
+    cachedAt: goal.aiPredictionCache.lastGeneratedAt,
   });
 });
 

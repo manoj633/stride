@@ -1,5 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
-import AiLog from "../models/aiLogModel.js";
+import { runSafeAiGeneration } from "../services/geminiService.js";
 
 export const getAICoachPrediction = async (
   goalTitle,
@@ -11,42 +10,7 @@ export const getAICoachPrediction = async (
   status,
   metadata = {}
 ) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const startTime = Date.now();
-  const promptPreview = `Goal: "${goalTitle}" | Tasks: ${completedTasks}/${totalTasks} | Status: ${status}`;
-
-  if (!apiKey) {
-    const assessment = getSimulatedCoachAssessment(
-      goalTitle,
-      completedTasks,
-      totalTasks,
-      daysRemaining,
-      daysNeeded,
-      status
-    );
-
-    try {
-      await AiLog.create({
-        userId: metadata.userId || null,
-        goalId: metadata.goalId || null,
-        model: "simulated",
-        status: "fallback_simulated",
-        latencyMs: Date.now() - startTime,
-        promptPreview,
-        responseLength: assessment.length,
-        errorMessage: "GEMINI_API_KEY is not configured, fallback used",
-      });
-    } catch (logErr) {
-      console.error("Failed to save AiLog entry:", logErr.message);
-    }
-
-    return assessment;
-  }
-
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-
-    const prompt = `You are Stride's expert AI productivity coach. Analyze the progression statistics of a user's goal:
+  const prompt = `You are Stride's expert AI productivity coach. Analyze the progression statistics of a user's goal:
 Goal Title: "${goalTitle}"
 Goal Description: "${goalDescription || 'No description provided'}"
 Progression: Completed ${completedTasks} out of ${totalTasks} tasks.
@@ -60,78 +24,26 @@ Write a short, engaging, and personalized coaching assessment (maximum 3 sentenc
 - If the status is "at-risk" or "overdue", be encouraging yet direct, and suggest an actionable tip (e.g. using Pomodoro focus blocks or breaking down remaining tasks) to speed up completion.
 Do not use markdown formatting in your response. Keep the tone friendly, concise, and professional.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+  const result = await runSafeAiGeneration({
+    userId: metadata.userId || null,
+    goalId: metadata.goalId || null,
+    prompt,
+    responseMimeType: "text/plain",
+  });
 
-    if (response && response.text) {
-      const text = response.text.trim();
-      try {
-        await AiLog.create({
-          userId: metadata.userId || null,
-          goalId: metadata.goalId || null,
-          model: "gemini-2.5-flash",
-          status: "success",
-          latencyMs: Date.now() - startTime,
-          promptPreview,
-          responseLength: text.length,
-        });
-      } catch (logErr) {
-        console.error("Failed to save AiLog entry:", logErr.message);
-      }
-      return text;
-    }
-
-    const fallbackText = getSimulatedCoachAssessment(
-      goalTitle,
-      completedTasks,
-      totalTasks,
-      daysRemaining,
-      daysNeeded,
-      status
-    );
-    try {
-      await AiLog.create({
-        userId: metadata.userId || null,
-        goalId: metadata.goalId || null,
-        model: "gemini-2.5-flash",
-        status: "fallback_simulated",
-        latencyMs: Date.now() - startTime,
-        promptPreview,
-        responseLength: fallbackText.length,
-        errorMessage: "Empty response received from Gemini",
-      });
-    } catch (logErr) {
-      console.error("Failed to save AiLog entry:", logErr.message);
-    }
-    return fallbackText;
-  } catch (err) {
-    console.error("Gemini API error:", err?.message || err?.status || err);
-    const fallbackText = getSimulatedCoachAssessment(
-      goalTitle,
-      completedTasks,
-      totalTasks,
-      daysRemaining,
-      daysNeeded,
-      status
-    );
-    try {
-      await AiLog.create({
-        userId: metadata.userId || null,
-        goalId: metadata.goalId || null,
-        model: "gemini-2.5-flash",
-        status: "error",
-        latencyMs: Date.now() - startTime,
-        promptPreview,
-        responseLength: fallbackText.length,
-        errorMessage: err?.message || "Error calling Gemini API",
-      });
-    } catch (logErr) {
-      console.error("Failed to save AiLog entry:", logErr.message);
-    }
-    return fallbackText;
+  if (result.status === "success" && result.data && typeof result.data === "string") {
+    return result.data.trim();
   }
+
+  // Graceful fallback simulation if rate-limited, quota exceeded, or error
+  return getSimulatedCoachAssessment(
+    goalTitle,
+    completedTasks,
+    totalTasks,
+    daysRemaining,
+    daysNeeded,
+    status
+  );
 };
 
 const getSimulatedCoachAssessment = (

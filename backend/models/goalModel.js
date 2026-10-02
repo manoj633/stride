@@ -91,6 +91,44 @@ const GoalSchema = new mongoose.Schema(
         ref: "Comment",
       },
     ],
+    aiPredictionCache: {
+      assessment: {
+        type: String,
+        default: null,
+      },
+      lastGeneratedAt: {
+        type: Date,
+        default: null,
+      },
+      status: {
+        type: String,
+        default: null,
+      },
+      completedTasksCount: {
+        type: Number,
+        default: 0,
+      },
+      totalTasksCount: {
+        type: Number,
+        default: 0,
+      },
+      daysRemaining: {
+        type: Number,
+        default: 0,
+      },
+      daysNeeded: {
+        type: Number,
+        default: 0,
+      },
+      completionVelocity: {
+        type: Number,
+        default: 0,
+      },
+      onTrack: {
+        type: Boolean,
+        default: true,
+      },
+    },
   },
   { timestamps: true }
 );
