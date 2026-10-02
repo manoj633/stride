@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks.js";
 import { toast } from "react-toastify";
-import { updateProfile } from "../../store/features/users/userSlice.js";
-import { reportAPI } from "../../services/api/urlService.js";
+import { updateProfile, clearUserInfo } from "../../store/features/users/userSlice.js";
+import { reportAPI, userAPI } from "../../services/api/urlService.js";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Common/LoadingSpinner";
@@ -20,6 +20,10 @@ import {
   FiExternalLink,
   FiChevronRight,
   FiX,
+  FiDownload,
+  FiTrash2,
+  FiAlertTriangle,
+  FiDatabase,
 } from "react-icons/fi";
 
 const Profile = () => {
@@ -29,6 +33,12 @@ const Profile = () => {
   const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+
+  // GDPR Data Portability & Account Erasure state
+  const [isExporting, setIsExporting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -81,6 +91,74 @@ const Profile = () => {
       toast.success("Profile updated successfully!");
     } catch (err) {
       toast.error(err?.data?.message || err?.message || "Failed to update profile");
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const response = await userAPI.exportData();
+      const blob = new Blob([response.data], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+      let filename = `stride-personal-data-${new Date().toISOString().slice(0, 10)}.json`;
+      const disposition = response.headers?.["content-disposition"];
+      if (disposition && disposition.indexOf("filename=") !== -1) {
+        const matches = /filename="?([^"]+)"?/.exec(disposition);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
+
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Personal data archive downloaded successfully!");
+    } catch (err) {
+      console.error("Export data error:", err);
+      let errorMsg = "Failed to export personal data.";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          if (parsed.message) errorMsg = parsed.message;
+        } catch (_) {}
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      toast.error(errorMsg);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault();
+    if (!deletePassword.trim()) {
+      toast.error("Please enter your password to confirm account deletion.");
+      return;
+    }
+    try {
+      setIsDeleting(true);
+      const res = await userAPI.deleteAccount({ password: deletePassword });
+      toast.success(res.data?.message || "Account permanently deleted.");
+      setShowDeleteModal(false);
+      setDeletePassword("");
+      dispatch(clearUserInfo());
+      navigate("/register");
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to delete account. Please verify your password.";
+      toast.error(msg);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -329,6 +407,75 @@ const Profile = () => {
                     Configure 2FA
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Privacy & Data Governance (GDPR Art. 17 & 20) */}
+          <div className="profile-card profile-card--privacy">
+            <div className="profile-card-header">
+              <div className="profile-card-header__icon profile-card-header__icon--privacy">
+                <FiDatabase size={18} />
+              </div>
+              <div>
+                <h3 className="profile-card-title">Privacy & Data Governance</h3>
+                <p className="profile-card-subtitle">
+                  GDPR Article 17 (Right to Erasure) & Article 20 (Data Portability)
+                </p>
+              </div>
+            </div>
+
+            <div className="security-rows">
+              {/* Data Portability (Export) */}
+              <div className="security-row">
+                <div className="security-row__left">
+                  <div className="security-icon-circle security-icon-circle--accent">
+                    <FiDownload size={16} />
+                  </div>
+                  <div className="security-row__meta">
+                    <span className="security-row__title">Export Personal Data</span>
+                    <span className="security-row__desc">
+                      Download your profile, goals, tasks, reports, and activity in JSON format
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="security-btn security-btn--subtle"
+                  id="export-data-btn"
+                >
+                  {isExporting ? "Exporting..." : "Export Data"}
+                </button>
+              </div>
+
+              {/* Danger Zone: Right to Erasure (Account Deletion) */}
+              <div className="security-row security-row--danger">
+                <div className="security-row__left">
+                  <div className="security-icon-circle security-icon-circle--danger">
+                    <FiTrash2 size={16} />
+                  </div>
+                  <div className="security-row__meta">
+                    <span className="security-row__title security-row__title--danger">
+                      Delete Account
+                    </span>
+                    <span className="security-row__desc">
+                      Permanently wipe your account and all associated workspace data (irreversible)
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeletePassword("");
+                    setShowDeleteModal(true);
+                  }}
+                  className="security-btn security-btn--danger"
+                  id="delete-account-btn"
+                >
+                  Delete Account
+                </button>
               </div>
             </div>
           </div>
@@ -602,6 +749,112 @@ const Profile = () => {
                     </li>
                   ))}
               </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Deletion Confirmation Modal (GDPR Article 17) */}
+      {showDeleteModal && (
+        <div
+          className="report-modal-backdrop"
+          onClick={() => {
+            if (!isDeleting) {
+              setShowDeleteModal(false);
+              setDeletePassword("");
+            }
+          }}
+        >
+          <div
+            className="report-modal privacy-delete-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+          >
+            <div className="report-modal__header">
+              <div className="privacy-delete-modal__title-row">
+                <div className="privacy-delete-modal__icon">
+                  <FiAlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 id="delete-modal-title" className="report-modal__title text-danger">
+                    Permanently Delete Account
+                  </h3>
+                  <p className="privacy-delete-modal__subtitle">
+                    GDPR Article 17 Right to Erasure
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="report-modal__close-btn"
+                disabled={isDeleting}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword("");
+                }}
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="privacy-delete-modal__body">
+              <div className="privacy-delete-callout">
+                <FiAlertTriangle className="privacy-delete-callout__icon" size={24} />
+                <div className="privacy-delete-callout__text">
+                  <strong>Warning: This action is permanent and immediate.</strong>
+                  <p>
+                    All your goals, tasks, subtasks, comments, weekly progress reports,
+                    focus sessions, and login credentials will be permanently erased.
+                    You will not be able to recover this account or any associated data.
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleDeleteAccount} className="privacy-delete-form">
+                <div className="profile-form-group">
+                  <label className="profile-form-label" htmlFor="delete-account-password">
+                    Confirm your current password
+                  </label>
+                  <div className="profile-input-box">
+                    <FiLock className="profile-input-icon" />
+                    <input
+                      id="delete-account-password"
+                      type="password"
+                      className="profile-input"
+                      placeholder="Enter your current password"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      required
+                      autoFocus
+                      disabled={isDeleting}
+                    />
+                  </div>
+                </div>
+
+                <div className="privacy-delete-modal__actions">
+                  <button
+                    type="button"
+                    className="security-btn security-btn--outline"
+                    disabled={isDeleting}
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setDeletePassword("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="security-btn security-btn--danger-solid"
+                    disabled={isDeleting || !deletePassword.trim()}
+                    id="confirm-delete-account-btn"
+                  >
+                    {isDeleting ? "Erasing Account..." : "Permanently Delete Account"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

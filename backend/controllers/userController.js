@@ -15,6 +15,9 @@ import Task from "../models/taskModel.js";
 import Subtask from "../models/subtaskModel.js";
 import Comment from "../models/commentModel.js";
 import Notification from "../models/notificationModel.js";
+import WeeklyReport from "../models/weeklyReportModel.js";
+import PomodoroSession from "../models/pomodoroSessionModel.js";
+import AiLog from "../models/AiLog.js";
 import AuditLog from "../models/auditLogModel.js";
 import logAdminAction from "../utils/auditLogger.js";
 import { checkAndTriggerYearInReviewNotification } from "../utils/yearInReviewNotification.js";
@@ -297,6 +300,243 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+//@desc     Delete self user account & cascade all personal data (GDPR Art. 17 Right to Erasure)
+//@route    DELETE /api/users/profile
+//@access   Private
+const deleteSelfAccount = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const userId = req.user._id;
+
+  if (!password) {
+    res.status(400);
+    throw new Error("Please enter your current password to confirm account deletion.");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Re-verify password for security
+  const isMatch = await user.matchPassword(password);
+  if (!isMatch) {
+    res.status(401);
+    throw new Error("Incorrect password. Account deletion aborted.");
+  }
+
+  // Safeguard: Cannot delete if sole admin
+  if (user.isAdmin && (await User.countDocuments({ isAdmin: true })) <= 1) {
+    res.status(400);
+    throw new Error(
+      "Cannot delete account: You are the sole administrator. Please assign or promote another administrator before deleting your account."
+    );
+  }
+
+  // Cascade cleanup across all associated collections:
+  // 1. Find all goals created by this user
+  const userGoals = await Goal.find({ createdBy: user._id }).select("_id");
+  const userGoalIds = userGoals.map((g) => g._id);
+
+  // 2. Find all tasks created by user OR linked to user's goals
+  const userTasks = await Task.find({
+    $or: [{ createdBy: user._id }, { goalId: { $in: userGoalIds } }],
+  }).select("_id");
+  const userTaskIds = userTasks.map((t) => t._id);
+
+  // 3. Cascade delete subtasks
+  const deletedSubtasks = await Subtask.deleteMany({
+    $or: [
+      { createdBy: user._id },
+      { goalId: { $in: userGoalIds } },
+      { taskId: { $in: userTaskIds } },
+    ],
+  });
+
+  // 4. Cascade delete tasks
+  const deletedTasks = await Task.deleteMany({
+    $or: [{ createdBy: user._id }, { goalId: { $in: userGoalIds } }],
+  });
+
+  // 5. Cascade delete comments
+  const deletedComments = await Comment.deleteMany({
+    $or: [{ authorId: user._id }, { goalId: { $in: userGoalIds } }],
+  });
+
+  // 6. Cascade delete goals
+  const deletedGoals = await Goal.deleteMany({ createdBy: user._id });
+
+  // 7. Prune collaborator references on other goals
+  await Goal.updateMany(
+    { collaborators: user._id },
+    { $pull: { collaborators: user._id } }
+  );
+
+  // 8. Cascade delete notifications
+  const deletedNotifications = await Notification.deleteMany({ user: user._id });
+
+  // 9. Cascade delete weekly reports
+  const deletedWeeklyReports = await WeeklyReport.deleteMany({ user: user._id });
+
+  // 10. Cascade delete pomodoro sessions
+  const deletedPomodoros = await PomodoroSession.deleteMany({ user: user._id });
+
+  // 11. Cascade delete AI logs
+  const deletedAiLogs = await AiLog.deleteMany({ userId: user._id });
+
+  // 12. Delete password resets and email verifications
+  await PasswordReset.deleteMany({ userId: user._id });
+  await EmailVerification.deleteMany({ userId: user._id });
+
+  // 13. Audit log of self-service erasure
+  try {
+    await AuditLog.create({
+      actorId: user._id,
+      actorName: user.name,
+      actorEmail: user.email,
+      action: "USER_SELF_DELETE",
+      targetType: "User",
+      targetId: user._id,
+      targetIdentifier: `${user.name} (${user.email})`,
+      details: {
+        reason: "Self-service GDPR Right to Erasure request",
+        deletedGoalsCount: deletedGoals.deletedCount,
+        deletedTasksCount: deletedTasks.deletedCount,
+        deletedSubtasksCount: deletedSubtasks.deletedCount,
+        deletedCommentsCount: deletedComments.deletedCount,
+        deletedNotificationsCount: deletedNotifications.deletedCount,
+        deletedWeeklyReportsCount: deletedWeeklyReports.deletedCount,
+        deletedPomodorosCount: deletedPomodoros.deletedCount,
+        deletedAiLogsCount: deletedAiLogs.deletedCount,
+      },
+    });
+  } catch (auditErr) {
+    console.error("Audit log error on self-deletion:", auditErr);
+  }
+
+  // 14. Delete the user document
+  await User.deleteOne({ _id: user._id });
+
+  // 15. Clear session cookie
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+
+  res.status(200).json({
+    message: "Your account and all associated personal data have been permanently erased.",
+    cascaded: {
+      goals: deletedGoals.deletedCount,
+      tasks: deletedTasks.deletedCount,
+      subtasks: deletedSubtasks.deletedCount,
+      comments: deletedComments.deletedCount,
+      notifications: deletedNotifications.deletedCount,
+      weeklyReports: deletedWeeklyReports.deletedCount,
+      pomodoros: deletedPomodoros.deletedCount,
+      aiLogs: deletedAiLogs.deletedCount,
+    },
+  });
+});
+
+//@desc     Export user personal data package (GDPR Art. 20 Right to Data Portability)
+//@route    GET /api/users/profile/export
+//@access   Private
+const exportSelfData = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId).select("-password -twoFactorSecret -twoFactorBackupCodes");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Fetch all user data across collections
+  const goals = await Goal.find({
+    $or: [{ createdBy: userId }, { collaborators: userId }],
+  }).lean();
+  const goalIds = goals.map((g) => g._id);
+
+  const tasks = await Task.find({
+    $or: [{ createdBy: userId }, { goalId: { $in: goalIds } }],
+  }).lean();
+  const taskIds = tasks.map((t) => t._id);
+
+  const subtasks = await Subtask.find({
+    $or: [
+      { createdBy: userId },
+      { goalId: { $in: goalIds } },
+      { taskId: { $in: taskIds } },
+    ],
+  }).lean();
+
+  const comments = await Comment.find({
+    $or: [{ authorId: userId }, { goalId: { $in: goalIds } }],
+  }).lean();
+
+  const weeklyReports = await WeeklyReport.find({ user: userId })
+    .sort({ startDate: -1 })
+    .lean();
+
+  const pomodoroSessions = await PomodoroSession.find({ user: userId })
+    .sort({ completedAt: -1 })
+    .lean();
+
+  const notifications = await Notification.find({ user: userId })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const exportPayload = {
+    exportVersion: "1.0",
+    exportStandard: "GDPR Article 20 - Right to Data Portability",
+    exportedAt: new Date().toISOString(),
+    generator: "Stride Productivity Platform",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: Boolean(user.isAdmin),
+      isEmailVerified: Boolean(user.isEmailVerified),
+      isTwoFactorEnabled: Boolean(user.isTwoFactorEnabled),
+      xp: user.xp || 0,
+      level: user.level || 1,
+      streak: user.streak || 0,
+      totalTasksCompleted: user.totalTasksCompleted || 0,
+      totalGoalsCompleted: user.totalGoalsCompleted || 0,
+      totalPomodorosCompleted: user.totalPomodorosCompleted || 0,
+      achievements: user.achievements || [],
+      lastActive: user.lastActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
+    statistics: {
+      totalGoals: goals.length,
+      totalTasks: tasks.length,
+      totalSubtasks: subtasks.length,
+      totalComments: comments.length,
+      totalWeeklyReports: weeklyReports.length,
+      totalPomodoroSessions: pomodoroSessions.length,
+      totalNotifications: notifications.length,
+    },
+    data: {
+      goals,
+      tasks,
+      subtasks,
+      comments,
+      weeklyReports,
+      pomodoroSessions,
+      notifications,
+    },
+  };
+
+  const safeName = (user.name || "user").toLowerCase().replace(/[^a-z0-9]/g, "-");
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const filename = `stride-personal-data-${safeName}-${dateStr}.json`;
+
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Content-Type", "application/json");
+  return res.status(200).send(JSON.stringify(exportPayload, null, 2));
+});
+
 //@desc     Get all users (paginated and searchable)
 //@route    GET /api/users
 //@access   Private/Admin
@@ -480,10 +720,18 @@ const deleteUser = asyncHandler(async (req, res) => {
   // 8. Cascade delete notifications for this user
   const deletedNotifications = await Notification.deleteMany({ user: user._id });
 
-  // 9. Delete password reset tokens for user (keyed on userId, not email)
-  await PasswordReset.deleteMany({ userId: user._id });
+  // 9. Cascade delete weekly reports and pomodoro sessions
+  const deletedWeeklyReports = await WeeklyReport.deleteMany({ user: user._id });
+  const deletedPomodoros = await PomodoroSession.deleteMany({ user: user._id });
 
-  // 10. Finally, delete the user document
+  // 10. Cascade delete AI telemetry logs
+  const deletedAiLogs = await AiLog.deleteMany({ userId: user._id });
+
+  // 11. Delete password reset tokens & email verification tokens for user
+  await PasswordReset.deleteMany({ userId: user._id });
+  await EmailVerification.deleteMany({ userId: user._id });
+
+  // 12. Finally, delete the user document
   await User.deleteOne({ _id: user._id });
 
   // Log admin audit action
@@ -499,6 +747,9 @@ const deleteUser = asyncHandler(async (req, res) => {
       deletedSubtasksCount: deletedSubtasks.deletedCount,
       deletedCommentsCount: deletedComments.deletedCount,
       deletedNotificationsCount: deletedNotifications.deletedCount,
+      deletedWeeklyReportsCount: deletedWeeklyReports.deletedCount,
+      deletedPomodorosCount: deletedPomodoros.deletedCount,
+      deletedAiLogsCount: deletedAiLogs.deletedCount,
     },
   });
 
@@ -510,6 +761,9 @@ const deleteUser = asyncHandler(async (req, res) => {
       subtasks: deletedSubtasks.deletedCount,
       comments: deletedComments.deletedCount,
       notifications: deletedNotifications.deletedCount,
+      weeklyReports: deletedWeeklyReports.deletedCount,
+      pomodoros: deletedPomodoros.deletedCount,
+      aiLogs: deletedAiLogs.deletedCount,
     },
   });
 });
@@ -1333,6 +1587,8 @@ export {
   completePomodoro,
   getAdminStats,
   getAuditLogs,
+  deleteSelfAccount,
+  exportSelfData,
   verifyEmail,
   resendVerificationEmail,
 };

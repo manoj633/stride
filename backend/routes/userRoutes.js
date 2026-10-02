@@ -20,6 +20,8 @@ import {
   completePomodoro,
   getAdminStats,
   getAuditLogs,
+  deleteSelfAccount,
+  exportSelfData,
   verifyEmail,
   resendVerificationEmail,
 } from "../controllers/userController.js";
@@ -76,7 +78,11 @@ router.post(
 router
   .route("/profile")
   .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .put(protect, updateUserProfile)
+  .delete(protect, deleteSelfAccount);
+
+// GDPR Article 20 Right to Data Portability export route
+router.get("/profile/export", protect, exportSelfData);
 
 // Personal Year in Review retrospective route (must come before /:id)
 router.get("/year-in-review", protect, getPersonalYearInReview);

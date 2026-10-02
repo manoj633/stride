@@ -1046,7 +1046,164 @@
 }
 
 /* ==========================================================
-   7. Responsive Breakpoints
+   7. Privacy & Data Governance (GDPR)
+   ========================================================== */
+.profile-card--privacy {
+  border-color: #E2E8F0;
+}
+
+.profile-card-header__icon--privacy {
+  background: #F1F5F9;
+  color: #334155;
+}
+
+.security-row--danger {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.security-icon-circle--danger {
+  color: #DC2626;
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+}
+
+.security-row__title--danger {
+  color: #991B1B;
+}
+
+.security-btn--danger {
+  background: #FFFFFF;
+  border: 1px solid #FCA5A5;
+  color: #DC2626;
+}
+
+.security-btn--danger:hover {
+  background: #FEE2E2;
+  border-color: #F87171;
+  color: #B91C1C;
+}
+
+.security-btn--danger-solid {
+  background: #DC2626;
+  color: #FFFFFF;
+  border: 1px solid #DC2626;
+}
+
+.security-btn--danger-solid:hover:not(:disabled) {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+
+.security-btn--danger-solid:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Delete Modal Styling */
+.privacy-delete-modal {
+  max-width: 520px;
+}
+
+.privacy-delete-modal__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.privacy-delete-modal__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.privacy-delete-modal__subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+  margin: 2px 0 0 0;
+}
+
+.privacy-delete-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.privacy-delete-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--ef-radius-lg, 10px);
+  color: #991B1B;
+}
+
+.privacy-delete-callout__icon {
+  color: #DC2626;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.privacy-delete-callout__text strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.privacy-delete-callout__text p {
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin: 0;
+  color: #7F1D1D;
+}
+
+.privacy-delete-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.privacy-delete-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.report-modal__close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.report-modal__close-btn:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+/* ==========================================================
+   8. Responsive Breakpoints
    ========================================================== */
 @media (max-width: 1200px) {
   .profile-layout {

@@ -69,6 +69,9 @@ export const userAPI = {
   logout: () => axiosInstance.post("/users/logout"),
   getProfile: () => axiosInstance.get("/users/profile"),
   updateProfile: (userData) => axiosInstance.put("/users/profile", userData),
+  deleteAccount: (data) => axiosInstance.delete("/users/profile", { data }),
+  exportData: () =>
+    axiosInstance.get("/users/profile/export", { responseType: "blob" }),
 
   // Admin routes
   getAllUsers: (params) => axiosInstance.get("/users", { params }),
