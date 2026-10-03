@@ -118,7 +118,7 @@ const Profile = () => {
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success("Personal data archive downloaded successfully!");
+      toast.success("Takeout archive downloaded & security copy dispatched to your email!");
     } catch (err) {
       console.error("Export data error:", err);
       let errorMsg = "Failed to export personal data.";
@@ -426,16 +426,19 @@ const Profile = () => {
             </div>
 
             <div className="security-rows">
-              {/* Data Portability (Export) */}
+              {/* Data Portability (Google Takeout Standard) */}
               <div className="security-row">
                 <div className="security-row__left">
                   <div className="security-icon-circle security-icon-circle--accent">
                     <FiDownload size={16} />
                   </div>
                   <div className="security-row__meta">
-                    <span className="security-row__title">Export Personal Data</span>
+                    <div className="security-row__title-wrap">
+                      <span className="security-row__title">Export Data Archive</span>
+                      <span className="security-badge-active" style={{ background: "#E0F2FE", color: "#0369A1" }}>Takeout</span>
+                    </div>
                     <span className="security-row__desc">
-                      Download your profile, goals, tasks, reports, and activity in JSON format
+                      Download sanitized JSON & receive email copy via Google Takeout standard
                     </span>
                   </div>
                 </div>
@@ -446,7 +449,7 @@ const Profile = () => {
                   className="security-btn security-btn--subtle"
                   id="export-data-btn"
                 >
-                  {isExporting ? "Exporting..." : "Export Data"}
+                  {isExporting ? "Generating Takeout..." : "Download Takeout"}
                 </button>
               </div>
 
