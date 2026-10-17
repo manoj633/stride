@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow private user routes and internal endpoints from crawling
+Disallow: /api/
+Disallow: /profile
+Disallow: /reset-password/
+Disallow: /forgot-password
+
+# Sitemap
+# Sitemap: https://your-domain.com/sitemap.xml
