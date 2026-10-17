@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -18,6 +18,26 @@ const formatDate = (isoDate) => {
   return new Date(isoDate).toISOString().split("T")[0];
 };
 
+const getTodayDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getDefaultDueDate = (task) => {
+  const today = getTodayDateString();
+  if (!task?.startDate || !task?.endDate) {
+    return today;
+  }
+  const min = formatDate(task.startDate);
+  const max = formatDate(task.endDate);
+  if (today < min) return min;
+  if (today > max) return max;
+  return today;
+};
+
 const AddSubTask = ({ onSubtaskAdded }) => {
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
@@ -26,11 +46,13 @@ const AddSubTask = ({ onSubtaskAdded }) => {
   const queryGoalId = searchParams.get("goalId") || "";
   const queryTaskId = searchParams.get("taskId") || "";
 
+  const defaultDueDate = useMemo(() => getTodayDateString(), []);
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     priority: "Medium",
-    dueDate: "",
+    dueDate: defaultDueDate,
     goalId: queryGoalId,
     taskId: queryTaskId,
   });
@@ -45,7 +67,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
     !isSubmitting &&
     (Boolean(formData.name?.trim()) ||
       Boolean(formData.description?.trim()) ||
-      Boolean(formData.dueDate));
+      formData.dueDate !== defaultDueDate);
 
   useUnsavedChanges(isDirty, {
     title: "Discard New Subtask?",
@@ -91,12 +113,19 @@ const AddSubTask = ({ onSubtaskAdded }) => {
   // When taskId is set and tasks become available, sync date constraints
   useEffect(() => {
     const targetTaskId = formData.taskId || queryTaskId;
-    if (targetTaskId) {
+    if (targetTaskId && allTasks.length > 0) {
       const matchedTask = allTasks.find((t) => t._id === targetTaskId);
       if (matchedTask?.startDate && matchedTask?.endDate) {
         setTaskDateRange({
           minDate: formatDate(matchedTask.startDate),
           maxDate: formatDate(matchedTask.endDate),
+        });
+        const clampedDueDate = getDefaultDueDate(matchedTask);
+        setFormData((prev) => {
+          if (!prev.dueDate || prev.dueDate < formatDate(matchedTask.startDate) || prev.dueDate > formatDate(matchedTask.endDate)) {
+            return { ...prev, dueDate: clampedDueDate };
+          }
+          return prev;
         });
       }
     }
@@ -109,10 +138,16 @@ const AddSubTask = ({ onSubtaskAdded }) => {
 
   const handleTaskChange = (e) => {
     const selectedTaskId = e.target.value;
-    setFormData((prev) => ({ ...prev, taskId: selectedTaskId }));
-
     const selectedTask = availableTasks.find((task) => task._id === selectedTaskId);
-    if (selectedTask) {
+    const newDueDate = selectedTask ? getDefaultDueDate(selectedTask) : defaultDueDate;
+
+    setFormData((prev) => ({
+      ...prev,
+      taskId: selectedTaskId,
+      dueDate: newDueDate,
+    }));
+
+    if (selectedTask?.startDate && selectedTask?.endDate) {
       setTaskDateRange({
         minDate: formatDate(selectedTask.startDate),
         maxDate: formatDate(selectedTask.endDate),
@@ -137,7 +172,7 @@ const AddSubTask = ({ onSubtaskAdded }) => {
         }
       );
       onSubtaskAdded?.(newSubtaskData);
-      setFormData({ name: "", description: "", priority: "Medium", dueDate: "", goalId: "", taskId: "" });
+      setFormData({ name: "", description: "", priority: "Medium", dueDate: defaultDueDate, goalId: "", taskId: "" });
       setTaskDateRange({ minDate: "", maxDate: "" });
       if (formData.taskId) {
         navigate(`/tasks/${formData.taskId}`);

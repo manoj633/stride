@@ -257,10 +257,114 @@
   transform: translateY(0);
 }
 
-/* ── Tags multi-select ─────────────────────────────────── */
-.form-group select[multiple] {
-  height: 100px;
-  padding: 6px 8px;
+/* ── Interactive Tags Picker ───────────────────────────── */
+.ef-tags-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ef-tags-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ef-tags-header label {
+  margin-bottom: 0;
+}
+
+.ef-tags-count {
+  font-size: 12px;
+  color: var(--ef-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ef-tags-clear-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ef-accent);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.ef-tags-clear-btn:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.ef-tags-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: #fbfbfb;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-md);
+  min-height: 48px;
+  align-items: center;
+}
+
+.ef-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: #ffffff;
+  color: var(--ef-text-primary);
+  font-family: var(--ef-font-body);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.ef-tag-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06);
+}
+
+.ef-tag-chip:active {
+  transform: translateY(0);
+}
+
+.ef-tag-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.ef-tag-chip__name {
+  line-height: 1;
+}
+
+.ef-tag-chip__check {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 2px;
+  opacity: 0.9;
+}
+
+.ef-tag-chip__plus {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ef-text-tertiary);
+  margin-left: 2px;
+  transition: color 0.15s ease;
+}
+
+.ef-tag-chip:hover .ef-tag-chip__plus {
+  color: var(--ef-text-primary);
 }
 
 /* ── Priority badges inside select ────────────────────── */

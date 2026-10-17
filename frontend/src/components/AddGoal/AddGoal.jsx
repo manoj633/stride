@@ -1,5 +1,5 @@
 // AddGoal.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import "./AddGoal.css";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -11,9 +11,35 @@ import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import { useUnsavedChanges } from "../Common/useUnsavedChanges";
 
+const getCurrentMonthDateRange = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  return { startDate, endDate };
+};
+
+// Derive high-contrast readable text color from background hex
+const getTagTextColor = (hex) => {
+  if (!hex || typeof hex !== "string" || !hex.startsWith("#")) return "#FFFFFF";
+  const cleanHex =
+    hex.length === 4
+      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+      : hex;
+  const r = parseInt(cleanHex.slice(1, 3), 16) || 0;
+  const g = parseInt(cleanHex.slice(3, 5), 16) || 0;
+  const b = parseInt(cleanHex.slice(5, 7), 16) || 0;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "#18181B" : "#FFFFFF";
+};
+
 const AddGoal = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
+  const defaultDates = useMemo(() => getCurrentMonthDateRange(), []);
 
   const tags = useAppSelector((state) => state.tags.items);
   const loading = useAppSelector((state) => state.tags.loading);
@@ -29,19 +55,31 @@ const AddGoal = () => {
     category: "Education",
     priority: "Medium",
     duration: {
-      startDate: "",
-      endDate: "",
+      startDate: defaultDates.startDate,
+      endDate: defaultDates.endDate,
     },
     tags: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleTagToggle = (tagId) => {
+    setGoal((prev) => {
+      const isSelected = prev.tags.some(
+        (t) => (typeof t === "object" ? t._id === tagId : t === tagId)
+      );
+      const nextTags = isSelected
+        ? prev.tags.filter((t) => (typeof t === "object" ? t._id !== tagId : t !== tagId))
+        : [...prev.tags, tagId];
+      return { ...prev, tags: nextTags };
+    });
+  };
+
   const isDirty =
     !isSubmitting &&
     (Boolean(goal.title.trim()) ||
       Boolean(goal.description.trim()) ||
-      Boolean(goal.duration.startDate) ||
-      Boolean(goal.duration.endDate) ||
+      goal.duration.startDate !== defaultDates.startDate ||
+      goal.duration.endDate !== defaultDates.endDate ||
       goal.tags.length > 0);
 
   useUnsavedChanges(isDirty, {
@@ -59,12 +97,8 @@ const AddGoal = () => {
       category: template.category || "Education",
       priority: template.priority || "Medium",
       duration: {
-        startDate: template.duration?.startDate
-          ? template.duration.startDate.slice(0, 10)
-          : "",
-        endDate: template.duration?.endDate
-          ? template.duration.endDate.slice(0, 10)
-          : "",
+        startDate: defaultDates.startDate,
+        endDate: defaultDates.endDate,
       },
       tags: template.tags || [],
     });
@@ -96,7 +130,7 @@ const AddGoal = () => {
         description: "",
         category: "Education",
         priority: "Medium",
-        duration: { startDate: "", endDate: "" },
+        duration: { startDate: defaultDates.startDate, endDate: defaultDates.endDate },
         tags: [],
       });
 
@@ -230,6 +264,7 @@ const AddGoal = () => {
                   <input
                     type="date"
                     id="endDate"
+                    min={goal.duration?.startDate || ""}
                     value={goal.duration?.endDate || ""}
                     onChange={(e) =>
                       setGoal({
@@ -244,29 +279,71 @@ const AddGoal = () => {
               </div>
 
               {tags.length > 0 && (
-                <div className="form-group">
-                  <label htmlFor="tags">Tags</label>
-                  <select
-                    multiple
-                    id="tags"
-                    value={goal.tags}
-                    onChange={(e) =>
-                      setGoal({
-                        ...goal,
-                        tags: Array.from(
-                          e.target.selectedOptions,
-                          (option) => option.value
-                        ),
-                      })
-                    }
-                    aria-label="Goal tags"
-                  >
-                    {tags.map((tag) => (
-                      <option key={tag._id} value={tag._id}>
-                        {tag.name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="form-group ef-tags-group">
+                  <div className="ef-tags-header">
+                    <label>Tags</label>
+                    {goal.tags.length > 0 && (
+                      <span className="ef-tags-count">
+                        {goal.tags.length} selected
+                        <button
+                          type="button"
+                          className="ef-tags-clear-btn"
+                          onClick={() => setGoal((prev) => ({ ...prev, tags: [] }))}
+                          aria-label="Clear selected tags"
+                        >
+                          Clear
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                  <div className="ef-tags-picker" role="group" aria-label="Select tags">
+                    {tags.map((tag) => {
+                      const isSelected = goal.tags.some(
+                        (t) => (typeof t === "object" ? t._id === tag._id : t === tag._id)
+                      );
+                      const textColor = getTagTextColor(tag.color);
+
+                      return (
+                        <button
+                          key={tag._id}
+                          type="button"
+                          className={`ef-tag-chip ${isSelected ? "selected" : ""}`}
+                          onClick={() => handleTagToggle(tag._id)}
+                          style={
+                            isSelected
+                              ? {
+                                  backgroundColor: tag.color,
+                                  color: textColor,
+                                  borderColor: tag.color,
+                                  boxShadow: `0 2px 6px ${tag.color}40`,
+                                }
+                              : {
+                                  borderColor: `${tag.color}70`,
+                                }
+                          }
+                          aria-pressed={isSelected}
+                          title={isSelected ? `Deselect ${tag.name}` : `Select ${tag.name}`}
+                        >
+                          <span
+                            className="ef-tag-chip__dot"
+                            style={{
+                              backgroundColor: isSelected ? textColor : tag.color,
+                            }}
+                          />
+                          <span className="ef-tag-chip__name">{tag.name}</span>
+                          {isSelected ? (
+                            <span className="ef-tag-chip__check" aria-hidden="true">
+                              ✓
+                            </span>
+                          ) : (
+                            <span className="ef-tag-chip__plus" aria-hidden="true">
+                              +
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 

@@ -1,5 +1,5 @@
 // src/components/AddTask/AddTask.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { toast } from "react-toastify";
 import "./AddTask.css";
@@ -10,16 +10,46 @@ import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import { useUnsavedChanges } from "../Common/useUnsavedChanges";
 
+const getCurrentMonthDateRange = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  return { startDate, endDate };
+};
+
+const getDefaultTaskDates = (goal) => {
+  const { startDate: curStart, endDate: curEnd } = getCurrentMonthDateRange();
+  if (!goal?.duration?.startDate || !goal?.duration?.endDate) {
+    return { startDate: curStart, endDate: curEnd };
+  }
+  const gStart = new Date(goal.duration.startDate).toISOString().split("T")[0];
+  const gEnd = new Date(goal.duration.endDate).toISOString().split("T")[0];
+
+  let s = curStart;
+  let e = curEnd;
+  if (s < gStart) s = gStart;
+  if (s > gEnd) s = gStart;
+  if (e > gEnd) e = gEnd;
+  if (e < s) e = s;
+
+  return { startDate: s, endDate: e };
+};
+
 const AddTask = ({ goalId, onTaskAdded }) => {
   const [searchParams] = useSearchParams();
   const effectiveGoalId = goalId || searchParams.get("goalId") || "";
+
+  const defaultDates = useMemo(() => getCurrentMonthDateRange(), []);
 
   const [taskData, setTaskData] = useState({
     name: "",
     description: "",
     priority: "Medium",
-    startDate: "",
-    endDate: "",
+    startDate: defaultDates.startDate,
+    endDate: defaultDates.endDate,
     goalId: effectiveGoalId,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,8 +63,8 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     !isSubmitting &&
     (Boolean(taskData.name?.trim()) ||
       Boolean(taskData.description?.trim()) ||
-      Boolean(taskData.startDate) ||
-      Boolean(taskData.endDate));
+      taskData.startDate !== defaultDates.startDate ||
+      taskData.endDate !== defaultDates.endDate);
 
   useUnsavedChanges(isDirty, {
     title: "Discard New Task?",
@@ -69,8 +99,35 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     }
   }, [dispatch, effectiveGoalId, goals]);
 
+  // If effectiveGoalId is set and goals are loaded, adjust dates within goal bounds if needed
+  useEffect(() => {
+    if (taskData.goalId && goals.length > 0) {
+      const selected = goals.find((g) => g._id === taskData.goalId);
+      if (selected?.duration?.startDate && selected?.duration?.endDate) {
+        const { startDate, endDate } = getDefaultTaskDates(selected);
+        setTaskData((prev) => {
+          // Only update if current dates are the raw month defaults and outside goal bounds
+          const currentValid =
+            prev.startDate >= selected.duration.startDate.slice(0, 10) &&
+            prev.endDate <= selected.duration.endDate.slice(0, 10);
+          if (!currentValid) {
+            return { ...prev, startDate, endDate };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [taskData.goalId, goals]);
+
   const handleGoalChange = (e) => {
-    setTaskData({ ...taskData, goalId: e.target.value, startDate: "", endDate: "" });
+    const selected = goals.find((g) => g._id === e.target.value);
+    const { startDate, endDate } = getDefaultTaskDates(selected);
+    setTaskData({
+      ...taskData,
+      goalId: e.target.value,
+      startDate,
+      endDate,
+    });
   };
 
   const handleSubmit = async (e) => {
