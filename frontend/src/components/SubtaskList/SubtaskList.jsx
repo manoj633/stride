@@ -27,6 +27,8 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
   const [selectedMonth, setSelectedMonth] = useState(ownsData ? currentMonth : "all");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTag, setFilterTag] = useState("");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // Dynamically compute available years based on a standard window + data history
   const availableYears = useMemo(() => {
@@ -122,9 +124,25 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
       });
     }
 
+    // Filter by Priority
+    if (filterPriority && filterPriority !== "all") {
+      filtered = filtered.filter(
+        (st) => (st.priority || "").toLowerCase() === filterPriority.toLowerCase()
+      );
+    }
+
+    // Filter by Status
+    if (filterStatus && filterStatus !== "all") {
+      if (filterStatus === "completed") {
+        filtered = filtered.filter((st) => Boolean(st.completed));
+      } else if (filterStatus === "pending") {
+        filtered = filtered.filter((st) => !st.completed);
+      }
+    }
+
     // Search term
     if (searchTerm) {
-      const q = searchTerm.toLowerCase();
+      const q = searchTerm.trim().toLowerCase();
       filtered = filtered.filter(
         (st) =>
           (st.name || "").toLowerCase().includes(q) ||
@@ -142,7 +160,7 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
       const bDue = b.dueDate ? new Date(b.dueDate).getTime() : 0;
       return aDue - bDue;
     });
-  }, [propSubtasks, allSubtasks, filterTag, searchTerm, ownsData, selectedYear, selectedMonth]);
+  }, [propSubtasks, allSubtasks, filterTag, filterPriority, filterStatus, searchTerm, ownsData, selectedYear, selectedMonth]);
 
   const stats = useMemo(() => {
     const total = subtasks.length;
@@ -205,6 +223,10 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
           <SubtaskSearchAndFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
+            filterPriority={filterPriority}
+            setFilterPriority={setFilterPriority}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
             filterTag={filterTag}
             setFilterTag={setFilterTag}
             availableTags={tags}
@@ -215,6 +237,25 @@ const SubtaskList = ({ subtasks: propSubtasks, ownsData = false, taskDateRange }
             availableYears={ownsData ? availableYears : []}
           />
         </div>
+
+        {/* ── Cross-Year Search Notification Banner for Subtasks ── */}
+        {searchTerm.trim().length > 0 && ownsData && selectedYear !== "all" && subtasks.length === 0 && (
+          <div className="enhanced-goals__search-crossyear-banner" style={{ margin: "10px 0 16px 0" }}>
+            <div className="search-crossyear-banner__info">
+              <span className="search-crossyear-banner__icon">🔍</span>
+              <span>
+                No subtasks found matching "<strong>{searchTerm}</strong>" in <strong>{selectedYear}</strong>.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="search-crossyear-banner__btn"
+              onClick={() => handleYearChange("all")}
+            >
+              Search across all years
+            </button>
+          </div>
+        )}
 
         {/* ── Main Area ── */}
         <div className="enhanced-subtasks__main">

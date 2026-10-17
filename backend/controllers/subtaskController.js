@@ -11,8 +11,8 @@ import { updateTaskCompletionPercentage } from "../utils/completionRollup.js";
  * * access: Public
  */
 const getSubtasks = asyncHandler(async (req, res) => {
-  const { year, taskId, goalId } = req.query;
-  logger.info("Fetching subtasks", { endpoint: "/api/subtasks", year, taskId, goalId });
+  const { year, taskId, goalId, search, priority, status } = req.query;
+  logger.info("Fetching subtasks", { endpoint: "/api/subtasks", year, taskId, goalId, search, priority, status });
 
   const query = { createdBy: req.userId };
 
@@ -43,7 +43,41 @@ const getSubtasks = asyncHandler(async (req, res) => {
     }
   }
 
-  const subtasks = await Subtask.find(query);
+  // Priority filter
+  if (priority && priority !== "all") {
+    query.priority = new RegExp(`^${priority}$`, "i");
+  }
+
+  // Status filter
+  if (status && status !== "all") {
+    if (status === "completed") {
+      query.completed = true;
+    } else if (status === "pending" || status === "in-progress") {
+      query.completed = { $ne: true };
+    }
+  }
+
+  // Keyword search across name and description
+  if (search && search.trim()) {
+    const term = search.trim();
+    const searchRegex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const searchCond = {
+      $or: [{ name: searchRegex }, { description: searchRegex }],
+    };
+
+    if (query.$or) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: query.$or });
+      delete query.$or;
+      query.$and.push(searchCond);
+    } else if (query.$and) {
+      query.$and.push(searchCond);
+    } else {
+      query.$or = searchCond.$or;
+    }
+  }
+
+  const subtasks = await Subtask.find(query).sort({ updatedAt: -1, createdAt: -1 });
   logger.debug("Subtasks fetched successfully", {
     count: subtasks.length,
   });

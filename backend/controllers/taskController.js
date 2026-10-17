@@ -13,8 +13,8 @@ import { updateGoalCompletionPercentage } from "../utils/completionRollup.js";
  * * access: Private
  */
 const getTasks = asyncHandler(async (req, res) => {
-  const { year } = req.query;
-  logger.info("Fetching tasks", { endpoint: "/api/tasks", year });
+  const { year, search, priority, status } = req.query;
+  logger.info("Fetching tasks", { endpoint: "/api/tasks", year, search, priority, status });
 
   const query = { createdBy: req.userId };
 
@@ -39,7 +39,52 @@ const getTasks = asyncHandler(async (req, res) => {
     }
   }
 
-  const tasks = await Task.find(query);
+  // Priority filter
+  if (priority && priority !== "all") {
+    query.priority = new RegExp(`^${priority}$`, "i");
+  }
+
+  // Status filter
+  if (status && status !== "all") {
+    if (status === "completed") {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: [{ completionPercentage: 100 }, { completed: true }] });
+    } else if (status === "in-progress") {
+      query.$and = query.$and || [];
+      query.$and.push({
+        completionPercentage: { $gt: 0, $lt: 100 },
+        completed: { $ne: true },
+      });
+    } else if (status === "not-started") {
+      query.$and = query.$and || [];
+      query.$and.push({
+        completionPercentage: { $eq: 0 },
+        completed: { $ne: true },
+      });
+    }
+  }
+
+  // Keyword search across name and description
+  if (search && search.trim()) {
+    const term = search.trim();
+    const searchRegex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const searchCond = {
+      $or: [{ name: searchRegex }, { description: searchRegex }],
+    };
+
+    if (query.$or) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: query.$or });
+      delete query.$or;
+      query.$and.push(searchCond);
+    } else if (query.$and) {
+      query.$and.push(searchCond);
+    } else {
+      query.$or = searchCond.$or;
+    }
+  }
+
+  const tasks = await Task.find(query).sort({ updatedAt: -1, createdAt: -1 });
   logger.debug("Tasks fetched successfully", { count: tasks.length });
   res.json(tasks);
 });

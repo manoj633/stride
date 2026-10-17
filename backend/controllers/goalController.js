@@ -14,8 +14,8 @@ import { handleGoalCompletionXP } from "../utils/gamification.js";
  * * access: Public
  */
 const getGoals = asyncHandler(async (req, res) => {
-  const { year, archived } = req.query;
-  logger.info("Fetching goals", { endpoint: "/api/goals", year, archived });
+  const { year, archived, search, priority, status } = req.query;
+  logger.info("Fetching goals", { endpoint: "/api/goals", year, archived, search, priority, status });
 
   const query = { createdBy: req.userId };
 
@@ -48,7 +48,57 @@ const getGoals = asyncHandler(async (req, res) => {
     query.archived = { $ne: true };
   }
 
-  const goals = await Goal.find(query);
+  // Priority filter
+  if (priority && priority !== "all") {
+    query.priority = new RegExp(`^${priority}$`, "i");
+  }
+
+  // Status filter
+  if (status && status !== "all") {
+    if (status === "completed") {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: [{ completionPercentage: 100 }, { completed: true }] });
+    } else if (status === "in-progress") {
+      query.$and = query.$and || [];
+      query.$and.push({
+        completionPercentage: { $gt: 0, $lt: 100 },
+        completed: { $ne: true },
+      });
+    } else if (status === "overdue") {
+      query.$and = query.$and || [];
+      query.$and.push({
+        "duration.endDate": { $lt: new Date() },
+        completionPercentage: { $lt: 100 },
+        completed: { $ne: true },
+      });
+    }
+  }
+
+  // Keyword search across title, description, and category
+  if (search && search.trim()) {
+    const term = search.trim();
+    const searchRegex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const searchCond = {
+      $or: [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+      ],
+    };
+
+    if (query.$or) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: query.$or });
+      delete query.$or;
+      query.$and.push(searchCond);
+    } else if (query.$and) {
+      query.$and.push(searchCond);
+    } else {
+      query.$or = searchCond.$or;
+    }
+  }
+
+  const goals = await Goal.find(query).sort({ updatedAt: -1, createdAt: -1 });
   logger.debug("Goals fetched successfully", { count: goals.length });
   res.json(goals);
 });

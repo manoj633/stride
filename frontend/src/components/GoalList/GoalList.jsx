@@ -41,8 +41,12 @@ const GoalList = () => {
     archiveStatus,
     setArchiveStatus,
     availableYears,
+    searchTerm,
     setSearchTerm,
+    filterStatus,
     setFilterStatus,
+    filterPriority,
+    setFilterPriority,
     setSortBy,
     setViewType,
     filteredAndSortedGoals,
@@ -214,8 +218,12 @@ const GoalList = () => {
         {/* ── Level 2: Filter Toolbar (Search, Year, Archive, Status, Sort, View) ── */}
         <div className="enhanced-goals__toolbar">
           <SearchAndFilters
+            searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
+            filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
+            filterPriority={filterPriority}
+            setFilterPriority={setFilterPriority}
             setSortBy={setSortBy}
             setViewType={setViewType}
             sortBy={sortBy}
@@ -226,6 +234,25 @@ const GoalList = () => {
             setArchiveStatus={setArchiveStatus}
           />
         </div>
+
+        {/* ── Cross-Year Search Notification Banner ── */}
+        {searchTerm.trim().length > 0 && selectedYear !== "all" && filteredAndSortedGoals.length === 0 && (
+          <div className="enhanced-goals__search-crossyear-banner">
+            <div className="search-crossyear-banner__info">
+              <span className="search-crossyear-banner__icon">🔍</span>
+              <span>
+                No goals found matching "<strong>{searchTerm}</strong>" in <strong>{selectedYear}</strong>.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="search-crossyear-banner__btn"
+              onClick={() => setSelectedYear("all")}
+            >
+              Search across all years
+            </button>
+          </div>
+        )}
 
         {/* ── Optional Prompt-to-Archive for past-year incomplete goals ── */}
         {!promptDismissed && pastIncompleteGoals.length > 0 && (

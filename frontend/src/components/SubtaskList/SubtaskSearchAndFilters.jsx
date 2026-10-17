@@ -1,5 +1,6 @@
 // src/components/SubtaskList/SubtaskSearchAndFilters.jsx
 import React from "react";
+import { FiX, FiGlobe } from "react-icons/fi";
 
 const MONTHS = [
   { value: "all", label: "All Months" },
@@ -18,8 +19,12 @@ const MONTHS = [
 ];
 
 const SubtaskSearchAndFilters = ({
-  searchTerm,
+  searchTerm = "",
   setSearchTerm,
+  filterPriority = "all",
+  setFilterPriority,
+  filterStatus = "all",
+  setFilterStatus,
   filterTag,
   setFilterTag,
   availableTags = [],
@@ -30,14 +35,36 @@ const SubtaskSearchAndFilters = ({
   setSelectedMonth,
 }) => (
   <div className="enhanced-subtasks__controls">
-    <div className="enhanced-subtasks__search-wrapper">
+    <div className="enhanced-subtasks__search-wrapper" style={{ position: "relative", display: "flex", alignItems: "center", gap: "8px" }}>
       <input
         type="text"
-        placeholder="Search subtasks..."
+        placeholder="Search subtasks by name or description..."
         className="enhanced-goals__search-input"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        aria-label="Search subtasks"
       />
+      {searchTerm && (
+        <button
+          type="button"
+          className="enhanced-goals__search-clear"
+          onClick={() => setSearchTerm("")}
+          aria-label="Clear subtask search"
+        >
+          <FiX size={15} />
+        </button>
+      )}
+      {searchTerm.trim().length > 0 && selectedYear && selectedYear !== "all" && (
+        <button
+          type="button"
+          className="enhanced-goals__search-all-years-pill"
+          onClick={() => setSelectedYear("all")}
+          title="Search across all years"
+        >
+          <FiGlobe size={12} />
+          <span>Search all years</span>
+        </button>
+      )}
     </div>
 
     <div className="enhanced-goals__filters">
@@ -79,10 +106,37 @@ const SubtaskSearchAndFilters = ({
         </select>
       )}
 
+      {/* Priority Filter */}
+      <select
+        className="enhanced-goals__filter-select"
+        value={filterPriority}
+        onChange={(e) => setFilterPriority && setFilterPriority(e.target.value)}
+        aria-label="Filter subtasks by priority"
+      >
+        <option value="all">All Priorities</option>
+        <option value="High">High Priority</option>
+        <option value="Medium">Medium Priority</option>
+        <option value="Low">Low Priority</option>
+      </select>
+
+      {/* Status Filter */}
+      <select
+        className="enhanced-goals__filter-select"
+        value={filterStatus}
+        onChange={(e) => setFilterStatus && setFilterStatus(e.target.value)}
+        aria-label="Filter subtasks by status"
+      >
+        <option value="all">All Statuses</option>
+        <option value="completed">Completed</option>
+        <option value="pending">Pending</option>
+      </select>
+
+      {/* Tags Filter */}
       <select
         className="enhanced-goals__filter-select"
         value={filterTag}
         onChange={(e) => setFilterTag(e.target.value)}
+        aria-label="Filter subtasks by tag"
       >
         <option value="">All Tags</option>
         {availableTags.map((tag) => (

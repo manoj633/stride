@@ -439,3 +439,43 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Cross-Year Search Notification Banner & Search Pills ── */
+.enhanced-goals__search-crossyear-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #6366f1;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin: 8px 16px 4px 16px;
+    font-size: 13px;
+    color: #334155;
+    animation: searchFadeIn 0.15s ease-out;
+}
+
+.search-crossyear-banner__info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-crossyear-banner__btn {
+    background: #6366f1;
+    color: #ffffff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.search-crossyear-banner__btn:hover {
+    background: #4f46e5;
+}

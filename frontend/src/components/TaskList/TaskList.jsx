@@ -44,6 +44,8 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
 
   // Filter/search state
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [filterTag, setFilterTag] = useState("");
   const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
 
@@ -139,18 +141,37 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
       );
     }
 
+    if (filterPriority && filterPriority !== "all") {
+      filtered = filtered.filter(
+        (task) => (task.priority || "").toLowerCase() === filterPriority.toLowerCase()
+      );
+    }
+
+    if (filterStatus && filterStatus !== "all") {
+      if (filterStatus === "completed") {
+        filtered = filtered.filter((task) => task.completionPercentage === 100 || task.completed);
+      } else if (filterStatus === "in-progress") {
+        filtered = filtered.filter(
+          (task) => task.completionPercentage > 0 && task.completionPercentage < 100 && !task.completed
+        );
+      } else if (filterStatus === "not-started") {
+        filtered = filtered.filter(
+          (task) => (task.completionPercentage === 0 || !task.completionPercentage) && !task.completed
+        );
+      }
+    }
+
     if (searchTerm) {
+      const term = searchTerm.trim().toLowerCase();
       filtered = filtered.filter(
         (task) =>
-          (task.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (task.description || "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          (task.name || "").toLowerCase().includes(term) ||
+          (task.description || "").toLowerCase().includes(term)
       );
     }
 
     return filtered;
-  }, [ownsData, propTasks, allTasks, filterTag, searchTerm, filterDateRange, selectedYear]);
+  }, [ownsData, propTasks, allTasks, filterTag, filterPriority, filterStatus, searchTerm, filterDateRange, selectedYear]);
 
   // Statistics calculation
   const stats = useMemo(() => {
@@ -210,11 +231,15 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
           </div>
         </header>
 
-        {/* ── Level 2: Filter Toolbar (Search, Year, Date Range, Tags) ── */}
+        {/* ── Level 2: Filter Toolbar (Search, Year, Priority, Status, Date Range, Tags) ── */}
         <div className="enhanced-tasks__toolbar">
           <TaskSearchAndFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
+            filterPriority={filterPriority}
+            setFilterPriority={setFilterPriority}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
             filterTag={filterTag}
             setFilterTag={setFilterTag}
             filterDateRange={filterDateRange}
@@ -225,6 +250,25 @@ const TaskList = ({ tasks: propTasks, ownsData = false, goalDateRange }) => {
             availableYears={ownsData ? availableYears : []}
           />
         </div>
+
+        {/* ── Cross-Year Search Notification Banner for Tasks ── */}
+        {searchTerm.trim().length > 0 && ownsData && selectedYear !== "all" && tasks.length === 0 && (
+          <div className="enhanced-goals__search-crossyear-banner" style={{ margin: "10px 0 16px 0" }}>
+            <div className="search-crossyear-banner__info">
+              <span className="search-crossyear-banner__icon">🔍</span>
+              <span>
+                No tasks found matching "<strong>{searchTerm}</strong>" in <strong>{selectedYear}</strong>.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="search-crossyear-banner__btn"
+              onClick={() => handleYearChange("all")}
+            >
+              Search across all years
+            </button>
+          </div>
+        )}
 
         {/* ── Main Area ── */}
         <div className="enhanced-tasks__main">

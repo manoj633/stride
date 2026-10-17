@@ -121,3 +121,9 @@ export const adminAnalyticsAPI = {
   getSystemHealth: () => axiosInstance.get("/admin/analytics/system-health"),
 };
 
+export const searchAPI = {
+  searchAll: (query, params = {}) =>
+    axiosInstance.get("/search", { params: { q: query, ...params } }),
+};
+
+

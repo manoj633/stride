@@ -120,6 +120,25 @@
         gap: 10px;
     }
 
+    .mobile-topbar__search-btn {
+        background: transparent;
+        border: 1px solid var(--ef-border, #e4e4e7);
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--ef-text-secondary, #52525b);
+        transition: all 0.15s ease;
+    }
+
+    .mobile-topbar__search-btn:hover {
+        background-color: var(--ef-bg-subtle, #f4f4f5);
+        color: var(--ef-text-primary, #18181b);
+    }
+
     .mobile-topbar__avatar {
         width: 32px;
         height: 32px;
@@ -272,6 +291,73 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 2px;
+}
+
+/* Drawer Global Search Trigger */
+.nav-drawer__search-wrapper {
+    padding: 0 12px 14px 12px;
+}
+
+.nav-drawer.closed .nav-drawer__search-wrapper {
+    padding: 0 8px 14px 8px;
+}
+
+.nav-drawer__search-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: #f8fafc;
+    border: 1px solid var(--ef-border);
+    border-radius: 10px;
+    color: var(--ef-text-tertiary);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13.5px;
+    transition: all 0.18s ease;
+    box-sizing: border-box;
+}
+
+.nav-drawer__search-trigger:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: var(--ef-text-primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.nav-drawer__search-trigger.collapsed {
+    padding: 9px 0;
+    justify-content: center;
+}
+
+.nav-drawer__search-icon {
+    color: #64748b;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+}
+
+.nav-drawer__search-trigger:hover .nav-drawer__search-icon {
+    color: var(--ef-accent);
+}
+
+.nav-drawer__search-text {
+    flex: 1;
+    text-align: left;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.nav-drawer__search-kbd {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .nav-drawer__quick-add {

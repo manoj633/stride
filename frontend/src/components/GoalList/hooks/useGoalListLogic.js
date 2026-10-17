@@ -22,6 +22,7 @@ export const useGoalListLogic = (goals) => {
   // Filter and sort state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
   const [archiveStatus, setArchiveStatus] = useState("active"); // "active" | "archived" | "all"
   const [selectedYear, setSelectedYear] = useState(currentYear); // number or "all"
   const [sortBy, setSortBy] = useState("lastModified");
@@ -58,10 +59,23 @@ export const useGoalListLogic = (goals) => {
     return goals
       .filter((goal) => {
         if (!goal) return false;
-        // Match search term against goal title
-        const matchesSearch = goal.title
-          ? goal.title.toLowerCase().includes(searchTerm.toLowerCase())
-          : false;
+        // Match search term against goal title, description, and category
+        const term = searchTerm.trim().toLowerCase();
+        let matchesSearch = true;
+        if (term) {
+          const titleMatch = goal.title ? goal.title.toLowerCase().includes(term) : false;
+          const descMatch = goal.description ? goal.description.toLowerCase().includes(term) : false;
+          const catMatch = goal.category ? goal.category.toLowerCase().includes(term) : false;
+          matchesSearch = titleMatch || descMatch || catMatch;
+        }
+        if (!matchesSearch) return false;
+
+        // Apply Priority filter
+        if (filterPriority && filterPriority !== "all") {
+          if ((goal.priority || "").toLowerCase() !== filterPriority.toLowerCase()) {
+            return false;
+          }
+        }
 
         // Apply status filters
         if (filterStatus === "completed") {
@@ -180,7 +194,7 @@ export const useGoalListLogic = (goals) => {
             return 0;
         }
       });
-  }, [goals, searchTerm, filterStatus, archiveStatus, selectedYear, sortBy]);
+  }, [goals, searchTerm, filterStatus, filterPriority, archiveStatus, selectedYear, sortBy]);
 
   // Chart data calculation based on the active filtered scope
   const chartData = useMemo(() => {
@@ -380,6 +394,7 @@ export const useGoalListLogic = (goals) => {
   return {
     searchTerm,
     filterStatus,
+    filterPriority,
     archiveStatus,
     selectedYear,
     availableYears,
@@ -388,6 +403,7 @@ export const useGoalListLogic = (goals) => {
     selectedGoals,
     setSearchTerm,
     setFilterStatus,
+    setFilterPriority,
     setArchiveStatus,
     setSelectedYear,
     setSortBy,

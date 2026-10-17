@@ -20,17 +20,32 @@ import {
   FiX,
   FiChevronLeft,
   FiChevronRight,
+  FiSearch,
 } from "react-icons/fi";
 import "./Navigation.css";
 import NotificationBell from "../Notifications/NotificationBell";
+import GlobalSearchModal from "../Common/GlobalSearchModal";
 
 const NavigationDrawer = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isOpen, setIsOpen] = useState(window.innerWidth >= 1024);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { userInfo } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+
+  // Global Ctrl+K / Cmd+K listener to trigger search modal
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
 
   useEffect(() => {
     let prevIsMobile = window.innerWidth < 1024;
@@ -119,6 +134,14 @@ const NavigationDrawer = () => {
           <span className="mobile-topbar__logo">Stride</span>
         </div>
         <div className="mobile-topbar__actions">
+          <button
+            className="mobile-topbar__search-btn"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Search goals and tasks"
+            title="Search (Ctrl+K)"
+          >
+            <FiSearch size={19} />
+          </button>
           <NotificationBell />
           <button
             className="mobile-topbar__avatar"
@@ -170,6 +193,28 @@ const NavigationDrawer = () => {
               <div className="nav-drawer__email">{userInfo.email}</div>
             </div>
           )}
+        </div>
+
+        {/* Global Search Trigger */}
+        <div className="nav-drawer__search-wrapper">
+          <button
+            type="button"
+            className={`nav-drawer__search-trigger ${!isOpen ? "collapsed" : ""}`}
+            onClick={() => {
+              setIsSearchOpen(true);
+              closeDrawer();
+            }}
+            title={!isOpen ? "Search goals & tasks (Ctrl+K)" : ""}
+            aria-label="Search goals and tasks"
+          >
+            <FiSearch className="nav-drawer__search-icon" size={16} />
+            {isOpen && (
+              <>
+                <span className="nav-drawer__search-text">Search...</span>
+                <kbd className="nav-drawer__search-kbd">Ctrl K</kbd>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Quick add section */}
@@ -236,6 +281,12 @@ const NavigationDrawer = () => {
           isOpen ? "drawer-open" : "drawer-closed"
         }`}
       ></div>
+
+      {/* Global Command Palette / Search Modal */}
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </>
   );
 };
