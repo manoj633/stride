@@ -224,8 +224,14 @@
 /* ── Two-column row ─────────────────────────────────────── */
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
+  width: 100%;
+}
+
+.form-row > .form-group {
+  min-width: 0;
+  width: 100%;
 }
 
 /* ── Submit button ─────────────────────────────────────── */

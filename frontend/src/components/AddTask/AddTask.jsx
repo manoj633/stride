@@ -9,6 +9,8 @@ import { createTask } from "../../store/features/tasks/taskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import { useUnsavedChanges } from "../Common/useUnsavedChanges";
+import SearchableGoalSelect from "../Common/SearchableGoalSelect";
+import PrioritySelect from "../Common/PrioritySelect";
 
 const getCurrentMonthDateRange = () => {
   const now = new Date();
@@ -119,12 +121,16 @@ const AddTask = ({ goalId, onTaskAdded }) => {
     }
   }, [taskData.goalId, goals]);
 
-  const handleGoalChange = (e) => {
-    const selected = goals.find((g) => g._id === e.target.value);
+  const handleGoalChange = (newGoalIdOrEvent) => {
+    const value =
+      typeof newGoalIdOrEvent === "object" && newGoalIdOrEvent?.target
+        ? newGoalIdOrEvent.target.value
+        : newGoalIdOrEvent || "";
+    const selected = goals.find((g) => g._id === value);
     const { startDate, endDate } = getDefaultTaskDates(selected);
     setTaskData({
       ...taskData,
-      goalId: e.target.value,
+      goalId: value,
       startDate,
       endDate,
     });
@@ -221,34 +227,22 @@ const AddTask = ({ goalId, onTaskAdded }) => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="goalId">Parent Goal</label>
-                  <select
-                    id="goalId"
+                  <SearchableGoalSelect
+                    goals={goals}
                     value={taskData.goalId}
                     onChange={handleGoalChange}
+                    placeholder="Search & select a goal..."
                     required
-                    aria-label="Goal for task"
-                  >
-                    <option value="">Select a Goal</option>
-                    {goals.map((goal) => (
-                      <option key={goal._id} value={goal._id}>
-                        {goal.title}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="priority">Priority</label>
-                  <select
+                  <PrioritySelect
                     id="priority"
                     value={taskData.priority}
-                    onChange={(e) => setTaskData({ ...taskData, priority: e.target.value })}
-                    aria-label="Task priority"
-                  >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
+                    onChange={(val) => setTaskData({ ...taskData, priority: val })}
+                  />
                 </div>
               </div>
 

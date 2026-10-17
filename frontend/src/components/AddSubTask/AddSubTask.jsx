@@ -12,6 +12,9 @@ import { createSubtask } from "../../store/features/subtasks/subtaskSlice";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import { useUnsavedChanges } from "../Common/useUnsavedChanges";
+import SearchableGoalSelect from "../Common/SearchableGoalSelect";
+import SearchableTaskSelect from "../Common/SearchableTaskSelect";
+import PrioritySelect from "../Common/PrioritySelect";
 import "./AddSubTask.css";
 
 const formatDate = (isoDate) => {
@@ -131,13 +134,20 @@ const AddSubTask = ({ onSubtaskAdded }) => {
     }
   }, [formData.taskId, queryTaskId, allTasks]);
 
-  const handleGoalChange = (e) => {
-    setFormData((prev) => ({ ...prev, goalId: e.target.value, taskId: "" }));
+  const handleGoalChange = (newGoalIdOrEvent) => {
+    const val =
+      typeof newGoalIdOrEvent === "object" && newGoalIdOrEvent?.target
+        ? newGoalIdOrEvent.target.value
+        : newGoalIdOrEvent || "";
+    setFormData((prev) => ({ ...prev, goalId: val, taskId: "" }));
     setTaskDateRange({ minDate: "", maxDate: "" });
   };
 
-  const handleTaskChange = (e) => {
-    const selectedTaskId = e.target.value;
+  const handleTaskChange = (newTaskIdOrEvent) => {
+    const selectedTaskId =
+      typeof newTaskIdOrEvent === "object" && newTaskIdOrEvent?.target
+        ? newTaskIdOrEvent.target.value
+        : newTaskIdOrEvent || "";
     const selectedTask = availableTasks.find((task) => task._id === selectedTaskId);
     const newDueDate = selectedTask ? getDefaultDueDate(selectedTask) : defaultDueDate;
 
@@ -250,41 +260,31 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="goalId">Parent Goal</label>
-                  <select
-                    id="goalId"
+                  <SearchableGoalSelect
+                    goals={goals}
                     value={formData.goalId}
                     onChange={handleGoalChange}
+                    placeholder="Search & select a goal..."
                     required
-                    aria-label="Goal for subtask"
-                  >
-                    <option value="">Select a Goal</option>
-                    {goals.map((goal) => (
-                      <option key={goal._id} value={goal._id}>
-                        {goal.title}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="taskId">Parent Task</label>
-                  <select
-                    id="taskId"
+                  <SearchableTaskSelect
+                    tasks={availableTasks}
                     value={formData.taskId}
                     onChange={handleTaskChange}
-                    required
+                    placeholder={
+                      formData.goalId
+                        ? "Search & select a task..."
+                        : "Select a goal first"
+                    }
                     disabled={!formData.goalId}
-                    aria-label="Task for subtask"
-                  >
-                    <option value="">Select a Task</option>
-                    {availableTasks.map((task) => (
-                      <option key={task._id} value={task._id}>
-                        {task.name}
-                      </option>
-                    ))}
-                  </select>
+                    required
+                  />
                   {!formData.goalId && (
-                    <span className="ef-hint">Select a goal first</span>
+                    <span className="ef-hint">Select a goal first to enable tasks</span>
                   )}
                 </div>
               </div>
@@ -292,16 +292,11 @@ const AddSubTask = ({ onSubtaskAdded }) => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="priority">Priority</label>
-                  <select
+                  <PrioritySelect
                     id="priority"
                     value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                    aria-label="Subtask priority"
-                  >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, priority: val })}
+                  />
                 </div>
 
                 <div className="form-group">

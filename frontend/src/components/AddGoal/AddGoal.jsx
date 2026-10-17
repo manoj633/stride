@@ -10,6 +10,7 @@ import GoalTemplateSelector from "./GoalTemplateSelector";
 import LoadingSpinner from "../Common/LoadingSpinner";
 import ErrorMessage from "../Common/ErrorMessage";
 import { useUnsavedChanges } from "../Common/useUnsavedChanges";
+import PrioritySelect from "../Common/PrioritySelect";
 
 const getCurrentMonthDateRange = () => {
   const now = new Date();
@@ -227,18 +228,11 @@ const AddGoal = () => {
 
                 <div className="form-group">
                   <label htmlFor="priority">Priority</label>
-                  <select
+                  <PrioritySelect
                     id="priority"
                     value={goal.priority}
-                    onChange={(e) =>
-                      setGoal({ ...goal, priority: e.target.value })
-                    }
-                    aria-label="Goal priority"
-                  >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
+                    onChange={(val) => setGoal({ ...goal, priority: val })}
+                  />
                 </div>
               </div>
 
