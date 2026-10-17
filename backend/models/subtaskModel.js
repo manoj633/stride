@@ -48,5 +48,11 @@ const SubtaskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes for cascade deletes, parent lookups, and user-scoped list queries (ESR sort)
+SubtaskSchema.index({ taskId: 1 });
+SubtaskSchema.index({ goalId: 1 });
+SubtaskSchema.index({ createdBy: 1, taskId: 1 });
+SubtaskSchema.index({ createdBy: 1, updatedAt: -1, createdAt: -1 });
+
 const Subtask = mongoose.model("Subtask", SubtaskSchema);
 export default Subtask;

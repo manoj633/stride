@@ -133,5 +133,8 @@ const GoalSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound ESR index: serves all user-scoped goal queries & eliminates in-memory SORT
+GoalSchema.index({ createdBy: 1, updatedAt: -1, createdAt: -1 });
+
 const Goal = mongoose.model("Goal", GoalSchema);
 export default Goal;

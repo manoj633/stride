@@ -60,5 +60,10 @@ const TaskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes for cascade deletes, goal lookups, and user-scoped list queries (ESR sort)
+TaskSchema.index({ goalId: 1 });
+TaskSchema.index({ createdBy: 1, goalId: 1 });
+TaskSchema.index({ createdBy: 1, updatedAt: -1, createdAt: -1 });
+
 const Task = mongoose.model("Task", TaskSchema);
 export default Task;

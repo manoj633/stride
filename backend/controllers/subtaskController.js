@@ -45,7 +45,13 @@ const getSubtasks = asyncHandler(async (req, res) => {
 
   // Priority filter
   if (priority && priority !== "all") {
-    query.priority = new RegExp(`^${priority}$`, "i");
+    const validPriorities = ["High", "Medium", "Low"];
+    const matchedPriority = validPriorities.find(
+      (p) => p.toLowerCase() === priority.trim().toLowerCase()
+    );
+    if (matchedPriority) {
+      query.priority = new RegExp(`^${matchedPriority}$`, "i");
+    }
   }
 
   // Status filter

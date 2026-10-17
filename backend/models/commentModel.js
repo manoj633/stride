@@ -27,5 +27,9 @@ const CommentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes for goal comment fetching, author queries, and cascade deletes
+CommentSchema.index({ goalId: 1 });
+CommentSchema.index({ authorId: 1 });
+
 const Comment = mongoose.model("Comment", CommentSchema);
 export default Comment;
